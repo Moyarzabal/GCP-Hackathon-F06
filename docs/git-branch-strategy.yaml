@@ -53,26 +53,26 @@ working_branches:
 
 # 3人での役割分担
 team_assignment:
-  developer_a:
-    name: "開発者A"
+  shun:
+    name: "shun"
     responsibility: "バーコードスキャン機能"
     branch: "feature/barcode-scanner"
     tasks:
       - "ML Kit Barcode Scanning実装"
       - "商品情報取得API連携"
       - "バーコード読み取りUI"
-
-  developer_b:
-    name: "開発者B"
+    
+  fukku:
+    name: "fukku"
     responsibility: "AI認識機能"
     branch: "feature/ai-recognition"
     tasks:
       - "Vertex AI Gemini API連携"
       - "レシート解析機能"
       - "画像認識処理"
-
-  developer_c:
-    name: "開発者C"
+    
+  rena:
+    name: "rena"
     responsibility: "UI・3D表示機能"
     branch: "feature/ui-components"
     tasks:
