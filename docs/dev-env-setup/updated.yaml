@@ -1,0 +1,42 @@
+version: 1
+request: "開発環境の構築方法と Cloud Run/Docker 採用可否の判断"
+date: 2025-08-16
+
+final_recommendation:
+  summary: |
+    日々の開発は「Flutter + Firebase Emulator Suite」で進め、
+    外部連携/API はローカル Docker（docker compose）または Cloud Run dev サービスで検証します。
+    本番は Cloud Functions と Cloud Run のサーバーレス構成でデプロイ。Cloud Run 採用により、
+    重い AI 前処理や外部 API 連携をコンテナで安全に運用できます。
+  reasons:
+    - "モバイルはホットリロードで高速開発できる"
+    - "エミュレーターでオフラインでも Firestore/Storage/Functions を再現できる"
+    - "Cloud Run はスケール・起動時間・ランタイム自由度のバランスが良い"
+    - "Docker により依存関係の差異を吸収できる"
+
+tooling:
+  flutter:
+    fvm: true
+  firebase:
+    emulator_suite: true
+    config_files:
+      - firebase.json
+      - .firebaserc
+      - firestore.rules
+      - storage.rules
+  container:
+    docker: true
+    compose: true
+    artifact_registry: true
+  ci_cd:
+    github_actions: true
+
+next_actions:
+  - "Flutter プロジェクトの初期化と FVM 設定"
+  - "FlutterFire で Firebase 連携、Emulator 設定ファイル追加"
+  - "Functions ひな形追加（Node.js 20）"
+  - "Cloud Run 用の `api/` ディレクトリ、Dockerfile, docker-compose.yml 追加"
+  - "GitHub Actions の雛形追加（format, analyze, test）"
+  - "Secret Manager と GitHub Secrets のキー設計"
+
+
