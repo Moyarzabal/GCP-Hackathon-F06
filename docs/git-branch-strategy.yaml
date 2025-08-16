@@ -61,7 +61,7 @@ team_assignment:
       - "ML Kit Barcode Scanning実装"
       - "商品情報取得API連携"
       - "バーコード読み取りUI"
-    
+
   fukku:
     name: "fukku"
     responsibility: "AI認識機能"
@@ -70,7 +70,7 @@ team_assignment:
       - "Vertex AI Gemini API連携"
       - "レシート解析機能"
       - "画像認識処理"
-    
+
   rena:
     name: "rena"
     responsibility: "UI・3D表示機能"
