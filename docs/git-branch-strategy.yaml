@@ -1,0 +1,202 @@
+# Git Branch Strategy for 3-Person Team Development
+# 3人チーム開発のためのGitブランチ戦略
+
+project:
+  name: "GCP-Hackathon-F06"
+  team_size: 3
+  strategy: "Git Flow"
+
+# メインブランチ構成
+main_branches:
+  production:
+    name: "main"
+    purpose: "本番環境用"
+    status: "常にデプロイ可能状態"
+    protection:
+      direct_push: false
+      require_pr_review: true
+      min_reviewers: 1
+
+  development:
+    name: "develop"
+    purpose: "開発統合ブランチ"
+    status: "機能統合・テスト用"
+    merge_from:
+      - "feature/*"
+    merge_to:
+      - "main"
+
+# 作業ブランチ
+working_branches:
+  feature:
+    prefix: "feature/"
+    naming_convention: "feature/{機能名}"
+    purpose: "各機能開発用"
+    base_branch: "develop"
+    merge_target: "develop"
+    examples:
+      - "feature/barcode-scanner"
+      - "feature/ai-recognition"
+      - "feature/ui-components"
+
+  hotfix:
+    prefix: "hotfix/"
+    naming_convention: "hotfix/{修正内容}"
+    purpose: "緊急バグ修正用"
+    base_branch: "main"
+    merge_target:
+      - "main"
+      - "develop"
+    examples:
+      - "hotfix/critical-auth-bug"
+      - "hotfix/memory-leak-fix"
+
+# 3人での役割分担
+team_assignment:
+  developer_a:
+    name: "開発者A"
+    responsibility: "バーコードスキャン機能"
+    branch: "feature/barcode-scanner"
+    tasks:
+      - "ML Kit Barcode Scanning実装"
+      - "商品情報取得API連携"
+      - "バーコード読み取りUI"
+
+  developer_b:
+    name: "開発者B"
+    responsibility: "AI認識機能"
+    branch: "feature/ai-recognition"
+    tasks:
+      - "Vertex AI Gemini API連携"
+      - "レシート解析機能"
+      - "画像認識処理"
+
+  developer_c:
+    name: "開発者C"
+    responsibility: "UI・3D表示機能"
+    branch: "feature/ui-components"
+    tasks:
+      - "Flutter UI コンポーネント"
+      - "Riveアニメーション"
+      - "3D冷蔵庫表示"
+
+# ワークフロー
+workflow:
+  feature_development:
+    step1: "develop ブランチから feature/xxx を作成"
+    step2: "機能開発・テスト実装"
+    step3: "feature/xxx から develop へPR作成"
+    step4: "コードレビュー実施"
+    step5: "develop へマージ"
+
+  release_process:
+    step1: "develop で統合テスト実施"
+    step2: "develop から main へPR作成"
+    step3: "本番デプロイ準備確認"
+    step4: "main へマージ"
+    step5: "本番環境デプロイ"
+
+  hotfix_process:
+    step1: "main から hotfix/xxx を作成"
+    step2: "緊急修正実装"
+    step3: "main と develop 両方へマージ"
+    step4: "即座にデプロイ"
+
+# ブランチ保護ルール
+branch_protection:
+  main:
+    direct_push: false
+    require_pr: true
+    require_review: true
+    min_reviewers: 1
+    dismiss_stale_reviews: true
+    require_status_checks: true
+    status_checks:
+      - "Flutter Build"
+      - "Unit Tests"
+      - "Integration Tests"
+
+  develop:
+    direct_push: false
+    require_pr: true
+    require_review: true
+    min_reviewers: 1
+    require_status_checks: true
+
+# コミット規約
+commit_convention:
+  format: "{type}({scope}): {description}"
+  types:
+    feat: "新機能追加"
+    fix: "バグ修正"
+    docs: "ドキュメント更新"
+    style: "コードスタイル修正"
+    refactor: "リファクタリング"
+    test: "テスト追加・修正"
+    chore: "ビルド・設定変更"
+  examples:
+    - "feat(barcode): ML Kitバーコードスキャン機能追加"
+    - "fix(auth): Firebase認証エラー修正"
+    - "docs(readme): インストール手順更新"
+
+# CI/CD設定
+ci_cd:
+  platform: "GitHub Actions"
+  triggers:
+    - event: "push"
+      branches: ["main", "develop"]
+    - event: "pull_request"
+      branches: ["main", "develop"]
+
+  jobs:
+    build:
+      name: "Flutter Build"
+      steps:
+        - "Flutter SDK setup"
+        - "依存関係インストール"
+        - "コードフォーマット検証"
+        - "静的解析実行"
+        - "ビルド実行"
+
+    test:
+      name: "Test Suite"
+      steps:
+        - "Unit Tests"
+        - "Widget Tests"
+        - "Integration Tests"
+
+    deploy:
+      name: "Firebase Deploy"
+      condition: "ブランチが main の場合"
+      steps:
+        - "Firebase プロジェクト設定"
+        - "アプリバンドル生成"
+        - "Firebase App Distribution"
+
+# Firebase/GCP環境分離
+environment_mapping:
+  production:
+    branch: "main"
+    firebase_project: "gcp-hackathon-f06-prod"
+    gcp_project: "gcp-hackathon-f06-prod"
+    domain: "app.gcp-hackathon-f06.com"
+
+  staging:
+    branch: "develop"
+    firebase_project: "gcp-hackathon-f06-staging"
+    gcp_project: "gcp-hackathon-f06-staging"
+    domain: "staging.gcp-hackathon-f06.com"
+
+  development:
+    branch: "feature/*"
+    firebase_project: "個別プロジェクト"
+    gcp_project: "個別プロジェクト"
+    note: "開発者ごとに個別のFirebaseプロジェクトを使用"
+
+# 利点
+benefits:
+  - "3人が並行開発しても競合を最小限に抑制"
+  - "安全なリリースプロセス"
+  - "明確な役割分担"
+  - "品質管理の徹底"
+  - "環境分離による安全な開発"
