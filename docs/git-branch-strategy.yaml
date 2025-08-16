@@ -51,34 +51,57 @@ working_branches:
       - "hotfix/critical-auth-bug"
       - "hotfix/memory-leak-fix"
 
-# 3人での役割分担
+# 3人での役割分担（未決定）
 team_assignment:
   shun:
     name: "shun"
-    responsibility: "バーコードスキャン機能"
-    branch: "feature/barcode-scanner"
+    responsibility: "TBD（To Be Determined）"
+    branch: "TBD"
     tasks:
-      - "ML Kit Barcode Scanning実装"
-      - "商品情報取得API連携"
-      - "バーコード読み取りUI"
+      - "役割決定後に詳細タスクを設定"
 
   fukku:
     name: "fukku"
-    responsibility: "AI認識機能"
-    branch: "feature/ai-recognition"
+    responsibility: "TBD（To Be Determined）"
+    branch: "TBD"
     tasks:
-      - "Vertex AI Gemini API連携"
-      - "レシート解析機能"
-      - "画像認識処理"
+      - "役割決定後に詳細タスクを設定"
 
   rena:
     name: "rena"
-    responsibility: "UI・3D表示機能"
-    branch: "feature/ui-components"
+    responsibility: "TBD（To Be Determined）"
+    branch: "TBD"
     tasks:
-      - "Flutter UI コンポーネント"
-      - "Riveアニメーション"
+      - "役割決定後に詳細タスクを設定"
+
+# 候補となる役割・機能領域
+potential_roles:
+  frontend_ui:
+    description: "フロントエンド・UI/UX"
+    responsibilities:
+      - "Flutterアプリ開発"
+      - "UIコンポーネント作成"
+      - "Riveアニメーション実装"
       - "3D冷蔵庫表示"
+    branch_prefix: "feature/ui-"
+
+  ai_backend:
+    description: "AI・バックエンド機能"
+    responsibilities:
+      - "Vertex AI Gemini API連携"
+      - "レシート解析機能"
+      - "画像認識処理"
+      - "Cloud Functions開発"
+    branch_prefix: "feature/ai-"
+
+  scanner_data:
+    description: "スキャン・データ管理"
+    responsibilities:
+      - "ML Kit Barcode Scanning実装"
+      - "商品情報取得API連携"
+      - "Firebase データ設計"
+      - "データベース管理"
+    branch_prefix: "feature/data-"
 
 # ワークフロー
 workflow:
