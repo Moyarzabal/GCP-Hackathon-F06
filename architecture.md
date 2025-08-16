@@ -16,27 +16,27 @@
 ```mermaid
 graph TD
     subgraph "📱 ユーザーデバイス"
-        A[Flutterアプリ<br/>UI/UX, Riveアニメーション<br/>ML Kitオンデバイス処理]
+        A["Flutterアプリ<br>UI/UX, Riveアニメーション<br>ML Kitオンデバイス処理"]
     end
 
     subgraph "🔥 Firebase (BaaS for Mobile)"
-        B[Authentication<br/>ユーザー認証・家族管理]
-        C[Firestore<br/>リアルタイムDB<br/>(在庫/レシピ/ユーザー情報)]
-        D[Cloud Storage<br/>画像ストレージ<br/>(レシート/生成キャラ画像)]
-        E[FCM<br/>プッシュ通知]
+        B["Authentication<br>ユーザー認証・家族管理"]
+        C["Firestore<br>リアルタイムDB<br>(在庫/レシピ/ユーザー情報)"]
+        D["Cloud Storage<br>画像ストレージ<br>(レシート/生成キャラ画像)"]
+        E["FCM<br>プッシュ通知"]
     end
 
     subgraph "☁️ Google Cloud (Backend & AI Brain)"
-        F[Cloud Functions<br/>イベント駆動バックエンド<br/>(DBトリガー/スケジュール実行)]
-        G[Cloud Run<br/>APIエンドポイント<br/>(Flutterからの直接呼び出し)]
-        H[Vertex AI - Gemini<br/>AIエージェント<br/>(レシピ提案/レシート解析/対話)]
-        I[Vertex AI - Imagen<br/>画像生成<br/>(食材キャラクター作成)]
-        J[BigQuery<br/>データ分析基盤<br/>(家計簿/フードロス分析)]
-        K[Looker Studio<br/>データ可視化ダッシュボード]
+        F["Cloud Functions<br>イベント駆動バックエンド<br>(DBトリガー/スケジュール実行)"]
+        G["Cloud Run<br>APIエンドポイント<br>(Flutterからの直接呼び出し)"]
+        H["Vertex AI - Gemini<br>AIエージェント<br>(レシピ提案/レシート解析/対話)"]
+        I["Vertex AI - Imagen<br>画像生成<br>(食材キャラクター作成)"]
+        J["BigQuery<br>データ分析基盤<br>(家計簿/フードロス分析)"]
+        K["Looker Studio<br>データ可視化ダッシュボード"]
     end
 
     subgraph "🌐 外部サービス"
-        L[Open Food Facts API<br/>商品情報マスタ]
+        L["Open Food Facts API<br>商品情報マスタ"]
     end
 
     %% データフロー
@@ -158,12 +158,12 @@ graph TD
 
 ```mermaid
 sequenceDiagram
-    participant U as 📱 Flutter
-    participant S as 📁 Cloud Storage
-    participant F as ⚡ Cloud Functions
-    participant G as 🧠 Gemini
-    participant I as 🎨 Imagen
-    participant DB as 📊 Firestore
+    participant U as 📱Flutter
+    participant S as 📁Storage
+    participant F as ⚡Functions
+    participant G as 🧠Gemini
+    participant I as 🎨Imagen
+    participant DB as 📊Firestore
 
     U->>S: レシート画像アップロード
     S->>F: アップロードトリガー
@@ -190,12 +190,12 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant S as 🕒 Cloud Scheduler
-    participant F as ⚡ Cloud Functions
-    participant DB as 📊 Firestore
-    participant I as 🎨 Imagen
-    participant N as 📢 FCM
-    participant U as 📱 Flutter
+    participant S as 🕒Scheduler
+    participant F as ⚡Functions
+    participant DB as 📊Firestore
+    participant I as 🎨Imagen
+    participant N as 📢FCM
+    participant U as 📱Flutter
 
     S->>F: 毎日深夜定期実行
     F->>DB: 全itemsスキャン
