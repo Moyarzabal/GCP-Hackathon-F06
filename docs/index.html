@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍅 冷蔵庫管理AIアプリ - 要件定義書</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --dark: #020617;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--light);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--primary);
+            padding: 24px 16px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-menu li {
+            margin-bottom: 8px;
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 8px 12px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(255,255,255,0.08);
+            color: white;
+        }
+
+        .nav-menu a.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 32px 48px;
+            max-width: 1600px;
+            background: white;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .section {
+            margin-bottom: 40px;
+            scroll-margin-top: 100px;
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent);
+            padding-left: 16px;
+        }
+
+        .section h3 {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin: 20px 0 10px 0;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+
+        .stats-card {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stats-card h3 {
+            color: white;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            border-left: 3px solid var(--accent);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .color-item {
+            text-align: center;
+        }
+
+        .color-box {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            margin-bottom: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .ui-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .ui-option {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .ui-option:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .ui-option img {
+            width: 100%;
+            height: auto;
+            max-height: 600px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .table th {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge.high { background: #fee2e2; color: #dc2626; }
+        .badge.medium { background: #fef3c7; color: #d97706; }
+        .badge.low { background: #dcfce7; color: #16a34a; }
+
+        .mermaid {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media print {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <h2>📋 目次</h2>
+        <ul class="nav-menu">
+            <li><a href="#overview" class="nav-link">プロジェクト概要</a></li>
+            <li><a href="#ui-design" class="nav-link">UI設計案</a></li>
+            <li><a href="#design-requirements" class="nav-link">デザイン要件</a></li>
+            <li><a href="#personas" class="nav-link">ペルソナ設定</a></li>
+            <li><a href="#user-requirements" class="nav-link">ユーザー要望</a></li>
+            <li><a href="#functional" class="nav-link">機能要件</a></li>
+            <li><a href="#non-functional" class="nav-link">非機能要件</a></li>
+            <li><a href="#technical" class="nav-link">技術仕様</a></li>
+            <li><a href="#architecture" class="nav-link">アーキテクチャ</a></li>
+            <li><a href="#database" class="nav-link">データベース設計</a></li>
+            <li><a href="#project-management" class="nav-link">プロジェクト管理</a></li>
+            <li><a href="#settings" class="nav-link">設定情報</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <header class="header">
+            <h1>🍅 冷蔵庫管理AIアプリ</h1>
+            <p class="subtitle">包括的要件定義書 - F06 Team Hackathon Project</p>
+        </header>
+
+        <section id="overview" class="section">
+            <h2>プロジェクト概要</h2>
+            <div class="card">
+                <h3>エグゼクティブサマリー</h3>
+                <p>Flutter + GCP + Firebaseを活用した、バーコードスキャン対応の冷蔵庫管理アプリケーション。商品バーコードと賞味期限を読み取り、商品データベースと連携して食材管理を効率化するモバイルアプリです。</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="stats-card">
+                    <h3>3名</h3>
+                    <p>開発チーム規模</p>
+                </div>
+                <div class="stats-card">
+                    <h3>12週</h3>
+                    <p>開発期間目標</p>
+                </div>
+            </div>
+
+            <div class="feature-card">
+                <h3>🎯 ビジョン・ミッション</h3>
+                <ul>
+                    <li><strong>ビジョン:</strong> バーコードスキャンによる簡単で正確な食材管理を実現する</li>
+                    <li><strong>ミッション:</strong> 商品データベースと連携し、賞味期限管理を効率化・自動化</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>KPI・成功指標</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>指標カテゴリ</th>
+                            <th>具体的指標</th>
+                            <th>目標値</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ユーザーエンゲージメント</td>
+                            <td>月間アクティブユーザー数</td>
+                            <td>10,000人</td>
+                        </tr>
+                        <tr>
+                            <td>ビジネス価値</td>
+                            <td>フードロス削減率</td>
+                            <td>30%向上</td>
+                        </tr>
+                        <tr>
+                            <td>技術品質</td>
+                            <td>アプリクラッシュ率</td>
+                            <td>&lt; 0.1%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="ui-design" class="section">
+            <h2>UI設計案</h2>
+            
+            <div class="ui-showcase">
+                <div class="ui-option">
+                    <img src="./fridge-home-ui.png" alt="冷蔵庫ホーム画面UI案1">
+                    <h3>🏠 ホーム画面デザイン案</h3>
+                    <p><strong>採用理由:</strong> スキャンした商品リストを効率的に表示。賞味期限が近い商品を優先表示し、視覚的に管理しやすいデザイン。</p>
+                    <p><strong>特徴:</strong> マテリアルデザインベース、商品リスト表示、賞味期限アラート機能</p>
+                </div>
+
+                <div class="ui-option">
+                    <img src="./barcode-scan-ui.png" alt="バーコードスキャン画面UI案2">
+                    <h3>📸 バーコードスキャン機能UI案</h3>
+                    <p><strong>採用理由:</strong> リアルタイムバーコード読み取りと、賞味期限の同時撮影が可能。商品情報を即座に表示。</p>
+                    <p><strong>特徴:</strong> カメラビュー統合、バーコード自動認識、賞味期限OCR機能、商品データベース連携</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🔍 商品情報表示システム</h3>
+                <p>バーコードスキャンで取得した商品情報をデータベースから即座に表示。栄養成分、アレルゲン情報、保存方法などを提供し、適切な食材管理をサポート。</p>
+                <ul>
+                    <li>JANコードによる商品検索</li>
+                    <li>商品画像の自動表示</li>
+                    <li>賞味期限アラート設定</li>
+                    <li>類似商品の提案機能</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="design-requirements" class="section">
+            <h2>デザイン要件定義</h2>
+            
+            <div class="card">
+                <h3>🎨 カラーパレット</h3>
+                <div class="color-palette">
+                    <div class="color-item">
+                        <div class="color-box" style="background-color: #0f172a;"></div>
+                        <small>Primary<br>#0f172a</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-box" style="background-color: #3b82f6;"></div>
+                        <small>Accent<br>#3b82f6</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-box" style="background-color: #f8fafc;"></div>
+                        <small>Light<br>#f8fafc</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-box" style="background-color: #10b981;"></div>
+                        <small>Success<br>#10b981</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-box" style="background-color: #f59e0b;"></div>
+                        <small>Warning<br>#f59e0b</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-box" style="background-color: #ef4444;"></div>
+                        <small>Error<br>#ef4444</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="personas" class="section">
+            <h2>ペルソナ設定</h2>
+            <div class="grid-2">
+                <div class="feature-card">
+                    <h3>👩 メインペルソナ: 田中 美咲さん (32歳)</h3>
+                    <ul>
+                        <li><strong>職業:</strong> 会社員（共働き）</li>
+                        <li><strong>家族構成:</strong> 夫、子ども2人（小学生）</li>
+                        <li><strong>課題:</strong> 忙しくて食材管理が大変、フードロスが多い</li>
+                        <li><strong>ニーズ:</strong> 簡単で楽しい食材管理、家計節約</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>👨 サブペルソナ: 佐藤 健太さん (28歳)</h3>
+                    <ul>
+                        <li><strong>職業:</strong> エンジニア（一人暮らし）</li>
+                        <li><strong>特徴:</strong> 新しい技術に興味、料理初心者</li>
+                        <li><strong>課題:</strong> 食材の賞味期限を忘れがち</li>
+                        <li><strong>ニーズ:</strong> 自動化された管理、レシピ提案</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="user-requirements" class="section">
+            <h2>ユーザー要望一覧</h2>
+            <div class="card">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>要望内容</th>
+                            <th>優先度</th>
+                            <th>実装難易度</th>
+                            <th>予想工数</th>
+                            <th>備考</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>バーコードスキャン機能</td>
+                            <td><span class="badge high">高</span></td>
+                            <td><span class="badge low">低</span></td>
+                            <td>1週</td>
+                            <td>ML Kit Barcode Scanning</td>
+                        </tr>
+                        <tr>
+                            <td>賞味期限OCR機能</td>
+                            <td><span class="badge high">高</span></td>
+                            <td><span class="badge medium">中</span></td>
+                            <td>2週</td>
+                            <td>ML Kit Text Recognition</td>
+                        </tr>
+                        <tr>
+                            <td>商品データベース連携</td>
+                            <td><span class="badge high">高</span></td>
+                            <td><span class="badge medium">中</span></td>
+                            <td>2週</td>
+                            <td>Open Food Facts API / Firestore</td>
+                        </tr>
+                        <tr>
+                            <td>賞味期限通知</td>
+                            <td><span class="badge high">高</span></td>
+                            <td><span class="badge low">低</span></td>
+                            <td>1週</td>
+                            <td>FCM使用</td>
+                        </tr>
+                        <tr>
+                            <td>家族共有機能</td>
+                            <td><span class="badge medium">中</span></td>
+                            <td><span class="badge medium">中</span></td>
+                            <td>2週</td>
+                            <td>マルチユーザー対応</td>
+                        </tr>
+                        <tr>
+                            <td>レシピ提案機能</td>
+                            <td><span class="badge medium">中</span></td>
+                            <td><span class="badge medium">中</span></td>
+                            <td>3週</td>
+                            <td>AI活用</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="functional" class="section">
+            <h2>機能要件</h2>
+            <div class="grid-2">
+                <div class="feature-card">
+                    <h3>🔐 認証・ユーザー管理</h3>
+                    <ul>
+                        <li>Firebase Authentication</li>
+                        <li>Google/Apple/メールサインイン</li>
+                        <li>家族単位での共同利用</li>
+                        <li>最大6名までのマルチユーザー対応</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>🥕 食材管理</h3>
+                    <ul>
+                        <li>バーコードスキャン（ML Kit Barcode）</li>
+                        <li>賞味期限のOCR読み取り</li>
+                        <li>商品情報の自動取得</li>
+                        <li>カテゴリ分類・期限管理</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>🤖 商品情報管理</h3>
+                    <ul>
+                        <li>JANコードから商品情報取得</li>
+                        <li>商品画像の自動表示</li>
+                        <li>栄養成分・アレルゲン情報</li>
+                        <li>商品データキャッシュ機能</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>📱 通知・レシピ提案</h3>
+                    <ul>
+                        <li>FCMプッシュ通知</li>
+                        <li>賞味期限アラート</li>
+                        <li>Gemini レシピ提案</li>
+                        <li>フードロス削減レシピ</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="non-functional" class="section">
+            <h2>非機能要件</h2>
+            <div class="grid-3">
+                <div class="stats-card">
+                    <h3>&lt; 3秒</h3>
+                    <p>アプリ起動時間</p>
+                </div>
+                <div class="stats-card">
+                    <h3>99.9%</h3>
+                    <p>可用性目標</p>
+                </div>
+                <div class="stats-card">
+                    <h3>10K</h3>
+                    <p>同時利用世帯数</p>
+                </div>
+            </div>
+            <div class="card">
+                <h3>🔒 セキュリティ要件</h3>
+                <ul>
+                    <li>Firebase Security Rules による適切なデータアクセス制御</li>
+                    <li>個人情報の暗号化対応</li>
+                    <li>GDPR準拠のプライバシー保護</li>
+                    <li>セキュアな画像URL生成</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="technical" class="section">
+            <h2>技術仕様</h2>
+            <div class="card">
+                <h3>🛠 技術スタック</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>カテゴリ</th>
+                            <th>技術</th>
+                            <th>用途</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>フロントエンド</td>
+                            <td>Flutter + Riverpod + Rive</td>
+                            <td>UI/UX + 状態管理 + アニメーション</td>
+                        </tr>
+                        <tr>
+                            <td>バックエンド</td>
+                            <td>Cloud Functions + Cloud Run</td>
+                            <td>サーバーレス API</td>
+                        </tr>
+                        <tr>
+                            <td>AI/ML</td>
+                            <td>ML Kit (Barcode + Text Recognition)</td>
+                            <td>バーコード読取 + OCR</td>
+                        </tr>
+                        <tr>
+                            <td>データベース</td>
+                            <td>Firestore + BigQuery</td>
+                            <td>リアルタイムDB + 分析</td>
+                        </tr>
+                        <tr>
+                            <td>認証・ストレージ</td>
+                            <td>Firebase Auth + Cloud Storage</td>
+                            <td>ユーザー管理 + ファイル保存</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="architecture" class="section">
+            <h2>システムアーキテクチャ</h2>
+            <div class="mermaid">
+graph TD
+    A[📱 Flutter App] --> B[🔥 Firebase Auth]
+    A --> C[📊 Firestore]
+    A --> D[ML Kit Barcode/OCR]
+    A --> E[☁️ Cloud Functions]
+    
+    E --> F[🌐 Open Food Facts API]
+    E --> G[📁 Firestore DB]
+    E --> H[📈 BigQuery]
+    
+    C --> E
+    I[📁 Cloud Storage] --> E
+    E --> J[📢 FCM]
+    
+    F --> E
+    
+    J --> A
+    E --> C
+    E --> I
+            </div>
+        </section>
+
+        <section id="database" class="section">
+            <h2>データベース設計</h2>
+            <div class="mermaid">
+erDiagram
+    HOUSEHOLDS {
+        string householdId PK
+        string name
+        array members
+        timestamp createdAt
+        object settings
+    }
+    
+    USERS {
+        string userId PK
+        string displayName
+        string email
+        string householdId FK
+        string role
+        timestamp joinedAt
+    }
+    
+    ITEMS {
+        string itemId PK
+        string householdId FK
+        string productName
+        string janCode
+        string category
+        number quantity
+        string unit
+        timestamp expiryDate
+        string status
+        string barcode
+        number price
+        object productInfo
+        string imageUrl
+        string addedBy FK
+    }
+    
+    PRODUCTS {
+        string janCode PK
+        string productName
+        string manufacturer
+        string category
+        object nutritionInfo
+        array allergens
+        string imageUrl
+        timestamp updatedAt
+    }
+    
+    HOUSEHOLDS ||--o{ USERS : contains
+    HOUSEHOLDS ||--o{ ITEMS : stores
+    USERS ||--o{ ITEMS : adds
+    ITEMS }o--|| PRODUCTS : references
+            </div>
+        </section>
+
+        <section id="project-management" class="section">
+            <h2>プロジェクト管理</h2>
+            <div class="card">
+                <h3>📅 開発スケジュール</h3>
+                <div class="mermaid">
+gantt
+    title バーコードスキャンアプリ開発スケジュール
+    dateFormat YYYY-MM-DD
+    section 設計フェーズ
+        要件定義     :done, req, 2024-09-01, 2024-09-07
+        UI/UXデザイン : done, design, 2024-09-08, 2024-09-14
+    section 開発フェーズ1
+        基本機能実装  : dev1, 2024-09-15, 2024-10-15
+        認証・DB設定  : auth, 2024-09-15, 2024-09-22
+        バーコードスキャン  : barcode, 2024-09-23, 2024-10-06
+    section 開発フェーズ2
+        商品DB連携   : dev2, 2024-10-07, 2024-11-07
+        OCR機能     : ocr, 2024-10-07, 2024-10-21
+        商品情報取得 : product, 2024-10-22, 2024-11-07
+    section テスト・リリース
+        テスト期間   : test, 2024-11-08, 2024-11-21
+        リリース準備 : release, 2024-11-22, 2024-11-30
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>⚠️ リスク管理</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>リスクカテゴリ</th>
+                            <th>具体的リスク</th>
+                            <th>影響度</th>
+                            <th>対策</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>技術リスク</td>
+                            <td>商品データベースAPIの精度</td>
+                            <td><span class="badge high">高</span></td>
+                            <td>複数API連携、キャッシュ機能</td>
+                        </tr>
+                        <tr>
+                            <td>運用リスク</td>
+                            <td>大量ユーザー流入時の負荷</td>
+                            <td><span class="badge medium">中</span></td>
+                            <td>サーバーレス自動スケーリング</td>
+                        </tr>
+                        <tr>
+                            <td>法的リスク</td>
+                            <td>食品情報の正確性責任</td>
+                            <td><span class="badge medium">中</span></td>
+                            <td>免責事項、ユーザー確認機能</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="settings" class="section">
+            <h2>設定情報</h2>
+            <div class="card">
+                <h3>⚙️ Claude Code統合設定</h3>
+                <p>以下の設定をClaude Codeの設定ファイルまたは環境変数として登録してください：</p>
+                
+                <div class="feature-card">
+                    <h4>🔧 プロジェクト設定</h4>
+                    <ul>
+                        <li><strong>プロジェクト名:</strong> GCP-Hackathon-F06</li>
+                        <li><strong>GCP プロジェクト ID:</strong> gcp-hackathon-f06-prod</li>
+                        <li><strong>Firebase プロジェクト ID:</strong> gcp-hackathon-f06-firebase</li>
+                        <li><strong>リージョン:</strong> asia-northeast1 (東京)</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>🌐 API エンドポイント</h4>
+                    <ul>
+                        <li><strong>Cloud Run API:</strong> https://f06-api-***-an.a.run.app</li>
+                        <li><strong>Firebase Functions:</strong> https://asia-northeast1-***.cloudfunctions.net</li>
+                        <li><strong>Vertex AI エンドポイント:</strong> asia-northeast1-aiplatform.googleapis.com</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>🔐 認証・環境変数</h4>
+                    <ul>
+                        <li><strong>GOOGLE_CLOUD_PROJECT:</strong> gcp-hackathon-f06-prod</li>
+                        <li><strong>FIREBASE_API_KEY:</strong> [マスク表示] AIza***</li>
+                        <li><strong>FIREBASE_AUTH_DOMAIN:</strong> gcp-hackathon-f06-firebase.firebaseapp.com</li>
+                        <li><strong>VERTEX_AI_LOCATION:</strong> asia-northeast1</li>
+                    </ul>
+                </div>
+
+                <div style="background: #fff3cd; border: 1px solid #ffecb3; border-radius: 8px; padding: 15px; margin-top: 20px;">
+                    <strong>📝 Claude Code設定手順：</strong><br>
+                    上記の設定をClaude Codeの設定ファイル（CLAUDE.md）または環境変数として登録し、プロジェクトの開発環境を構築してください。
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#3b82f6',
+                primaryTextColor: '#0f172a',
+                primaryBorderColor: '#e2e8f0',
+                lineColor: '#94a3b8'
+            }
+        });
+
+        // スムーズスクロール
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth' });
+                
+                // アクティブ状態の更新
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // スクロール時のナビゲーション更新
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
