@@ -201,10 +201,12 @@
 
         .ui-option img {
             width: 100%;
-            height: 200px;
-            object-fit: cover;
+            height: auto;
+            max-height: 600px;
+            object-fit: contain;
             border-radius: 8px;
             margin-bottom: 15px;
+            background: #f8f9fa;
         }
 
         .table {
@@ -306,7 +308,7 @@
             <h2>プロジェクト概要</h2>
             <div class="card">
                 <h3>エグゼクティブサマリー</h3>
-                <p>Flutter + GCP + Firebaseを活用した、AI搭載冷蔵庫管理アプリケーション。食材をキャラクター化し、賞味期限管理を楽しい体験に変革するモバイルアプリです。</p>
+                <p>Flutter + GCP + Firebaseを活用した、バーコードスキャン対応の冷蔵庫管理アプリケーション。商品バーコードと賞味期限を読み取り、商品データベースと連携して食材管理を効率化するモバイルアプリです。</p>
             </div>
 
             <div class="grid-2">
@@ -323,8 +325,8 @@
             <div class="feature-card">
                 <h3>🎯 ビジョン・ミッション</h3>
                 <ul>
-                    <li><strong>ビジョン:</strong> 家庭のフードロス削減を楽しい体験で実現する</li>
-                    <li><strong>ミッション:</strong> AIキャラクターによる感情的なつながりで食材管理を習慣化</li>
+                    <li><strong>ビジョン:</strong> バーコードスキャンによる簡単で正確な食材管理を実現する</li>
+                    <li><strong>ミッション:</strong> 商品データベースと連携し、賞味期限管理を効率化・自動化</li>
                 </ul>
             </div>
 
@@ -366,22 +368,27 @@
                 <div class="ui-option">
                     <img src="./fridge-home-ui.png" alt="冷蔵庫ホーム画面UI案1">
                     <h3>🏠 ホーム画面デザイン案</h3>
-                    <p><strong>採用理由:</strong> 食材キャラクターを前面に出した楽しい UI。パステルカラーで親しみやすく、家族全員が使いやすいデザイン。</p>
-                    <p><strong>特徴:</strong> マテリアルデザインベース、タブナビゲーション、賞味期限ステータス表示</p>
+                    <p><strong>採用理由:</strong> スキャンした商品リストを効率的に表示。賞味期限が近い商品を優先表示し、視覚的に管理しやすいデザイン。</p>
+                    <p><strong>特徴:</strong> マテリアルデザインベース、商品リスト表示、賞味期限アラート機能</p>
                 </div>
 
                 <div class="ui-option">
-                    <img src="./receipt-scan-ui.png" alt="レシートスキャン画面UI案2">
-                    <h3>📸 レシートスキャン機能UI案</h3>
-                    <p><strong>採用理由:</strong> AI解析結果を分かりやすく表示し、編集・確認機能を直感的に配置。ブルーアクセントで信頼感を演出。</p>
-                    <p><strong>特徴:</strong> カメラビュー統合、商品リスト表示、価格情報の自動抽出表示</p>
+                    <img src="./barcode-scan-ui.png" alt="バーコードスキャン画面UI案2">
+                    <h3>📸 バーコードスキャン機能UI案</h3>
+                    <p><strong>採用理由:</strong> リアルタイムバーコード読み取りと、賞味期限の同時撮影が可能。商品情報を即座に表示。</p>
+                    <p><strong>特徴:</strong> カメラビュー統合、バーコード自動認識、賞味期限OCR機能、商品データベース連携</p>
                 </div>
             </div>
 
             <div class="card">
-                <h3>🎨 キャラクター感情システム</h3>
-                <img src="./character-emotions.png" alt="食材キャラクター感情変化" style="width: 300px; height: 300px; object-fit: cover; border-radius: 8px; margin: 10px auto; display: block;">
-                <p>賞味期限に応じた感情変化により、ユーザーの行動を促進。新鮮→困り顔→ゾンビ化の段階的変化で緊急度を視覚的に表現。</p>
+                <h3>🔍 商品情報表示システム</h3>
+                <p>バーコードスキャンで取得した商品情報をデータベースから即座に表示。栄養成分、アレルゲン情報、保存方法などを提供し、適切な食材管理をサポート。</p>
+                <ul>
+                    <li>JANコードによる商品検索</li>
+                    <li>商品画像の自動表示</li>
+                    <li>賞味期限アラート設定</li>
+                    <li>類似商品の提案機能</li>
+                </ul>
             </div>
         </section>
 
@@ -460,23 +467,23 @@
                         <tr>
                             <td>バーコードスキャン機能</td>
                             <td><span class="badge high">高</span></td>
+                            <td><span class="badge low">低</span></td>
+                            <td>1週</td>
+                            <td>ML Kit Barcode Scanning</td>
+                        </tr>
+                        <tr>
+                            <td>賞味期限OCR機能</td>
+                            <td><span class="badge high">高</span></td>
                             <td><span class="badge medium">中</span></td>
                             <td>2週</td>
-                            <td>ML Kit使用</td>
+                            <td>ML Kit Text Recognition</td>
                         </tr>
                         <tr>
-                            <td>レシート解析機能</td>
+                            <td>商品データベース連携</td>
                             <td><span class="badge high">高</span></td>
-                            <td><span class="badge high">高</span></td>
-                            <td>3週</td>
-                            <td>Vertex AI Gemini</td>
-                        </tr>
-                        <tr>
-                            <td>キャラクター画像生成</td>
-                            <td><span class="badge high">高</span></td>
-                            <td><span class="badge high">高</span></td>
-                            <td>4週</td>
-                            <td>Vertex AI Imagen</td>
+                            <td><span class="badge medium">中</span></td>
+                            <td>2週</td>
+                            <td>Open Food Facts API / Firestore</td>
                         </tr>
                         <tr>
                             <td>賞味期限通知</td>
@@ -519,19 +526,19 @@
                 <div class="feature-card">
                     <h3>🥕 食材管理</h3>
                     <ul>
-                        <li>バーコードスキャン（ML Kit）</li>
-                        <li>レシート撮影一括登録</li>
-                        <li>手動入力機能</li>
+                        <li>バーコードスキャン（ML Kit Barcode）</li>
+                        <li>賞味期限のOCR読み取り</li>
+                        <li>商品情報の自動取得</li>
                         <li>カテゴリ分類・期限管理</li>
                     </ul>
                 </div>
                 <div class="feature-card">
-                    <h3>🤖 AIキャラクター</h3>
+                    <h3>🤖 商品情報管理</h3>
                     <ul>
-                        <li>Imagen による画像自動生成</li>
-                        <li>賞味期限による感情変化</li>
-                        <li>リアルタイム画像更新</li>
-                        <li>キャッシュ機能</li>
+                        <li>JANコードから商品情報取得</li>
+                        <li>商品画像の自動表示</li>
+                        <li>栄養成分・アレルゲン情報</li>
+                        <li>商品データキャッシュ機能</li>
                     </ul>
                 </div>
                 <div class="feature-card">
@@ -598,8 +605,8 @@
                         </tr>
                         <tr>
                             <td>AI/ML</td>
-                            <td>Vertex AI (Gemini + Imagen)</td>
-                            <td>テキスト解析 + 画像生成</td>
+                            <td>ML Kit (Barcode + Text Recognition)</td>
+                            <td>バーコード読取 + OCR</td>
                         </tr>
                         <tr>
                             <td>データベース</td>
@@ -622,18 +629,18 @@
 graph TD
     A[📱 Flutter App] --> B[🔥 Firebase Auth]
     A --> C[📊 Firestore]
-    A --> D[☁️ Cloud Run API]
+    A --> D[ML Kit Barcode/OCR]
+    A --> E[☁️ Cloud Functions]
     
-    D --> E[⚡ Cloud Functions]
-    E --> F[🧠 Vertex AI Gemini]
-    E --> G[🎨 Vertex AI Imagen]
+    E --> F[🌐 Open Food Facts API]
+    E --> G[📁 Firestore DB]
     E --> H[📈 BigQuery]
     
     C --> E
     I[📁 Cloud Storage] --> E
     E --> J[📢 FCM]
     
-    K[🌐 Open Food Facts API] --> E
+    F --> E
     
     J --> A
     E --> C
@@ -666,6 +673,7 @@ erDiagram
         string itemId PK
         string householdId FK
         string productName
+        string janCode
         string category
         number quantity
         string unit
@@ -673,25 +681,26 @@ erDiagram
         string status
         string barcode
         number price
-        object imageUrls
+        object productInfo
+        string imageUrl
         string addedBy FK
     }
     
-    RECEIPTS {
-        string receiptId PK
-        string householdId FK
-        string storeName
-        timestamp purchaseDate
-        number totalAmount
-        array items
-        string addedBy FK
+    PRODUCTS {
+        string janCode PK
+        string productName
+        string manufacturer
+        string category
+        object nutritionInfo
+        array allergens
+        string imageUrl
+        timestamp updatedAt
     }
     
     HOUSEHOLDS ||--o{ USERS : contains
     HOUSEHOLDS ||--o{ ITEMS : stores
-    HOUSEHOLDS ||--o{ RECEIPTS : owns
     USERS ||--o{ ITEMS : adds
-    USERS ||--o{ RECEIPTS : creates
+    ITEMS }o--|| PRODUCTS : references
             </div>
         </section>
 
@@ -701,7 +710,7 @@ erDiagram
                 <h3>📅 開発スケジュール</h3>
                 <div class="mermaid">
 gantt
-    title 冷蔵庫管理アプリ開発スケジュール
+    title バーコードスキャンアプリ開発スケジュール
     dateFormat YYYY-MM-DD
     section 設計フェーズ
         要件定義     :done, req, 2024-09-01, 2024-09-07
@@ -709,11 +718,11 @@ gantt
     section 開発フェーズ1
         基本機能実装  : dev1, 2024-09-15, 2024-10-15
         認証・DB設定  : auth, 2024-09-15, 2024-09-22
-        食材管理機能  : items, 2024-09-23, 2024-10-06
+        バーコードスキャン  : barcode, 2024-09-23, 2024-10-06
     section 開発フェーズ2
-        AI機能実装   : dev2, 2024-10-07, 2024-11-07
-        画像生成     : imagen, 2024-10-07, 2024-10-21
-        レシート解析 : receipt, 2024-10-22, 2024-11-07
+        商品DB連携   : dev2, 2024-10-07, 2024-11-07
+        OCR機能     : ocr, 2024-10-07, 2024-10-21
+        商品情報取得 : product, 2024-10-22, 2024-11-07
     section テスト・リリース
         テスト期間   : test, 2024-11-08, 2024-11-21
         リリース準備 : release, 2024-11-22, 2024-11-30
@@ -734,9 +743,9 @@ gantt
                     <tbody>
                         <tr>
                             <td>技術リスク</td>
-                            <td>AI API レスポンス時間変動</td>
+                            <td>商品データベースAPIの精度</td>
                             <td><span class="badge high">高</span></td>
-                            <td>キャッシュ機能、代替API準備</td>
+                            <td>複数API連携、キャッシュ機能</td>
                         </tr>
                         <tr>
                             <td>運用リスク</td>
