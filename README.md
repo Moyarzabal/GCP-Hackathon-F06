@@ -28,43 +28,110 @@ GCP-Hackathon-F06/            # プロジェクトルート（Flutterアプリ�
 http://localhost:8080
 ```
 
-## 📝 Firebase Hostingへのデプロイ手順
+## 🚀 デプロイ状況
 
-### 1. Firebaseにログイン
+### 現在稼働中のURL
+- **Firebase Hosting**: https://gcp-f06-barcode.web.app (デプロイ済み✅)
+- **プロジェクトID**: gcp-f06-barcode
+
+## 📝 デプロイ方法
+
+### オプション1: Firebase Hosting（デプロイ済み）
+
+#### デプロイ手順
 ```bash
+# 1. Firebaseにログイン
 firebase login
-```
 
-### 2. Firebaseプロジェクトを作成（まだの場合）
-1. [Firebase Console](https://console.firebase.google.com/)にアクセス
-2. 新しいプロジェクトを作成
-3. プロジェクトIDをメモ
-
-### 3. .firebaserc ファイルを更新
-```bash
-cd /Users/fukku_maple/Documents/GCP-Hackathon-F06
-```
-
-`.firebaserc`ファイルの`your-firebase-project-id`を実際のプロジェクトIDに置き換え：
-```json
-{
-  "projects": {
-    "default": "実際のプロジェクトID"
-  }
-}
-```
-
-### 4. デプロイ実行
-```bash
-# プロジェクトディレクトリから
+# 2. デプロイ実行
 firebase deploy --only hosting
 ```
 
-### 5. デプロイ完了
-デプロイが成功すると、以下のようなURLが表示されます：
+#### 更新時
+```bash
+# 1. Flutterアプリをビルド
+flutter build web
+
+# 2. デプロイ
+firebase deploy --only hosting
 ```
-https://[your-project-id].web.app
+
+### オプション2: Cloud Run（将来の拡張用）
+
+Cloud Runを使用することで、将来的なバックエンドAPI統合が容易になります。
+
+#### 前提条件
+- [Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+#### 初回セットアップ
+```bash
+# 1. Google Cloudにログイン
+gcloud auth login
+
+# 2. プロジェクトを設定
+gcloud config set project gcp-f06-barcode
+
+# 3. 必要なAPIを有効化
+gcloud services enable artifactregistry.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable run.googleapis.com
+
+# 4. Artifact Registryリポジトリを作成
+gcloud artifacts repositories create barcode-scanner \
+  --repository-format=docker \
+  --location=asia-northeast1 \
+  --description="Barcode Scanner Flutter Web App"
 ```
+
+#### デプロイ手順
+```bash
+# 1. Dockerイメージをビルド
+docker build -t asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest .
+
+# 2. Docker認証設定
+gcloud auth configure-docker asia-northeast1-docker.pkg.dev
+
+# 3. イメージをプッシュ
+docker push asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest
+
+# 4. Cloud Runにデプロイ
+gcloud run deploy barcode-scanner-web \
+  --image=asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest \
+  --platform=managed \
+  --region=asia-northeast1 \
+  --allow-unauthenticated \
+  --port=8080 \
+  --memory=256Mi \
+  --cpu=1
+```
+
+#### 更新時の手順
+```bash
+# 1. Flutterアプリをビルド
+flutter build web
+
+# 2. Dockerイメージを再ビルド＆プッシュ
+docker build -t asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest .
+docker push asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest
+
+# 3. Cloud Runを更新
+gcloud run deploy barcode-scanner-web \
+  --image=asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest \
+  --region=asia-northeast1
+```
+
+## 📊 デプロイ方法の比較
+
+| 項目 | Firebase Hosting | Cloud Run |
+|------|-----------------|-----------|
+| URL | https://gcp-f06-barcode.web.app | https://barcode-scanner-web-[HASH]-an.a.run.app |
+| 料金 | 無料枠が大きい | 従量課金（最小インスタンス0可） |
+| CDN | 自動配備 | Cloud CDN設定必要 |
+| バックエンド統合 | Cloud Functions連携 | 同一コンテナで実装可能 |
+| スケーリング | 自動 | 自動（設定可能） |
+| カスタムドメイン | 簡単 | 可能 |
+| 推奨用途 | 静的サイト・MVP | API統合・マイクロサービス |
 
 ## 🔧 トラブルシューティング
 
