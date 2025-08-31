@@ -3,13 +3,12 @@ import 'package:flutter/foundation.dart';
 
 class FirebaseConfig {
   static const FirebaseOptions webOptions = FirebaseOptions(
-    apiKey: 'AIzaSyDiPsRVzN_jrj_rVWKz0qJ4xWP5kGNJz5k',
+    apiKey: 'AIzaSyD02Wpf0jMl6cjnsfbx2epdEkQEaBKH64A',
     authDomain: 'gcp-f06-barcode.firebaseapp.com',
     projectId: 'gcp-f06-barcode',
-    storageBucket: 'gcp-f06-barcode.appspot.com',
-    messagingSenderId: '762195307431',
-    appId: '1:762195307431:web:4e3f2bc4a7f1dc5d9c7f4e',
-    measurementId: 'G-8XVQZ0NQNR',
+    storageBucket: 'gcp-f06-barcode.firebasestorage.app',
+    messagingSenderId: '787989873030',
+    appId: '1:787989873030:web:09603db34685565f29ac07',
   );
 
   static Future<void> initialize() async {
