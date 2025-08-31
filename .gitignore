@@ -129,3 +129,4 @@ yarn-error.log*
 *.zip
 *.tar.gz
 *.rar
+firebase-service-account.json
