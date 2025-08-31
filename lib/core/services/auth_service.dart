@@ -41,19 +41,36 @@ class AuthService {
 
   Future<User?> signInWithGoogle() async {
     try {
+      // Use default GoogleSignIn configuration for iOS
+      // The configuration is handled by GoogleService-Info.plist
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+      if (googleUser == null) {
+        print('Google Sign In cancelled by user');
+        return null;
+      }
 
+      print('Google user signed in: ${googleUser.email}');
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      
+      if (googleAuth.idToken == null) {
+        throw 'Failed to get Google ID token';
+      }
+      
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
+      print('Signing in to Firebase with Google credential...');
       final userCredential = await _auth.signInWithCredential(credential);
       await _createUserDocument(userCredential.user);
+      print('Successfully signed in: ${userCredential.user?.email}');
       return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      print('Firebase Auth Error: ${e.code} - ${e.message}');
+      throw _handleAuthError(e);
     } catch (e) {
+      print('Google sign in error: $e');
       throw 'Google sign in failed: $e';
     }
   }
