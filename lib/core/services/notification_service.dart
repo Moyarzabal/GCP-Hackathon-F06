@@ -94,9 +94,24 @@ class NotificationService {
   }
 
   Future<void> _subscribeToTopics() async {
-    // Subscribe to general topics
-    await _messaging.subscribeToTopic('all_users');
-    await _messaging.subscribeToTopic('expiry_alerts');
+    try {
+      // Subscribe to general topics
+      // Skip on iOS simulator where APNS token might not be available
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+        // Check if we have APNS token before subscribing
+        final apnsToken = await _messaging.getAPNSToken();
+        if (apnsToken == null) {
+          print('APNS token not available, skipping topic subscription');
+          return;
+        }
+      }
+      
+      await _messaging.subscribeToTopic('all_users');
+      await _messaging.subscribeToTopic('expiry_alerts');
+    } catch (e) {
+      print('Error subscribing to topics: $e');
+      // Don't throw error, just log it
+    }
   }
 
   Future<String?> getToken() async {

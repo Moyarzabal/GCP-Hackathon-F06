@@ -35,21 +35,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final authService = ref.read(authServiceProvider);
       
       if (_isSignUp) {
+        print('Attempting sign up for: ${_emailController.text.trim()}');
         await authService.signUpWithEmail(
           _emailController.text.trim(),
           _passwordController.text,
           _nameController.text.trim(),
         );
+        print('Sign up successful');
       } else {
+        print('Attempting sign in for: ${_emailController.text.trim()}');
         await authService.signInWithEmail(
           _emailController.text.trim(),
           _passwordController.text,
         );
+        print('Sign in successful');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      print('Authentication error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -59,11 +70,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
+      print('Starting Google Sign In...');
       await ref.read(authServiceProvider).signInWithGoogle();
+      print('Google Sign In successful');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      print('Google Sign In error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Sign In failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
