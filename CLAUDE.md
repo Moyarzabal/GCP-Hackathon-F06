@@ -4,11 +4,54 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Flutter Web application for refrigerator management with barcode scanning and AI features. The app is part of the GCP Hackathon F06 project and focuses on food waste reduction through gamified expiry date tracking.
+This is a **Flutter iOS/Android native application** (with Web support) for refrigerator management with barcode scanning and AI features. The app is primarily targeted for **iOS App Store** and Google Play Store distribution, focusing on food waste reduction through gamified expiry date tracking.
+
+**Primary Platform**: iOS (App Store)  
+**Secondary Platform**: Android (Google Play)  
+**Tertiary Platform**: Web (Firebase Hosting)
 
 ## Common Development Commands
 
-### Build and Run
+### iOS Development (Primary Focus)
+```bash
+# Add iOS support if not exists
+flutter create --platforms=ios .
+
+# Run on iOS Simulator
+flutter run -d iphone
+
+# Run on physical iOS device
+flutter run -d <device_id>
+
+# Build iOS app for release
+flutter build ios --release
+
+# Build IPA for App Store
+flutter build ipa
+
+# Open in Xcode
+open ios/Runner.xcworkspace
+
+# Fix iOS issues
+cd ios && pod install && cd ..
+```
+
+### Android Development
+```bash
+# Add Android support if not exists
+flutter create --platforms=android .
+
+# Run on Android emulator
+flutter run -d android
+
+# Build APK
+flutter build apk --release
+
+# Build App Bundle for Play Store
+flutter build appbundle --release
+```
+
+### Web Development (Existing)
 ```bash
 # Run in development mode (web)
 flutter run -d chrome
@@ -16,234 +59,302 @@ flutter run -d chrome
 # Build for production
 flutter build web
 
+# Deploy to Firebase Hosting
+firebase deploy --only hosting
+```
+
+### Cross-Platform Testing
+```bash
+# List all available devices
+flutter devices
+
+# Run on all available devices
+flutter run -d all
+
 # Run tests
 flutter test
 
-# Analyze code for issues
-flutter analyze
-
-# Format code
-dart format lib/
+# Integration tests
+flutter test integration_test
 ```
 
-### Firebase Deployment
-```bash
-# Deploy to Firebase Hosting (currently deployed at https://gcp-f06-barcode.web.app)
-firebase deploy --only hosting
+## iOS-Specific Configuration
 
-# Update deployment (after building)
-flutter build web && firebase deploy --only hosting
+### Required iOS Permissions (Info.plist)
+```xml
+<key>NSCameraUsageDescription</key>
+<string>バーコードスキャンと賞味期限の撮影のためカメラを使用します</string>
+
+<key>NSPhotoLibraryUsageDescription</key>
+<string>商品画像の保存と読み込みのため写真ライブラリを使用します</string>
+
+<key>NSFaceIDUsageDescription</key>
+<string>セキュアなログインのためFace IDを使用します</string>
+
+<key>UIBackgroundModes</key>
+<array>
+    <string>fetch</string>
+    <string>remote-notification</string>
+</array>
 ```
 
-### Docker & Cloud Run (Optional)
-```bash
-# Build Docker image
-docker build -t asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest .
+### iOS Build Settings
+- **Minimum iOS Version**: 12.0
+- **Swift Version**: 5.0
+- **Bundle Identifier**: com.f06team.fridgemanager
+- **Team ID**: (Set in Xcode with Apple Developer account)
 
-# Deploy to Cloud Run
-gcloud run deploy barcode-scanner-web \
-  --image=asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest \
-  --region=asia-northeast1
+## Android-Specific Configuration
+
+### Required Android Permissions (AndroidManifest.xml)
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.VIBRATE" />
+<uses-permission android:name="android.permission.USE_BIOMETRIC" />
 ```
+
+### Android Build Settings
+- **Minimum SDK**: 21 (Android 5.0)
+- **Target SDK**: 34 (Android 14)
+- **Package Name**: com.f06team.fridgemanager
 
 ## Architecture & Code Structure
 
-### Layered Architecture Pattern
-The codebase follows a feature-first modular architecture with clear separation of concerns:
-
+### Platform-Aware Architecture
 ```
 lib/
 ├── app.dart                    # Main application widget & navigation
-├── main.dart                   # Entry point
+├── main.dart                   # Entry point with platform detection
 ├── core/                       # Foundation layer
 │   ├── constants/             # App-wide constants (colors, themes)
-│   ├── config/                # Firebase & external service configs
-│   ├── errors/                # Error handling utilities
-│   └── services/              # External service integrations
+│   ├── config/                # Firebase & platform-specific configs
+│   ├── services/              # Service integrations
+│   └── platform/              # Platform-specific implementations
+│       ├── ios/              # iOS-specific code
+│       ├── android/          # Android-specific code
+│       └── web/              # Web-specific code
 ├── features/                   # Feature modules (vertical slices)
+│   ├── auth/                  # Authentication (biometric for mobile)
 │   ├── home/                  # Home screen with product list
-│   ├── scanner/               # Barcode scanning functionality
-│   ├── products/              # Product details & search
-│   ├── history/               # Scan history tracking
-│   └── settings/              # App settings
+│   ├── scanner/               # Barcode scanning (optimized for mobile)
+│   ├── products/              # Product management
+│   ├── household/             # Family sharing
+│   ├── history/               # Scan history
+│   └── settings/              # App settings (platform-specific)
 └── shared/                     # Cross-feature shared code
-    ├── models/                # Domain models (Product)
+    ├── models/                # Domain models
     ├── widgets/               # Reusable UI components
+    │   ├── adaptive/         # Platform-adaptive widgets
+    │   └── common/           # Common widgets
     ├── utils/                 # Helper functions
-    └── providers/             # Global state providers
+    └── providers/             # State management (Riverpod)
 ```
 
-### Key Architectural Decisions
+### Key Platform Differences
 
-1. **Feature-First Organization**: Each feature is self-contained with its own presentation, domain, and data layers, making it easy to add/modify features independently.
+| Feature | iOS | Android | Web |
+|---------|-----|---------|-----|
+| **UI Style** | Cupertino (iOS-like) | Material Design | Material Design |
+| **Navigation** | iOS tab bar | Bottom navigation | Bottom navigation |
+| **Camera** | Native (fast) | Native (fast) | WebRTC (slower) |
+| **Storage** | Core Data/SQLite | SQLite | IndexedDB |
+| **Auth** | Face ID/Touch ID | Fingerprint | Email/Social |
+| **Notifications** | APNS | FCM | Web Push |
 
-2. **Product Model**: Central `Product` class in `shared/models/product.dart` contains business logic for expiry tracking and emotion states (😊→😐→😟→😰→💀).
+## Current Features & Implementation Status
 
-3. **State Management**: Currently using StatefulWidgets with local state. Ready for Riverpod integration when needed.
+### ✅ Implemented (All Platforms)
+- Firebase Authentication (Google/Apple/Email)
+- Cloud Firestore data persistence
+- ML Kit barcode scanning
+- Open Food Facts API integration
+- Gemini API for recipe suggestions
+- Family sharing functionality
 
-4. **Navigation**: Bottom navigation bar with IndexedStack for preserving state between tabs.
+### 🚧 iOS-Specific Features (Priority)
+- [ ] Face ID/Touch ID authentication
+- [ ] iOS Widget for expiry dates
+- [ ] Apple Watch companion app
+- [ ] Siri Shortcuts integration
+- [ ] iOS-style UI with Cupertino widgets
+- [ ] Background fetch for notifications
 
-## Current Features & Implementation
+### 🚧 Android-Specific Features
+- [ ] Material You dynamic theming
+- [ ] Android widgets
+- [ ] Google Assistant integration
+- [ ] Wear OS support
 
-### Barcode Scanner
-- Uses `mobile_scanner` package for camera-based scanning
-- Hardcoded product database (8 Japanese products)
-- Manual product entry as fallback
-- Location: `lib/features/scanner/`
+## Firebase Configuration (Multi-Platform)
 
-### Product Management
-- Expiry date tracking with visual indicators
-- Emotion-based status display based on days until expiry
-- Category filtering and sorting
-- Location: `lib/features/products/` and `lib/shared/models/product.dart`
+```dart
+// lib/core/config/firebase_config.dart
+class FirebaseConfig {
+  static FirebaseOptions get currentPlatform {
+    if (kIsWeb) {
+      return webOptions;
+    } else if (Platform.isIOS) {
+      return iosOptions;
+    } else if (Platform.isAndroid) {
+      return androidOptions;
+    }
+    throw UnsupportedError('Unsupported platform');
+  }
+  
+  static const FirebaseOptions iosOptions = FirebaseOptions(
+    apiKey: 'ios-api-key',
+    appId: 'ios-app-id',
+    messagingSenderId: 'sender-id',
+    projectId: 'gcp-f06-barcode',
+    storageBucket: 'gcp-f06-barcode.appspot.com',
+    iosBundleId: 'com.f06team.fridgemanager',
+  );
+  
+  static const FirebaseOptions androidOptions = FirebaseOptions(
+    apiKey: 'android-api-key',
+    appId: 'android-app-id',
+    messagingSenderId: 'sender-id',
+    projectId: 'gcp-f06-barcode',
+    storageBucket: 'gcp-f06-barcode.appspot.com',
+  );
+}
+```
 
-### Data Flow
-1. Scanner captures barcode → looks up in local database
-2. User selects expiry date → Product object created
-3. Product added to in-memory list (no persistence yet)
-4. UI updates across all screens via state management
-
-## Firebase Configuration
-
-- **Project ID**: `gcp-f06-barcode`
-- **Hosting URL**: https://gcp-f06-barcode.web.app
-- **Region**: asia-northeast1
-
-## Dependencies
+## Dependencies (Updated for Mobile)
 
 Key packages from `pubspec.yaml`:
-- `mobile_scanner: ^7.0.1` - Barcode scanning
-- `firebase_core: ^4.0.0` - Firebase integration
-- `flutter_lints: ^5.0.0` - Linting rules
+```yaml
+dependencies:
+  # Core
+  flutter:
+    sdk: flutter
+  
+  # Platform Detection
+  universal_platform: ^1.1.0
+  
+  # Firebase (all platforms)
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.3.3
+  cloud_firestore: ^5.5.1
+  firebase_storage: ^12.3.7
+  firebase_messaging: ^15.1.5
+  
+  # State Management
+  flutter_riverpod: ^2.6.1
+  
+  # Camera & ML (optimized for mobile)
+  mobile_scanner: ^7.0.1
+  google_mlkit_text_recognition: ^0.15.0
+  google_mlkit_barcode_scanning: ^0.14.0
+  
+  # iOS Specific
+  cupertino_icons: ^1.0.8
+  
+  # Biometric Auth
+  local_auth: ^2.3.0
+  
+  # Local Storage
+  sqflite: ^2.4.2
+  path_provider: ^2.1.5
+  
+  # Permissions
+  permission_handler: ^11.3.1
+  
+  # Platform UI
+  flutter_platform_widgets: ^7.0.1
+```
 
-## Planned Integrations (from requirements)
+## Development Methodology (Mobile-First)
 
-According to `docs/requirements.html`, future features include:
-- Firebase Authentication for multi-user support
-- Firestore for data persistence
-- ML Kit for OCR (expiry date recognition)
-- Vertex AI Imagen for character generation
-- Open Food Facts API for product information
-- FCM for expiry notifications
-- Gemini API for recipe suggestions
+### Mobile-First Development
+1. **Design for mobile first** (iOS priority)
+2. **Test on real devices** regularly
+3. **Optimize for performance** (60fps animations)
+4. **Handle offline scenarios**
+5. **Implement platform-specific UI**
 
-## Current Limitations
+### Testing Strategy
+```bash
+# iOS Testing
+flutter test --platform=ios
 
-1. **No Data Persistence**: Products are lost on app restart
-2. **Hardcoded Products**: Only 8 Japanese products recognized
-3. **No User Authentication**: Single-user mode only
-4. **Web-Only Camera**: Mobile platforms need additional setup
-5. **No Backend API**: All logic is client-side
+# Android Testing  
+flutter test --platform=android
 
-## Development Methodology
+# Integration Testing on Device
+flutter drive --target=test_driver/app.dart
 
-### Test-Driven Development (TDD) Approach
+# Widget Testing
+flutter test test/widgets/
 
-This project follows TDD principles with an Agile mindset:
+# Golden Testing (UI screenshots)
+flutter test --update-goldens
+```
 
-1. **Red-Green-Refactor Cycle**
-   - Write failing tests first for new features
-   - Implement minimal code to pass tests
-   - Refactor while keeping tests green
+### App Store Deployment Checklist
+- [ ] App icons (all sizes)
+- [ ] Launch screens
+- [ ] Screenshots (iPhone & iPad)
+- [ ] App Store description (日本語/English)
+- [ ] Privacy policy URL
+- [ ] Terms of service
+- [ ] TestFlight beta testing
+- [ ] App Store review guidelines compliance
 
-2. **Testing Strategy**
-   ```bash
-   # Run all tests
-   flutter test
-   
-   # Run specific test file
-   flutter test test/features/scanner/scanner_test.dart
-   
-   # Run with coverage
-   flutter test --coverage
-   
-   # Watch mode for continuous testing
-   flutter test --watch
-   ```
+### Google Play Deployment Checklist
+- [ ] App icons
+- [ ] Feature graphic
+- [ ] Screenshots (phone & tablet)
+- [ ] Play Store listing (日本語/English)
+- [ ] Content rating questionnaire
+- [ ] Target audience declaration
+- [ ] Data safety form
+- [ ] Internal testing track
 
-3. **Test Organization**
-   ```
-   test/
-   ├── features/           # Feature-specific tests
-   │   ├── home/
-   │   ├── scanner/
-   │   └── products/
-   ├── shared/            # Shared component tests
-   │   └── models/
-   └── integration/       # Integration tests
-   ```
-
-4. **Writing Tests**
-   - Unit tests for business logic (models, services)
-   - Widget tests for UI components
-   - Integration tests for user flows
-   - Mock external dependencies (Firebase, APIs)
-
-### Agile Development Practices
-
-1. **Incremental Development**
-   - Start with MVP features
-   - Add functionality in small, testable increments
-   - Deploy frequently to get user feedback
-
-2. **User Story Format**
-   ```
-   As a [user type]
-   I want to [action]
-   So that [benefit]
-   ```
-
-3. **Sprint Planning**
-   - 2-week sprints
-   - Focus on one major feature per sprint
-   - Always maintain a deployable state
-
-4. **Code Review Checklist**
-   - [ ] Tests written and passing
-   - [ ] Code follows project structure
-   - [ ] No hardcoded values (except test data)
-   - [ ] Error handling implemented
-   - [ ] Documentation updated
-
-## Available Subagents
-
-This project includes specialized Claude Code Subagents for efficient development. They are automatically invoked based on context or can be called explicitly.
+## Available Subagents (Updated for Mobile)
 
 ### 🤖 Configured Subagents
 
-1. **flutter-tdd-developer** - TDD専門家
-   - テストファースト開発を徹底
-   - Red-Green-Refactorサイクルの実施
-   - カバレッジ80%以上を維持
+1. **ios-app-developer** - iOS開発専門家
+   - Swift/Objective-C bridge実装
+   - iOS固有機能の実装
+   - App Store最適化
+   - TestFlight配信管理
 
-2. **firebase-integrator** - Firebase/GCP統合
-   - Firestore, Authentication, Cloud Functions設定
-   - セキュリティルールの実装
-   - Cloud Run, Vertex AI連携
+2. **android-app-developer** - Android開発専門家
+   - Kotlin/Java実装
+   - Material Design 3対応
+   - Google Play最適化
+   - Play Console管理
 
-3. **barcode-product-specialist** - バーコード機能
-   - ML Kit統合とOCR実装
-   - 商品データベース管理
-   - Open Food Facts API連携
+3. **flutter-mobile-optimizer** - モバイル最適化
+   - パフォーマンスチューニング
+   - バッテリー消費最適化
+   - オフライン対応実装
+   - プラットフォーム別UI実装
 
-4. **ui-character-designer** - UI/UXデザイン
-   - Material Design 3準拠
-   - キャラクター感情システム
-   - レスポンシブデザイン実装
+4. **app-store-publisher** - ストア公開支援
+   - ASO (App Store Optimization)
+   - スクリーンショット生成
+   - メタデータ管理
+   - 審査対策アドバイス
 
-5. **test-automation-runner** - テスト自動化
-   - コード変更時の自動テスト実行
-   - カバレッジレポート生成
-   - CI/CD統合
+5. **mobile-test-engineer** - モバイルテスト
+   - デバイステスト自動化
+   - UI/UXテスト
+   - パフォーマンステスト
+   - クラッシュ分析
 
-6. **deployment-orchestrator** - デプロイメント
-   - Firebase Hosting自動デプロイ
-   - Cloud Runコンテナ管理
-   - GitHub Actions CI/CD設定
+6. **firebase-mobile-specialist** - Firebase Mobile SDK
+   - Crashlytics設定
+   - Performance Monitoring
+   - Remote Config
+   - A/Bテスト設定
 
 ## Testing Barcode Values
 
-Supported JANs for testing:
+Supported JANs for testing (works on all platforms):
 - 4901777018888: コカ・コーラ 500ml
 - 4902220770199: ポカリスエット 500ml
 - 4901005202078: カップヌードル
@@ -252,3 +363,24 @@ Supported JANs for testing:
 - 4901005200074: どん兵衛
 - 4901551354313: カルピスウォーター
 - 4901777018871: ファンタオレンジ
+
+## Platform-Specific Features Priority
+
+### iOS (Highest Priority)
+1. Face ID/Touch ID ログイン
+2. ウィジェット（ホーム画面に賞味期限表示）
+3. Siriショートカット（「賞味期限チェック」）
+4. Apple Watchアプリ
+5. iCloudバックアップ
+
+### Android (Secondary)
+1. 指紋認証ログイン
+2. ウィジェット対応
+3. Googleアシスタント連携
+4. Wear OS対応
+5. Google Drive バックアップ
+
+### Web (Maintenance Only)
+- 既存機能の保守
+- バグ修正のみ
+- 新機能はモバイル優先
