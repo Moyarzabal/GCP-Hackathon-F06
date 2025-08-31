@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "787989873030",
+    "project_id": "gcp-f06-barcode",
+    "storage_bucket": "gcp-f06-barcode.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:787989873030:android:d9495bc8845cdfa629ac07",
+        "android_client_info": {
+          "package_name": "com.f06team.fridgemanager"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhIip14nRrOpXR5AU2AIrddoAPOYryPDg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
