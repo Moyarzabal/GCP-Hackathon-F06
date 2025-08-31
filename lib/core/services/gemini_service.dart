@@ -1,13 +1,18 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class GeminiService {
-  static const String _apiKey = 'YOUR_GEMINI_API_KEY'; // TODO: Move to environment variables
   late final GenerativeModel _model;
 
   GeminiService() {
+    final apiKey = dotenv.env['GEMINI_API_KEY'];
+    if (apiKey == null || apiKey.isEmpty) {
+      throw Exception('GEMINI_API_KEY not found in .env file');
+    }
+    
     _model = GenerativeModel(
       model: 'gemini-1.5-flash',
-      apiKey: _apiKey,
+      apiKey: apiKey,
     );
   }
 
