@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyAQhEjO9xX_MU5Fpy5ii9GoFUcm_kDnDlE</string>
+	<key>GCM_SENDER_ID</key>
+	<string>787989873030</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.hackathon.f06.barcodeScanner</string>
+	<key>PROJECT_ID</key>
+	<string>gcp-f06-barcode</string>
+	<key>STORAGE_BUCKET</key>
+	<string>gcp-f06-barcode.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:787989873030:ios:a5323fd3b038d99c29ac07</string>
+</dict>
+</plist>

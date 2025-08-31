@@ -45,5 +45,20 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.787989873030-a5323fd3b038d99c29ac07</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to scan barcodes</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs photo library access to save and select images</string>
 </dict>
 </plist>
