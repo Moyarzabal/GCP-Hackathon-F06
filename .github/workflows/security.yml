@@ -1,0 +1,375 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # 毎日午前3時（JST 12時）に実行
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  dependency-check:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Check Flutter dependencies
+        run: |
+          # Flutter パッケージの脆弱性チェック
+          flutter pub outdated
+          
+          # 既知の脆弱性があるパッケージの検出
+          echo "Checking for known vulnerabilities..."
+          flutter pub deps --json > deps.json
+          
+          # 重要なセキュリティアップデートの確認
+          if grep -q "DISCONTINUED\|OUTDATED" deps.json; then
+            echo "⚠️ Found outdated or discontinued packages"
+            cat deps.json | jq '.packages[] | select(.isDiscontinued == true or .isOutdated == true)'
+          fi
+
+      - name: Check npm dependencies (Functions)
+        working-directory: functions
+        run: |
+          npm audit --audit-level=moderate
+          npm outdated || true
+
+      - name: Upload dependency results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-scan-results
+          path: |
+            deps.json
+            functions/npm-audit.json
+          retention-days: 30
+
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sast-analysis:
+    name: Static Application Security Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'javascript,python'
+          queries: security-extended
+
+      - name: Run Flutter analyze
+        run: |
+          flutter pub get
+          flutter analyze --no-fatal-infos > flutter-analyze.txt || true
+          
+          # セキュリティ関連の警告を抽出
+          grep -E "(security|vulnerable|unsafe|password|token|key|secret)" flutter-analyze.txt || true
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+      - name: Semgrep Security Scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/flutter
+            p/firebase
+        continue-on-error: true
+
+  docker-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          flutter build web --release
+          docker build -t barcode-scanner:${{ github.sha }} .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'barcode-scanner:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          vuln-type: 'os,library'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Docker Scout
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: 'barcode-scanner:${{ github.sha }}'
+          sarif-file: scout-results.sarif
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  firebase-security:
+    name: Firebase Security Rules Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Test Firestore Security Rules
+        run: |
+          # Firestore セキュリティルールのテスト
+          if [ -f "firestore.rules" ]; then
+            firebase emulators:exec --only firestore --project demo-test "echo 'Rules syntax valid'"
+          fi
+        continue-on-error: true
+
+      - name: Check Firebase configuration
+        run: |
+          # Firebase設定の確認
+          echo "Checking Firebase configuration files..."
+          
+          # APIキーやシークレットの漏洩チェック
+          for file in firebase.json .firebaserc; do
+            if [ -f "$file" ]; then
+              echo "Checking $file for sensitive data..."
+              grep -E "(apiKey|authDomain|projectId|privateKey|client_email)" "$file" || true
+            fi
+          done
+
+  owasp-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'barcode-scanner'
+          path: '.'
+          format: 'HTML'
+          out: 'reports'
+          args: >
+            --enableRetired
+            --enableExperimental
+            --suppression owasp-suppressions.xml
+        continue-on-error: true
+
+      - name: Upload OWASP results
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-dependency-check-report
+          path: reports/
+          retention-days: 30
+
+  license-check:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Check Flutter package licenses
+        run: |
+          flutter pub get
+          flutter pub deps --json > deps.json
+          
+          echo "Checking for problematic licenses..."
+          # GPL、AGPL、その他の制限的ライセンスをチェック
+          problematic_licenses=("GPL" "AGPL" "LGPL" "MPL" "CDDL" "EPL")
+          
+          for license in "${problematic_licenses[@]}"; do
+            if grep -i "$license" deps.json; then
+              echo "⚠️ Found packages with $license license"
+            fi
+          done
+
+      - name: FOSSA License Scan
+        uses: fossas/fossa-action@main
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+        continue-on-error: true
+
+  security-report:
+    name: Generate Security Report
+    runs-on: ubuntu-latest
+    needs: [dependency-check, secret-scan, sast-analysis, docker-scan, firebase-security, owasp-check, license-check]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # 各ジョブの結果を集計
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Vulnerabilities | ${{ needs.dependency-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret Detection | ${{ needs.secret-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SAST Analysis | ${{ needs.sast-analysis.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Container Security | ${{ needs.docker-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Firebase Security | ${{ needs.firebase-security.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| OWASP Check | ${{ needs.owasp-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| License Compliance | ${{ needs.license-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # 失敗したチェックに対する推奨事項
+          if [[ "${{ needs.dependency-check.result }}" == "failure" ]]; then
+            echo "- ⚠️ Update vulnerable dependencies" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.secret-scan.result }}" == "failure" ]]; then
+            echo "- 🔑 Remove hardcoded secrets and use environment variables" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.sast-analysis.result }}" == "failure" ]]; then
+            echo "- 🛡️ Fix security vulnerabilities identified by SAST" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.docker-scan.result }}" == "failure" ]]; then
+            echo "- 🐳 Update base images and fix container vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Scan Date:** $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create security issue if critical
+        if: |
+          needs.dependency-check.result == 'failure' ||
+          needs.secret-scan.result == 'failure' ||
+          needs.sast-analysis.result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Security vulnerabilities detected';
+            const body = `Security scan found critical issues that need immediate attention.
+            
+            **Scan Results:**
+            - Dependency Check: ${{ needs.dependency-check.result }}
+            - Secret Scan: ${{ needs.secret-scan.result }}
+            - SAST Analysis: ${{ needs.sast-analysis.result }}
+            - Container Scan: ${{ needs.docker-scan.result }}
+            
+            Please review the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+            
+            **Priority:** High
+            **Labels:** security, urgent`;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'urgent']
+            });
+
+      - name: Notify Slack
+        if: env.SLACK_WEBHOOK_URL != '' && (needs.dependency-check.result == 'failure' || needs.secret-scan.result == 'failure')
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          CRITICAL_ISSUES=false
+          if [[ "${{ needs.secret-scan.result }}" == "failure" ]] || [[ "${{ needs.sast-analysis.result }}" == "failure" ]]; then
+            CRITICAL_ISSUES=true
+          fi
+          
+          COLOR=$([ "$CRITICAL_ISSUES" = true ] && echo "danger" || echo "warning")
+          EMOJI=$([ "$CRITICAL_ISSUES" = true ] && echo ":rotating_light:" || echo ":warning:")
+          
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-Type: application/json' \
+            -d "{
+              \"attachments\": [{
+                \"color\": \"$COLOR\",
+                \"title\": \"$EMOJI Security Scan Alert\",
+                \"text\": \"Security vulnerabilities detected in ${{ github.repository }}\",
+                \"fields\": [
+                  {\"title\": \"Branch\", \"value\": \"${{ github.ref_name }}\", \"short\": true},
+                  {\"title\": \"Severity\", \"value\": \"$([ \"$CRITICAL_ISSUES\" = true ] && echo 'Critical' || echo 'Medium')\", \"short\": true}
+                ],
+                \"actions\": [
+                  {
+                    \"type\": \"button\",
+                    \"text\": \"View Details\",
+                    \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+                  }
+                ]
+              }]
+            }"
