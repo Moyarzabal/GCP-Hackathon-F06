@@ -1,0 +1,4 @@
+
+module FirebaseStorage.__Swift {
+  exclude header "FirebaseStorage-Swift.h"
+}
