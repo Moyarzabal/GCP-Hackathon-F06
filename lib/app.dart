@@ -6,19 +6,13 @@ import 'features/scanner/presentation/pages/scanner_screen.dart';
 import 'features/history/presentation/pages/history_screen.dart';
 import 'features/settings/presentation/pages/settings_screen.dart';
 import 'features/products/presentation/pages/product_detail_screen.dart';
-import 'features/auth/presentation/pages/login_screen.dart';
-import 'features/household/presentation/pages/household_screen.dart';
 import 'shared/models/product.dart';
-import 'shared/providers/auth_provider.dart';
-import 'shared/providers/household_provider.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-    
     return MaterialApp(
       title: '冷蔵庫管理AI',
       theme: ThemeData(
@@ -32,44 +26,8 @@ class MyApp extends ConsumerWidget {
         useMaterial3: true,
         fontFamily: 'SF Pro Display',
       ),
-      home: authState.when(
-        data: (user) {
-          if (user == null) {
-            return const LoginScreen();
-          }
-          return const AuthenticatedWrapper();
-        },
-        loading: () => const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
-        error: (error, stack) => Scaffold(
-          body: Center(child: Text('Error: $error')),
-        ),
-      ),
-    );
-  }
-}
-
-class AuthenticatedWrapper extends ConsumerWidget {
-  const AuthenticatedWrapper({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final householdAsync = ref.watch(userHouseholdProvider);
-    
-    return householdAsync.when(
-      data: (household) {
-        if (household == null || !household.exists) {
-          return const HouseholdScreen();
-        }
-        return const MainScreen();
-      },
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stack) => Scaffold(
-        body: Center(child: Text('Error: $error')),
-      ),
+      // 認証をバイパスして直接メイン機能にアクセス
+      home: const MainScreen(),
     );
   }
 }
