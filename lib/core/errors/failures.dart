@@ -66,3 +66,21 @@ class NotFoundFailure extends Failure {
     dynamic originalError,
   }) : super(message: message, code: code, originalError: originalError);
 }
+
+/// Authentication-related failures
+class AuthFailure extends Failure {
+  const AuthFailure({
+    required String message,
+    String? code,
+    dynamic originalError,
+  }) : super(message: message, code: code, originalError: originalError);
+}
+
+/// Server-related failures
+class ServerFailure extends Failure {
+  const ServerFailure({
+    required String message,
+    String? code,
+    dynamic originalError,
+  }) : super(message: message, code: code, originalError: originalError);
+}

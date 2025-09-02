@@ -22,11 +22,17 @@ sealed class Result<T> {
         Failed<T> _ => null,
       };
 
+  /// Returns the data if successful, null otherwise
+  T? getOrNull() => data;
+
   /// Returns the failure if failed, null otherwise
   Failure? get failure => switch (this) {
         Success<T> _ => null,
         Failed<T> failed => failed.failure,
       };
+
+  /// Returns the error if failed, null otherwise
+  Failure? getError() => failure;
 
   /// Transforms the data if successful
   Result<U> map<U>(U Function(T data) transform) {
