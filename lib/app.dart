@@ -5,8 +5,7 @@ import 'features/home/presentation/pages/home_screen.dart';
 import 'features/scanner/presentation/pages/scanner_screen.dart';
 import 'features/history/presentation/pages/history_screen.dart';
 import 'features/settings/presentation/pages/settings_screen.dart';
-import 'features/products/presentation/pages/product_detail_screen.dart';
-import 'shared/models/product.dart';
+import 'shared/providers/app_state_provider.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -32,58 +31,30 @@ class MyApp extends ConsumerWidget {
   }
 }
 
-class MainScreen extends ConsumerStatefulWidget {
+class MainScreen extends ConsumerWidget {
   const MainScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<MainScreen> createState() => _MainScreenState();
-}
-
-class _MainScreenState extends ConsumerState<MainScreen> {
-  int _selectedIndex = 0;
-  final List<Product> _scannedProducts = [];
-  
-  late final List<Widget> _pages;
-  
-  @override
-  void initState() {
-    super.initState();
-    _pages = [
-      HomeScreen(products: _scannedProducts, onProductTap: _showProductDetail),
-      ScannerScreen(onProductScanned: _addProduct),
-      HistoryScreen(products: _scannedProducts),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appState = ref.watch(appStateProvider);
+    final appNotifier = ref.watch(appStateProvider.notifier);
+    
+    final pages = [
+      const HomeScreen(),
+      const ScannerScreen(),
+      const HistoryScreen(),
       const SettingsScreen(),
     ];
-  }
-  
-  void _addProduct(Product product) {
-    setState(() {
-      _scannedProducts.insert(0, product);
-    });
-  }
-  
-  void _showProductDetail(Product product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailScreen(product: product),
-      ),
-    );
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
+        index: appState.selectedBottomNavIndex,
+        children: pages,
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
+        selectedIndex: appState.selectedBottomNavIndex,
         onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          appNotifier.setBottomNavIndex(index);
         },
         destinations: const [
           NavigationDestination(
