@@ -368,7 +368,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               width: double.infinity,
               height: 56,
               child: AdaptiveButton(
-                text: scannerState.isCameraActive ? 'スキャンを停止' : 'スキャンを開始',
+                child: Text(scannerState.isCameraActive ? 'スキャンを停止' : 'スキャンを開始'),
                 onPressed: () {
                   if (scannerState.isCameraActive) {
                     scannerNotifier.stopCamera();
@@ -376,11 +376,6 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     scannerNotifier.initializeCamera();
                   }
                 },
-                isLoading: scannerState.isScanning,
-                backgroundColor: scannerState.isCameraActive 
-                  ? Theme.of(context).colorScheme.error 
-                  : Theme.of(context).colorScheme.primary,
-                textColor: Colors.white,
               ),
             ),
           ),
@@ -410,9 +405,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
           ),
           const SizedBox(height: 48),
           AdaptiveButton(
-            text: '手動で追加',
+            child: const Text('手動で追加'),
             onPressed: _showManualInput,
-            isPrimary: false,
+            style: AdaptiveButtonStyle.outlined,
           ),
         ],
       ),
@@ -443,12 +438,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
         content: Text('JANコード: $janCode\n\nこの商品はまだデータベースに登録されていません。'),
         actions: [
           AdaptiveButton(
-            text: 'OK',
+            child: const Text('OK'),
             onPressed: () {
               Navigator.pop(context);
               ref.read(scannerProvider.notifier).clearLastScannedCode();
             },
-            isPrimary: false,
           ),
         ],
       ),
