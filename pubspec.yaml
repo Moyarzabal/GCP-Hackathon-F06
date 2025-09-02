@@ -36,8 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   mobile_scanner: ^7.0.1
   
-  # Firebase dependencies (認証以外)
+  # Firebase dependencies
   firebase_core: ^3.15.2
+  firebase_auth: ^5.3.3
   cloud_firestore: ^5.5.1
   firebase_storage: ^12.3.7
   
@@ -65,6 +66,7 @@ dependencies:
   shared_preferences: ^2.3.3
   url_launcher: ^6.3.1
   flutter_dotenv: ^5.1.0
+  equatable: ^2.0.5
   
   # Google Generative AI (Gemini)
   google_generative_ai: ^0.4.0
@@ -84,6 +86,7 @@ dev_dependencies:
   mockito: ^5.4.4
   build_runner: ^2.4.9
   fake_cloud_firestore: ^3.0.3
+  firebase_auth_mocks: ^0.14.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
