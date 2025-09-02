@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/models/product.dart';
+import '../../../../shared/providers/app_state_provider.dart';
 
-class HistoryScreen extends StatelessWidget {
-  final List<Product> products;
-  
-  const HistoryScreen({
-    Key? key,
-    required this.products,
-  }) : super(key: key);
+class HistoryScreen extends ConsumerWidget {
+  const HistoryScreen({Key? key}) : super(key: key);
   
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final products = ref.watch(productsProvider);
     final sortedProducts = List<Product>.from(products)
       ..sort((a, b) {
         final aDate = a.scannedAt ?? DateTime(0);
