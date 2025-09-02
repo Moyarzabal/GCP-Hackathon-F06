@@ -70,6 +70,10 @@ dependencies:
   
   # Google Generative AI (Gemini)
   google_generative_ai: ^0.4.0
+  
+  # Error handling and logging
+  logging: ^1.2.0
+  device_info_plus: ^10.1.2
 
 dev_dependencies:
   flutter_test:
