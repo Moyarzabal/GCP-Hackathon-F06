@@ -2,78 +2,81 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../core/platform/platform_info.dart';
 
-/// プラットフォーム適応型のボタンウィジェット
+enum AdaptiveButtonStyle {
+  primary,
+  secondary,
+  outlined,
+}
+
+/// プラットフォームに応じて適応するボタン
 class AdaptiveButton extends StatelessWidget {
-  final String text;
-  final VoidCallback? onPressed;
-  final bool isLoading;
-  final Color? backgroundColor;
-  final Color? textColor;
-  final bool isPrimary;
-  
   const AdaptiveButton({
     Key? key,
-    required this.text,
-    this.onPressed,
-    this.isLoading = false,
-    this.backgroundColor,
-    this.textColor,
-    this.isPrimary = true,
+    required this.onPressed,
+    this.style = AdaptiveButtonStyle.primary,
+    required this.child,
   }) : super(key: key);
+
+  final VoidCallback? onPressed;
+  final AdaptiveButtonStyle style;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     if (PlatformInfo.isIOS) {
-      return CupertinoButton(
-        onPressed: isLoading ? null : onPressed,
-        color: isPrimary ? backgroundColor : null,
-        child: isLoading
-            ? const CupertinoActivityIndicator()
-            : Text(
-                text,
-                style: TextStyle(
-                  color: textColor ?? (isPrimary ? Colors.white : CupertinoTheme.of(context).primaryColor),
-                ),
-              ),
-      );
+      return _buildCupertinoButton(context);
+    } else {
+      return _buildMaterialButton(context);
     }
-    
-    if (isPrimary) {
-      return ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          foregroundColor: textColor,
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.0,
-                  color: Colors.white,
-                ),
-              )
-            : Text(text),
-      );
-    }
-    
-    return OutlinedButton(
-      onPressed: isLoading ? null : onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: textColor,
-        side: backgroundColor != null ? BorderSide(color: backgroundColor!) : null,
-      ),
-      child: isLoading
-          ? SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.0,
-                color: textColor ?? Theme.of(context).primaryColor,
+  }
+
+  Widget _buildCupertinoButton(BuildContext context) {
+    switch (style) {
+      case AdaptiveButtonStyle.primary:
+        return CupertinoButton.filled(
+          onPressed: onPressed,
+          child: child,
+        );
+      case AdaptiveButtonStyle.secondary:
+        return CupertinoButton(
+          onPressed: onPressed,
+          color: CupertinoColors.systemGrey.resolveFrom(context),
+          child: child,
+        );
+      case AdaptiveButtonStyle.outlined:
+        return CupertinoButton(
+          onPressed: onPressed,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: CupertinoColors.activeBlue.resolveFrom(context),
               ),
-            )
-          : Text(text),
-    );
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: child,
+          ),
+        );
+    }
+  }
+
+  Widget _buildMaterialButton(BuildContext context) {
+    switch (style) {
+      case AdaptiveButtonStyle.primary:
+        return ElevatedButton(
+          onPressed: onPressed,
+          child: child,
+        );
+      case AdaptiveButtonStyle.secondary:
+        return FilledButton.tonal(
+          onPressed: onPressed,
+          child: child,
+        );
+      case AdaptiveButtonStyle.outlined:
+        return OutlinedButton(
+          onPressed: onPressed,
+          child: child,
+        );
+    }
   }
 }
