@@ -3,7 +3,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'dart:io' show Platform;
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -11,8 +12,9 @@ class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
   AuthService() {
-    // iOS用の設定を追加
-    if (Platform.isIOS) {
+    // プラットフォーム別の設定
+    if (!kIsWeb && Platform.isIOS) {
+      // iOS用の設定を追加
       // 環境変数からClient IDを取得
       final iosClientId = dotenv.env['GOOGLE_SIGNIN_IOS_CLIENT_ID'];
       _googleSignIn = GoogleSignIn(
@@ -20,7 +22,13 @@ class AuthService {
         // iOS Simulatorでの動作を改善するためにclientIdを指定
         clientId: iosClientId,
       );
+    } else if (kIsWeb) {
+      // Web用の設定 - clientIdを指定しない（HTMLメタタグから取得）
+      _googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
     } else {
+      // Androidの場合は通常の設定
       _googleSignIn = GoogleSignIn(
         scopes: ['email', 'profile'],
       );
@@ -60,31 +68,50 @@ class AuthService {
 
   Future<User?> signInWithGoogle() async {
     try {
-      // Use default GoogleSignIn configuration for iOS
-      // The configuration is handled by GoogleService-Info.plist
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        print('Google Sign In cancelled by user');
-        return null;
-      }
+      if (kIsWeb) {
+        // Web環境では Firebase Auth の signInWithPopup を直接使用
+        print('Web: Using Firebase Auth signInWithPopup for Google Sign-In');
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+        
+        try {
+          final UserCredential userCredential = await _auth.signInWithPopup(googleProvider);
+          await _createUserDocument(userCredential.user);
+          print('Successfully signed in with Google: ${userCredential.user?.email}');
+          return userCredential.user;
+        } catch (e) {
+          print('Error with signInWithPopup: $e');
+          // フォールバック: signInWithRedirect を試す
+          await _auth.signInWithRedirect(googleProvider);
+          return null; // リダイレクト後に処理される
+        }
+      } else {
+        // モバイル環境では従来の GoogleSignIn を使用
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          print('Google Sign In cancelled by user');
+          return null;
+        }
 
-      print('Google user signed in: ${googleUser.email}');
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      
-      if (googleAuth.idToken == null) {
-        throw 'Failed to get Google ID token';
-      }
-      
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+        print('Google user signed in: ${googleUser.email}');
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        
+        if (googleAuth.idToken == null) {
+          throw 'Failed to get Google ID token';
+        }
+        
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
 
-      print('Signing in to Firebase with Google credential...');
-      final userCredential = await _auth.signInWithCredential(credential);
-      await _createUserDocument(userCredential.user);
-      print('Successfully signed in: ${userCredential.user?.email}');
-      return userCredential.user;
+        print('Signing in to Firebase with Google credential...');
+        final userCredential = await _auth.signInWithCredential(credential);
+        await _createUserDocument(userCredential.user);
+        print('Successfully signed in: ${userCredential.user?.email}');
+        return userCredential.user;
+      }
     } on FirebaseAuthException catch (e) {
       print('Firebase Auth Error: ${e.code} - ${e.message}');
       throw _handleAuthError(e);
