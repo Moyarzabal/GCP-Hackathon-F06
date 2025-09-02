@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../shared/models/product.dart';
+import '../../../../shared/providers/app_state_provider.dart';
+import '../providers/scanner_provider.dart';
+import '../../../../shared/widgets/adaptive/adaptive_button.dart';
+import '../../../../shared/widgets/adaptive/adaptive_loading.dart';
+import '../../../../shared/widgets/common/error_widget.dart';
 
-class ScannerScreen extends StatefulWidget {
-  final Function(Product) onProductScanned;
-  
-  const ScannerScreen({
-    Key? key,
-    required this.onProductScanned,
-  }) : super(key: key);
+class ScannerScreen extends ConsumerStatefulWidget {
+  const ScannerScreen({Key? key}) : super(key: key);
   
   @override
-  State<ScannerScreen> createState() => _ScannerScreenState();
+  ConsumerState<ScannerScreen> createState() => _ScannerScreenState();
 }
 
-class _ScannerScreenState extends State<ScannerScreen> {
+class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   final products = {
     '4901777018888': {'name': 'コカ・コーラ 500ml', 'category': '飲料'},
     '4902220770199': {'name': 'ポカリスエット 500ml', 'category': '飲料'},
@@ -26,9 +27,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
     '4901777018871': {'name': 'ファンタオレンジ', 'category': '飲料'},
   };
 
-  String? lastScanned;
-  bool isScanning = false;
-  MobileScannerController controller = MobileScannerController();
+  @override
+  void initState() {
+    super.initState();
+    // カメラ初期化を次のフレームで実行
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(scannerProvider.notifier).initializeCamera();
+    });
+  }
 
   void _showProductDialog(String janCode, Map<String, String> productInfo) {
     DateTime? selectedDate;
@@ -130,27 +136,28 @@ class _ScannerScreenState extends State<ScannerScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  setState(() {
-                    lastScanned = null;
-                  });
+                  ref.read(scannerProvider.notifier).clearLastScannedCode();
                 },
                 child: const Text('キャンセル'),
               ),
               ElevatedButton(
                 onPressed: () {
                   final product = Product(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
                     janCode: janCode,
                     name: productInfo['name']!,
                     category: productInfo['category']!,
                     scannedAt: DateTime.now(),
+                    addedDate: DateTime.now(),
                     expiryDate: selectedDate,
                   );
-                  widget.onProductScanned(product);
+                  
+                  // アプリ状態に商品を追加
+                  ref.read(appStateProvider.notifier).addProduct(product);
+                  
                   Navigator.pop(context);
-                  setState(() {
-                    isScanning = false;
-                    lastScanned = null;
-                  });
+                  ref.read(scannerProvider.notifier).clearLastScannedCode();
+                  
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('${productInfo['name']} を追加しました'),
@@ -260,13 +267,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
                     final product = Product(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
                       janCode: 'MANUAL_${DateTime.now().millisecondsSinceEpoch}',
                       name: nameController.text,
                       category: selectedCategory,
                       scannedAt: DateTime.now(),
+                      addedDate: DateTime.now(),
                       expiryDate: selectedDate,
                     );
-                    widget.onProductScanned(product);
+                    
+                    // アプリ状態に商品を追加
+                    ref.read(appStateProvider.notifier).addProduct(product);
+                    
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -287,6 +299,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scannerState = ref.watch(scannerProvider);
+    final scannerNotifier = ref.watch(scannerProvider.notifier);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('バーコードスキャン'),
@@ -300,44 +315,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
       ),
       body: Column(
         children: [
+          // エラー表示
+          if (scannerState.error != null)
+            InlineErrorWidget(
+              message: scannerState.error!,
+              onDismiss: () => scannerNotifier.clearError(),
+            ),
+          
           Expanded(
-            child: isScanning
+            child: scannerState.isCameraActive
                 ? Stack(
                     children: [
                       MobileScanner(
-                        controller: controller,
+                        controller: scannerNotifier.controller,
                         onDetect: (capture) {
-                          final List<Barcode> barcodes = capture.barcodes;
-                          for (final barcode in barcodes) {
-                            if (barcode.rawValue != null &&
-                                barcode.rawValue != lastScanned) {
-                              lastScanned = barcode.rawValue;
-                              final productInfo = products[barcode.rawValue];
-                              
-                              if (productInfo != null) {
-                                _showProductDialog(barcode.rawValue!, productInfo);
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('商品が見つかりません'),
-                                    content: Text('JANコード: ${barcode.rawValue}\n\nこの商品はまだデータベースに登録されていません。'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          setState(() {
-                                            lastScanned = null;
-                                          });
-                                        },
-                                        child: const Text('OK'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
-                            }
-                          }
+                          _handleBarcodeDetection(capture, scannerNotifier);
                         },
                       ),
                       Positioned(
@@ -357,78 +349,106 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           ),
                         ),
                       ),
+                      if (scannerState.isScanning)
+                        const Center(
+                          child: AdaptiveLoading(
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
                     ],
                   )
-                : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.qr_code_scanner,
-                          size: 100,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(height: 32),
-                        Text(
-                          'バーコードをスキャンして\n商品を冷蔵庫に追加',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(height: 48),
-                        OutlinedButton.icon(
-                          onPressed: _showManualInput,
-                          icon: const Icon(Icons.edit),
-                          label: const Text('手動で追加'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                : _buildIdleState(context),
           ),
+          
+          // スキャンボタン
           Container(
             padding: const EdgeInsets.all(16),
             child: SizedBox(
               width: double.infinity,
               height: 56,
-              child: ElevatedButton(
+              child: AdaptiveButton(
+                text: scannerState.isCameraActive ? 'スキャンを停止' : 'スキャンを開始',
                 onPressed: () {
-                  setState(() {
-                    isScanning = !isScanning;
-                  });
+                  if (scannerState.isCameraActive) {
+                    scannerNotifier.stopCamera();
+                  } else {
+                    scannerNotifier.initializeCamera();
+                  }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isScanning 
-                    ? Theme.of(context).colorScheme.error 
-                    : Theme.of(context).colorScheme.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      isScanning ? Icons.stop : Icons.camera_alt,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      isScanning ? 'スキャンを停止' : 'スキャンを開始',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+                isLoading: scannerState.isScanning,
+                backgroundColor: scannerState.isCameraActive 
+                  ? Theme.of(context).colorScheme.error 
+                  : Theme.of(context).colorScheme.primary,
+                textColor: Colors.white,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildIdleState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.qr_code_scanner,
+            size: 100,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 32),
+          Text(
+            'バーコードをスキャンして\n商品を冷蔵庫に追加',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 48),
+          AdaptiveButton(
+            text: '手動で追加',
+            onPressed: _showManualInput,
+            isPrimary: false,
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _handleBarcodeDetection(BarcodeCapture capture, ScannerNotifier notifier) {
+    final barcodes = capture.barcodes;
+    for (final barcode in barcodes) {
+      if (barcode.rawValue != null) {
+        final productInfo = products[barcode.rawValue!];
+        
+        if (productInfo != null) {
+          _showProductDialog(barcode.rawValue!, productInfo);
+        } else {
+          _showUnknownProductDialog(barcode.rawValue!);
+        }
+        break; // 最初のバーコードのみ処理
+      }
+    }
+  }
+  
+  void _showUnknownProductDialog(String janCode) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('商品が見つかりません'),
+        content: Text('JANコード: $janCode\n\nこの商品はまだデータベースに登録されていません。'),
+        actions: [
+          AdaptiveButton(
+            text: 'OK',
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(scannerProvider.notifier).clearLastScannedCode();
+            },
+            isPrimary: false,
           ),
         ],
       ),
@@ -437,7 +457,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   void dispose() {
-    controller.dispose();
+    // Riverpodプロバイダーがカメラを管理するため、ここでは何もしない
     super.dispose();
   }
 }
