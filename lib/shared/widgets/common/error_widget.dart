@@ -52,10 +52,8 @@ class ErrorDisplayWidget extends StatelessWidget {
             if (onRetry != null) ...[
               const SizedBox(height: 24),
               AdaptiveButton(
-                text: '再試行',
+                child: const Text('再試行'),
                 onPressed: onRetry,
-                backgroundColor: theme.colorScheme.primary,
-                textColor: theme.colorScheme.onPrimary,
               ),
             ],
           ],
