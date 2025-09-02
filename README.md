@@ -1,16 +1,15 @@
 # 🍅 冷蔵庫管理AIアプリ - FridgeManager AI
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.35.2-blue.svg)](https://flutter.dev)
-[![Firebase](https://img.shields.io/badge/Firebase-Hosting-orange.svg)](https://firebase.google.com)
+[![Platform](https://img.shields.io/badge/Platform-iOS%20|%20Android-green.svg)]()
+[![Firebase](https://img.shields.io/badge/Backend-Firebase-orange.svg)](https://firebase.google.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-バーコードスキャンとAIを活用した、楽しく食品ロスを削減する冷蔵庫管理アプリケーション
-
-🔗 **Live Demo**: https://gcp-f06-barcode.web.app
+バーコードスキャンとAIを活用した、楽しく食品ロスを削減する冷蔵庫管理モバイルアプリ
 
 ## 📱 概要
 
-食材をキャラクター化し、賞味期限管理を楽しい体験に変える革新的なWebアプリケーション。バーコードスキャンで商品情報を自動取得し、AIが賞味期限に応じて食材の感情を表現します（😊→😐→😟→😰→💀）。
+食材をキャラクター化し、賞味期限管理を楽しい体験に変える革新的なモバイルアプリケーション。バーコードスキャンで商品情報を自動取得し、AIが賞味期限に応じて食材の感情を表現します（😊→😐→😟→😰→💀）。
 
 ### 主な特徴
 
@@ -19,23 +18,22 @@
 - 🎨 **キャラクター生成**: 食材を可愛いキャラクターに変換
 - 👨‍👩‍👧‍👦 **家族共有**: 世帯単位での食材管理
 - 🍳 **レシピ提案**: 期限が近い食材を使ったレシピをAIが提案
-- 📢 **通知機能**: 賞味期限が近づくとプッシュ通知
+- 📊 **履歴管理**: スキャンした商品の履歴を確認
+- ⚙️ **設定**: アプリの各種設定をカスタマイズ
 
 ## 🏗 システムアーキテクチャ
 
 ```
 ┌─────────────────┐     ┌──────────────────┐
-│  Flutter Web    │────▶│ Firebase Hosting │
-│   (Frontend)    │     └──────────────────┘
-└─────────────────┘              │
+│  Flutter App    │────▶│   Firebase       │
+│  (iOS/Android)  │     │   Backend        │
+└─────────────────┘     └──────────────────┘
          │                       ▼
          │              ┌────────────────────┐
          │              │ Firebase Services  │
          │              ├────────────────────┤
-         │              │ • Authentication    │
          │              │ • Cloud Firestore   │
          │              │ • Cloud Storage     │
-         │              │ • Cloud Messaging   │
          │              │ • Cloud Functions   │
          │              └────────────────────┘
          │                       │
@@ -51,19 +49,17 @@
 
 ## 🛠 技術スタック
 
-### フロントエンド
-- **Framework**: Flutter 3.35.2 (Web)
+### モバイルアプリ
+- **Framework**: Flutter 3.35.2
+- **Platforms**: iOS (13.0+), Android (API 21+)
 - **State Management**: Riverpod 2.6.1
 - **UI Components**: Material Design 3
 - **Animations**: Rive 0.13.17
 
 ### バックエンド
-- **Hosting**: Firebase Hosting
-- **Authentication**: Firebase Auth (Google/Apple/Email)
 - **Database**: Cloud Firestore
 - **Storage**: Cloud Storage
 - **Functions**: Cloud Functions (Node.js 20)
-- **Notifications**: Firebase Cloud Messaging
 
 ### AI/ML Services
 - **OCR**: Google ML Kit Text Recognition
@@ -82,14 +78,11 @@ lib/
 │   ├── config/                # Firebase設定
 │   ├── constants/             # 定数定義
 │   └── services/              # サービス層
-│       ├── auth_service.dart
 │       ├── firestore_service.dart
 │       ├── ocr_service.dart
 │       ├── imagen_service.dart
-│       ├── gemini_service.dart
-│       └── notification_service.dart
+│       └── gemini_service.dart
 ├── features/                   # 機能別モジュール
-│   ├── auth/                  # 認証
 │   ├── home/                  # ホーム画面
 │   ├── scanner/               # バーコードスキャナー
 │   ├── products/              # 商品管理
@@ -251,33 +244,38 @@ flutter test --coverage
 
 ## 🚢 デプロイ
 
-### Firebase Hostingへのデプロイ
+### iOS App Storeへのデプロイ
 
 ```bash
 # ビルド
-flutter build web --release
+flutter build ios --release
 
-# デプロイ
-firebase deploy --only hosting
-
-# Cloud Functionsも含めてデプロイ
-firebase deploy
+# Xcodeでアーカイブとアップロード
+open ios/Runner.xcworkspace
+# Product > Archive を選択
+# App Store Connectにアップロード
 ```
 
-### Cloud Runへのデプロイ（オプション）
+### Google Play Storeへのデプロイ
 
 ```bash
-# Dockerイメージのビルド
-docker build -t asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest .
+# App Bundleをビルド
+flutter build appbundle --release
 
-# プッシュ
-docker push asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest
+# Google Play Consoleにアップロード
+# build/app/outputs/bundle/release/app-release.aab
+```
 
-# デプロイ
-gcloud run deploy barcode-scanner-web \
-  --image=asia-northeast1-docker.pkg.dev/gcp-f06-barcode/barcode-scanner/web-app:latest \
-  --region=asia-northeast1 \
-  --allow-unauthenticated
+### TestFlight/内部テストへの配布
+
+```bash
+# iOS TestFlight
+# App Store ConnectでTestFlightを設定
+# テスターを招待
+
+# Android 内部テスト
+# Google Play Consoleで内部テストトラックを設定
+# テスターを招待
 ```
 
 ## 📱 使い方
