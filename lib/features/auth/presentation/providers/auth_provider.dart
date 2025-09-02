@@ -1,39 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/app_exception.dart';
-import '../../../../core/errors/result.dart';
-
-/// ユーザー情報を表すクラス
-class User {
-  final String id;
-  final String email;
-  final String? displayName;
-  final String? photoUrl;
-  final bool isEmailVerified;
-
-  const User({
-    required this.id,
-    required this.email,
-    this.displayName,
-    this.photoUrl,
-    this.isEmailVerified = false,
-  });
-
-  User copyWith({
-    String? id,
-    String? email,
-    String? displayName,
-    String? photoUrl,
-    bool? isEmailVerified,
-  }) {
-    return User(
-      id: id ?? this.id,
-      email: email ?? this.email,
-      displayName: displayName ?? this.displayName,
-      photoUrl: photoUrl ?? this.photoUrl,
-      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
-    );
-  }
-}
+import '../../../../core/utils/result.dart';
+import '../../../../core/services/service_locator.dart';
+import '../../domain/entities/user.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../../domain/usecases/sign_in.dart';
+import '../../domain/usecases/sign_out.dart';
+import '../../domain/usecases/create_account.dart';
 
 /// 認証状態を表すクラス
 class AuthState {
@@ -66,9 +39,21 @@ class AuthState {
 
 /// 認証状態を管理するStateNotifier
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(const AuthState()) {
+  final AuthRepository _authRepository;
+  final SignIn _signIn;
+  final SignOut _signOut;
+  final CreateAccount _createAccount;
+
+  AuthNotifier(
+    this._authRepository,
+    this._signIn,
+    this._signOut,
+    this._createAccount,
+  ) : super(const AuthState()) {
     // 初期状態で認証状態をチェック
     _checkAuthStatus();
+    // 認証状態の変更を監視
+    _watchAuthStateChanges();
   }
 
   /// 認証状態をチェック
@@ -76,239 +61,170 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       state = state.copyWith(isLoading: true, error: null);
       
-      // TODO: 実際の認証状態チェックを実装
-      // 現在は仮実装で認証済みとする
-      await Future.delayed(const Duration(seconds: 1));
+      final result = await _authRepository.getCurrentUser();
       
-      const user = User(
-        id: 'dummy_user_id',
-        email: 'user@example.com',
-        displayName: 'テストユーザー',
-        isEmailVerified: true,
+      result.fold(
+        (failure) {
+          state = state.copyWith(
+            error: failure.message,
+            isLoading: false,
+            isAuthenticated: false,
+          );
+        },
+        (user) {
+          state = state.copyWith(
+            user: user,
+            isAuthenticated: user != null,
+            isLoading: false,
+          );
+        },
       );
-      
+    } catch (e) {
       state = state.copyWith(
-        user: user,
-        isAuthenticated: true,
-        isLoading: false,
-      );
-    } catch (e, stackTrace) {
-      final exception = AuthException(
-        '認証状態の確認に失敗しました',
-        details: e.toString(),
-        stackTrace: stackTrace,
-      );
-      
-      state = state.copyWith(
-        error: exception.message,
+        error: '認証状態の確認に失敗しました',
         isLoading: false,
         isAuthenticated: false,
       );
     }
+  }
+
+  /// 認証状態の変更を監視
+  void _watchAuthStateChanges() {
+    _authRepository.watchAuthStateChanges().listen((user) {
+      state = state.copyWith(
+        user: user,
+        isAuthenticated: user != null,
+        error: null,
+      );
+    });
   }
 
   /// メールアドレスとパスワードでログイン
   Future<Result<User>> signInWithEmail(String email, String password) async {
-    try {
-      state = state.copyWith(isLoading: true, error: null);
-      
-      // バリデーション
-      if (email.isEmpty || password.isEmpty) {
-        throw const AuthException('メールアドレスとパスワードを入力してください');
-      }
-      
-      if (!_isValidEmail(email)) {
-        throw const AuthException('有効なメールアドレスを入力してください');
-      }
-      
-      // TODO: 実際のログイン処理を実装
-      await Future.delayed(const Duration(seconds: 2));
-      
-      final user = User(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        email: email,
-        displayName: email.split('@').first,
-        isEmailVerified: true,
-      );
-      
-      state = state.copyWith(
-        user: user,
-        isAuthenticated: true,
-        isLoading: false,
-      );
-      
-      return Result.success(user);
-    } catch (e, stackTrace) {
-      final exception = e is AuthException 
-          ? e 
-          : AuthException(
-              'ログインに失敗しました',
-              details: e.toString(),
-              stackTrace: stackTrace,
-            );
-      
-      state = state.copyWith(
-        error: exception.message,
-        isLoading: false,
-      );
-      
-      return Result.failure(exception);
-    }
+    state = state.copyWith(isLoading: true, error: null);
+    
+    final result = await _signIn.execute(SignInParams(
+      email: email,
+      password: password,
+    ));
+    
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          error: failure.message,
+          isLoading: false,
+        );
+        return Result.failure(failure);
+      },
+      (user) {
+        state = state.copyWith(
+          user: user,
+          isAuthenticated: true,
+          isLoading: false,
+        );
+        return Result.success(user);
+      },
+    );
   }
 
   /// Googleサインイン
   Future<Result<User>> signInWithGoogle() async {
-    try {
-      state = state.copyWith(isLoading: true, error: null);
-      
-      // TODO: 実際のGoogleサインイン処理を実装
-      await Future.delayed(const Duration(seconds: 2));
-      
-      const user = User(
-        id: 'google_user_id',
-        email: 'google.user@gmail.com',
-        displayName: 'Google User',
-        photoUrl: 'https://example.com/photo.jpg',
-        isEmailVerified: true,
-      );
-      
-      state = state.copyWith(
-        user: user,
-        isAuthenticated: true,
-        isLoading: false,
-      );
-      
-      return Result.success(user);
-    } catch (e, stackTrace) {
-      final exception = AuthException(
-        'Googleサインインに失敗しました',
-        details: e.toString(),
-        stackTrace: stackTrace,
-      );
-      
-      state = state.copyWith(
-        error: exception.message,
-        isLoading: false,
-      );
-      
-      return Result.failure(exception);
-    }
+    state = state.copyWith(isLoading: true, error: null);
+    
+    final result = await _signIn.executeGoogleSignIn();
+    
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          error: failure.message,
+          isLoading: false,
+        );
+        return Result.failure(failure);
+      },
+      (user) {
+        state = state.copyWith(
+          user: user,
+          isAuthenticated: true,
+          isLoading: false,
+        );
+        return Result.success(user);
+      },
+    );
   }
 
   /// メールアドレスとパスワードでアカウント作成
   Future<Result<User>> createAccount(String email, String password, String displayName) async {
-    try {
-      state = state.copyWith(isLoading: true, error: null);
-      
-      // バリデーション
-      if (email.isEmpty || password.isEmpty || displayName.isEmpty) {
-        throw const AuthException('すべてのフィールドを入力してください');
-      }
-      
-      if (!_isValidEmail(email)) {
-        throw const AuthException('有効なメールアドレスを入力してください');
-      }
-      
-      if (password.length < 6) {
-        throw const AuthException('パスワードは6文字以上で入力してください');
-      }
-      
-      // TODO: 実際のアカウント作成処理を実装
-      await Future.delayed(const Duration(seconds: 2));
-      
-      final user = User(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        email: email,
-        displayName: displayName,
-        isEmailVerified: false,
-      );
-      
-      state = state.copyWith(
-        user: user,
-        isAuthenticated: true,
-        isLoading: false,
-      );
-      
-      return Result.success(user);
-    } catch (e, stackTrace) {
-      final exception = e is AuthException 
-          ? e 
-          : AuthException(
-              'アカウント作成に失敗しました',
-              details: e.toString(),
-              stackTrace: stackTrace,
-            );
-      
-      state = state.copyWith(
-        error: exception.message,
-        isLoading: false,
-      );
-      
-      return Result.failure(exception);
-    }
+    state = state.copyWith(isLoading: true, error: null);
+    
+    final result = await _createAccount.execute(CreateAccountParams(
+      email: email,
+      password: password,
+      displayName: displayName,
+    ));
+    
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          error: failure.message,
+          isLoading: false,
+        );
+        return Result.failure(failure);
+      },
+      (user) {
+        state = state.copyWith(
+          user: user,
+          isAuthenticated: true,
+          isLoading: false,
+        );
+        return Result.success(user);
+      },
+    );
   }
 
   /// ログアウト
   Future<Result<void>> signOut() async {
-    try {
-      state = state.copyWith(isLoading: true, error: null);
-      
-      // TODO: 実際のログアウト処理を実装
-      await Future.delayed(const Duration(seconds: 1));
-      
-      state = state.copyWith(
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-      );
-      
-      return Result.success(null);
-    } catch (e, stackTrace) {
-      final exception = AuthException(
-        'ログアウトに失敗しました',
-        details: e.toString(),
-        stackTrace: stackTrace,
-      );
-      
-      state = state.copyWith(
-        error: exception.message,
-        isLoading: false,
-      );
-      
-      return Result.failure(exception);
-    }
+    state = state.copyWith(isLoading: true, error: null);
+    
+    final result = await _signOut.execute();
+    
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          error: failure.message,
+          isLoading: false,
+        );
+        return Result.failure(failure);
+      },
+      (_) {
+        state = state.copyWith(
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        );
+        return const Result.success(null);
+      },
+    );
   }
 
   /// パスワードリセット
   Future<Result<void>> resetPassword(String email) async {
-    try {
-      state = state.copyWith(isLoading: true, error: null);
-      
-      if (!_isValidEmail(email)) {
-        throw const AuthException('有効なメールアドレスを入力してください');
-      }
-      
-      // TODO: 実際のパスワードリセット処理を実装
-      await Future.delayed(const Duration(seconds: 2));
-      
-      state = state.copyWith(isLoading: false);
-      return Result.success(null);
-    } catch (e, stackTrace) {
-      final exception = e is AuthException 
-          ? e 
-          : AuthException(
-              'パスワードリセットに失敗しました',
-              details: e.toString(),
-              stackTrace: stackTrace,
-            );
-      
-      state = state.copyWith(
-        error: exception.message,
-        isLoading: false,
-      );
-      
-      return Result.failure(exception);
-    }
+    state = state.copyWith(isLoading: true, error: null);
+    
+    final result = await _authRepository.resetPassword(email);
+    
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          error: failure.message,
+          isLoading: false,
+        );
+        return Result.failure(failure);
+      },
+      (_) {
+        state = state.copyWith(isLoading: false);
+        return const Result.success(null);
+      },
+    );
   }
 
   /// エラーをクリア
@@ -316,15 +232,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(error: null);
   }
 
-  /// メールアドレスバリデーション
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-  }
 }
 
 /// 認証プロバイダー
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier();
+  final serviceLocator = ServiceLocator.instance;
+  return AuthNotifier(
+    serviceLocator.get<AuthRepository>(),
+    serviceLocator.get<SignIn>(),
+    serviceLocator.get<SignOut>(),
+    serviceLocator.get<CreateAccount>(),
+  );
 });
 
 /// 現在のユーザーを取得するプロバイダー
