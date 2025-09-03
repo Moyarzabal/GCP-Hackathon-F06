@@ -5,10 +5,11 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
 
+import 'package:barcode_scanner/core/errors/error_messages.dart' as _i5;
 import 'package:barcode_scanner/core/errors/error_reporter.dart' as _i3;
 import 'package:logging/logging.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i5;
+import 'package:mockito/src/dummies.dart' as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -69,12 +70,12 @@ class MockErrorReporter extends _i1.Mock implements _i3.ErrorReporter {
           as _i4.Future<void>);
 
   @override
-  _i3.ErrorSeverity getErrorSeverity(Object? error) =>
+  _i5.ErrorSeverity getErrorSeverity(Object? error) =>
       (super.noSuchMethod(
             Invocation.method(#getErrorSeverity, [error]),
-            returnValue: _i3.ErrorSeverity.info,
+            returnValue: _i5.ErrorSeverity.info,
           )
-          as _i3.ErrorSeverity);
+          as _i5.ErrorSeverity);
 
   @override
   _i4.Future<Map<String, dynamic>> collectDeviceInfo() =>
@@ -188,7 +189,7 @@ class MockLogger extends _i1.Mock implements _i2.Logger {
   String get name =>
       (super.noSuchMethod(
             Invocation.getter(#name),
-            returnValue: _i5.dummyValue<String>(this, Invocation.getter(#name)),
+            returnValue: _i6.dummyValue<String>(this, Invocation.getter(#name)),
           )
           as String);
 
@@ -204,7 +205,7 @@ class MockLogger extends _i1.Mock implements _i2.Logger {
   String get fullName =>
       (super.noSuchMethod(
             Invocation.getter(#fullName),
-            returnValue: _i5.dummyValue<String>(
+            returnValue: _i6.dummyValue<String>(
               this,
               Invocation.getter(#fullName),
             ),
