@@ -68,6 +68,10 @@ dependencies:
   flutter_dotenv: ^5.1.0
   equatable: ^2.0.5
   
+  # Security
+  flutter_secure_storage: ^9.2.2
+  crypto: ^3.0.5
+  
   # Google Generative AI (Gemini)
   google_generative_ai: ^0.4.0
   
@@ -104,8 +108,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  assets:
-    - .env
+  # assets:
+  #   - images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
