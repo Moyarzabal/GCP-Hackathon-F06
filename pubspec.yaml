@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.5.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -45,19 +45,8 @@ dependencies:
   # State management
   flutter_riverpod: ^2.6.1
   
-  # UI & Animations
-  rive: ^0.13.17
-  
-  # Image & ML
-  google_mlkit_text_recognition: ^0.15.0
-  google_mlkit_barcode_scanning: ^0.14.0
-  cached_network_image: ^3.4.1
-  
-  # HTTP & API
+  # HTTP & API (dioは削除、httpのみ使用)
   http: ^1.2.2
-  dio: ^5.8.1
-  
-  # 認証関連パッケージを削除（後で再実装）
   
   # Utilities
   intl: ^0.19.0
@@ -67,6 +56,15 @@ dependencies:
   url_launcher: ^6.3.1
   flutter_dotenv: ^5.1.0
   equatable: ^2.0.5
+  
+  # Platform detection
+  universal_platform: ^1.1.0
+  
+  # Local database (将来的な実装用)
+  sqflite: ^2.4.0
+  
+  # Permissions
+  permission_handler: ^11.3.1
   
   # Security
   flutter_secure_storage: ^9.2.2
