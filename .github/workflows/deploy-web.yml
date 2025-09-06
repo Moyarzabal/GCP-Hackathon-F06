@@ -136,11 +136,20 @@ jobs:
           name: web-build-${{ needs.determine-environment.outputs.environment }}
           path: build/web/
 
+      - name: Set Firebase Service Account
+        id: firebase-account
+        run: |
+          if [[ "${{ needs.determine-environment.outputs.environment }}" == "production" ]]; then
+            echo "service_account=${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}" >> $GITHUB_OUTPUT
+          else
+            echo "service_account=${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ needs.determine-environment.outputs.environment == 'production' && secrets.FIREBASE_SERVICE_ACCOUNT_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}'
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ steps.firebase-account.outputs.service_account }}
           channelId: ${{ needs.determine-environment.outputs.firebase-channel }}
           projectId: ${{ needs.determine-environment.outputs.firebase-project }}
           target: ${{ needs.determine-environment.outputs.environment }}
