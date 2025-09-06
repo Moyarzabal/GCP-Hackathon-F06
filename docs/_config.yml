@@ -1,0 +1,71 @@
+# GitHub Pages Configuration
+title: "🍅 冷蔵庫管理AIアプリ - 開発プロジェクト"
+description: "Flutter + Firebase + Google Cloud Platform による冷蔵庫管理AIアプリの開発ドキュメント"
+
+# Theme and plugins
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Site settings
+url: "https://yourusername.github.io"
+baseurl: "/GCP-Hackathon-F06"
+
+# Navigation
+header_pages:
+  - index.html
+  - roadmap.html
+  - development-roadmap.md
+
+# Include/Exclude files
+include:
+  - "*.html"
+  - "*.md"
+
+exclude:
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "default"
+
+# SEO settings
+lang: ja_JP
+author: "GCP Hackathon F06 Team"
+
+# Social media
+github_username: yourusername
+project_repository: GCP-Hackathon-F06
+
+# Analytics (optional)
+# google_analytics: UA-XXXXXXXX-X
