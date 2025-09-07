@@ -378,13 +378,13 @@
                         <div class="stat-number">3</div>
                         <div>開発メンバー</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number">6</div>
-                        <div>開発週間</div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;">
+                        <div class="stat-number">2</div>
+                        <div>開発週間 (残り)</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">3</div>
-                        <div>開発フェーズ</div>
+                        <div class="stat-number">5</div>
+                        <div>機能エリア</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">2</div>
@@ -411,39 +411,44 @@
                 </div>
             </div>
 
-            <!-- チーム体制 -->
+            <!-- 3人体制開発分担 -->
             <div class="section">
-                <h2><i class="fas fa-users"></i> 開発チーム体制</h2>
-                <div class="team-grid">
-                    <div class="team-card">
-                        <h4><i class="fas fa-paint-brush"></i> フロントエンドエンジニア</h4>
-                        <p><strong>責任範囲:</strong></p>
-                        <ul>
-                            <li>Flutter UI/UX 設計・実装</li>
-                            <li>キャラクターアニメーション</li>
-                            <li>レスポンシブデザイン</li>
-                            <li>ユーザビリティ最適化</li>
+                <h2><i class="fas fa-users"></i> 3人チーム開発分担</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem;">
+                    <div class="team-card" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+                        <h4><i class="fas fa-robot"></i> 開発者A：AI・バックエンド担当</h4>
+                        <p><strong>専門領域:</strong> AI統合・サーバーサイド</p>
+                        <p><strong>担当エリア:</strong></p>
+                        <ul style="font-size: 0.9rem;">
+                            <li><strong>🔍 バーコード・AI認識</strong><br><code>scanner/</code>, <code>gemini_service.dart</code></li>
+                            <li><strong>🔐 認証・セキュリティ</strong><br><code>auth/</code>, <code>security/</code></li>
+                            <li><strong>⚙️ データベース・同期</strong><br><code>firestore_service.dart</code>, <code>functions/</code></li>
                         </ul>
+                        <p><strong>主な機能:</strong> バーコード→Gemini AI→Firebase認証→データ同期</p>
                     </div>
-                    <div class="team-card">
-                        <h4><i class="fas fa-robot"></i> AIバックエンドエンジニア</h4>
-                        <p><strong>責任範囲:</strong></p>
-                        <ul>
-                            <li>Vertex AI統合</li>
-                            <li>レシート解析・OCR</li>
-                            <li>レシピ提案AI</li>
-                            <li>Cloud Functions開発</li>
+                    
+                    <div class="team-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <h4><i class="fas fa-mobile-alt"></i> 開発者B：UI・フロントエンド担当</h4>
+                        <p><strong>専門領域:</strong> Flutter UI/UX・モバイル</p>
+                        <p><strong>担当エリア:</strong></p>
+                        <ul style="font-size: 0.9rem;">
+                            <li><strong>🏠 冷蔵庫管理・表示</strong><br><code>home/</code>, <code>products/</code></li>
+                            <li><strong>👨‍👩‍👧‍👦 家族共有UI</strong><br><code>household/</code></li>
+                            <li><strong>🎨 共通UI・アダプティブ</strong><br><code>shared/widgets/</code>, <code>adaptive/</code></li>
                         </ul>
+                        <p><strong>主な機能:</strong> 冷蔵庫UI→商品表示→家族共有→iOS/Android適応</p>
                     </div>
-                    <div class="team-card">
-                        <h4><i class="fas fa-server"></i> データ・インフラエンジニア</h4>
-                        <p><strong>責任範囲:</strong></p>
-                        <ul>
-                            <li>Firebase設定・運用</li>
-                            <li>データベース設計</li>
-                            <li>CI/CD構築</li>
-                            <li>セキュリティ・監視</li>
+                    
+                    <div class="team-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <h4><i class="fas fa-cog"></i> 開発者C：設定・統合・品質担当</h4>
+                        <p><strong>専門領域:</strong> 設定管理・テスト・DevOps</p>
+                        <p><strong>担当エリア:</strong></p>
+                        <ul style="font-size: 0.9rem;">
+                            <li><strong>⚙️ 設定・履歴画面</strong><br><code>settings/</code>, <code>history/</code></li>
+                            <li><strong>🧪 テスト・品質管理</strong><br><code>test/</code>, <code>integration_test/</code></li>
+                            <li><strong>🚀 リリース・ストア対応</strong><br>アイコン、スクリーンショット、申請</li>
                         </ul>
+                        <p><strong>主な機能:</strong> 設定画面→履歴分析→統合テスト→App Store申請</p>
                     </div>
                 </div>
             </div>
@@ -533,180 +538,251 @@
                 </div>
             </div>
 
-            <!-- 3列開発者別ロードマップ -->
+            <!-- 2週間緊急開発スケジュール -->
             <div class="section">
-                <h2><i class="fas fa-users-cog"></i> 開発者別担当・ロードマップ</h2>
+                <h2><i class="fas fa-rocket"></i> 2週間緊急開発スケジュール</h2>
                 <div class="timeline">
                     <div class="timeline-item">
                         <div class="phase-header">
-                            <h4>🎯 週1-2: 緊急修正・MVP完成</h4>
-                            <div class="phase-badge">最優先</div>
+                            <h4>🚨 第1週: MVP機能完成 (9/7-9/13)</h4>
+                            <div class="phase-badge" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">緊急</div>
                         </div>
-                        <p><strong>目標:</strong> 現在の不具合修正とMVP機能完成</p>
+                        <p><strong>目標:</strong> コア機能の動作確認とバグ修正完了</p>
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: 30%;"></div>
+                            <div class="progress-fill" style="width: 40%;"></div>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0;">
-                            <div class="task-card" style="background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%); border: 2px solid #0288d1;">
-                                <h5><i class="fas fa-paint-brush"></i> フロントエンド担当</h5>
-                                <p><strong>ディレクトリ:</strong> <code>lib/features/*/presentation/</code></p>
-                                <ul class="task-list" style="font-size: 0.9rem;">
-                                    <li>認証画面UI完成 <code>auth/pages/</code></li>
-                                    <li>商品詳細画面改善 <code>products/pages/</code></li>
-                                    <li>ホーム画面レイアウト <code>home/pages/</code></li>
-                                    <li>アダプティブUI調整 <code>shared/widgets/adaptive/</code></li>
-                                    <li>バーコード結果画面改善</li>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin: 1.5rem 0;">
+                            <div class="task-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: 2px solid #3b82f6;">
+                                <h5><i class="fas fa-robot"></i> 開発者A：AI・バックエンド</h5>
+                                <ul class="task-list" style="font-size: 0.85rem;">
+                                    <li>バーコードスキャン修正</li>
+                                    <li>Gemini画像認識改善</li>
+                                    <li>Firebase認証エラー修正</li>
+                                    <li>Firestore接続修正</li>
+                                    <li>データ同期最適化</li>
                                 </ul>
                             </div>
-                            <div class="task-card" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); border: 2px solid #8e24aa;">
-                                <h5><i class="fas fa-robot"></i> AI・バックエンド担当</h5>
-                                <p><strong>ディレクトリ:</strong> <code>lib/core/services/</code></p>
-                                <ul class="task-list" style="font-size: 0.9rem;">
-                                    <li>Gemini AIレシピ改善 <code>gemini_service.dart</code></li>
-                                    <li>商品認識精度向上 <code>open_food_facts_service.dart</code></li>
-                                    <li>賞味期限予測AI追加</li>
-                                    <li>エラーハンドリング強化 <code>core/errors/</code></li>
-                                    <li>OCRサービス改善 <code>ocr_service.dart</code></li>
+                            <div class="task-card" style="background: linear-gradient(135deg, #d1fae5 0%, #bbf7d0 100%); border: 2px solid #10b981;">
+                                <h5><i class="fas fa-mobile-alt"></i> 開発者B：UI・フロントエンド</h5>
+                                <ul class="task-list" style="font-size: 0.85rem;">
+                                    <li>ホーム画面レイアウト</li>
+                                    <li>商品表示カード改善</li>
+                                    <li>商品詳細画面修正</li>
+                                    <li>家族共有UI基盤</li>
+                                    <li>アダプティブUI調整</li>
                                 </ul>
                             </div>
-                            <div class="task-card" style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); border: 2px solid #2e7d32;">
-                                <h5><i class="fas fa-database"></i> データ・インフラ担当</h5>
-                                <p><strong>ディレクトリ:</strong> <code>lib/features/*/data/</code></p>
-                                <ul class="task-list" style="font-size: 0.9rem;">
-                                    <li>認証データソース完成 <code>auth/data/</code></li>
-                                    <li>Firestoreクエリ最適化 <code>*/datasources/</code></li>
-                                    <li>オフラインデータ同期</li>
-                                    <li>セキュリティルール設定 <code>core/security/</code></li>
-                                    <li>テストデータ整備 <code>test/</code></li>
+                            <div class="task-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b;">
+                                <h5><i class="fas fa-cog"></i> 開発者C：設定・統合・品質</h5>
+                                <ul class="task-list" style="font-size: 0.85rem;">
+                                    <li>設定画面完成</li>
+                                    <li>履歴画面実装</li>
+                                    <li>統合テスト実行・修正</li>
+                                    <li>品質チェック</li>
+                                    <li>エラーハンドリング</li>
                                 </ul>
                             </div>
+                        </div>
+                        
+                        <div style="background: #fef2f2; border: 2px solid #ef4444; border-radius: 10px; padding: 1rem; margin: 1rem 0;">
+                            <h5 style="color: #ef4444; margin-bottom: 0.5rem;"><i class="fas fa-exclamation-triangle"></i> 第1週重要タスク</h5>
+                            <ul style="color: #991b1b; margin: 0; padding-left: 1.5rem;">
+                                <li><strong>Firebase接続エラー完全解消</strong> → 全機能の前提条件</li>
+                                <li><strong>バーコードスキャン動作確認</strong> → コア機能の検証</li>
+                                <li><strong>Gemini AI応答テスト</strong> → AI機能の信頼性確保</li>
+                                <li><strong>基本UIの動作確認</strong> → ユーザビリティ最低基準</li>
+                            </ul>
                         </div>
                     </div>
 
                     <div class="timeline-item">
                         <div class="phase-header">
-                            <h4>🚀 週3-4: モバイル特化・高度機能</h4>
-                            <div class="phase-badge">次フェーズ</div>
+                            <h4>🏁 第2週: リリース準備・完成 (9/14-9/20)</h4>
+                            <div class="phase-badge" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">完成</div>
                         </div>
-                        <p><strong>目標:</strong> iOS/Android特化機能とAI高度化</p>
+                        <p><strong>目標:</strong> App Store申請可能レベルの完成度達成</p>
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: 10%;"></div>
+                            <div class="progress-fill" style="width: 20%;"></div>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0;">
-                            <div class="task-card" style="background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%); border: 2px solid #0288d1;">
-                                <h5><i class="fas fa-mobile-alt"></i> iOS/Android UI担当</h5>
-                                <p><strong>追加ディレクトリ:</strong> <code>lib/core/platform/</code></p>
-                                <ul class="task-list" style="font-size: 0.9rem;">
-                                    <li>Face ID/指紋認証UI</li>
-                                    <li>プッシュ通知UI</li>
-                                    <li>ウィジェット対応</li>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin: 1.5rem 0;">
+                            <div class="task-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: 2px solid #3b82f6;">
+                                <h5><i class="fas fa-robot"></i> 開発者A：AI・バックエンド</h5>
+                                <ul class="task-list" style="font-size: 0.85rem;">
+                                    <li>レシート文字認識追加</li>
+                                    <li>料理写真解析機能</li>
+                                    <li>生体認証実装</li>
+                                    <li>Cloud Functions実装</li>
+                                    <li>プッシュ通知システム</li>
+                                </ul>
+                            </div>
+                            <div class="task-card" style="background: linear-gradient(135deg, #d1fae5 0%, #bbf7d0 100%); border: 2px solid #10b981;">
+                                <h5><i class="fas fa-mobile-alt"></i> 開発者B：UI・フロントエンド</h5>
+                                <ul class="task-list" style="font-size: 0.85rem;">
+                                    <li>家族共有UI実装</li>
+                                    <li>冷蔵庫キャラクター表示</li>
                                     <li>アニメーション追加</li>
+                                    <li>iOS/Android適応調整</li>
                                     <li>アクセシビリティ対応</li>
                                 </ul>
                             </div>
-                            <div class="task-card" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); border: 2px solid #8e24aa;">
-                                <h5><i class="fas fa-brain"></i> AI・画像認識担当</h5>
-                                <p><strong>追加ディレクトリ:</strong> <code>lib/features/ai/</code></p>
-                                <ul class="task-list" style="font-size: 0.9rem;">
-                                    <li>Vision AI画像認識</li>
-                                    <li>レシート文字認識</li>
-                                    <li>料理写真解析</li>
-                                    <li>音声入力対応</li>
-                                    <li>キャラクター生成AI</li>
+                            <div class="task-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b;">
+                                <h5><i class="fas fa-cog"></i> 開発者C：設定・統合・品質</h5>
+                                <ul class="task-list" style="font-size: 0.85rem;">
+                                    <li>統合テスト実施</li>
+                                    <li>App Store申請準備</li>
+                                    <li>スクリーンショット作成</li>
+                                    <li>プライバシーポリシー作成</li>
+                                    <li>リリースノート作成</li>
                                 </ul>
                             </div>
-                            <div class="task-card" style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); border: 2px solid #2e7d32;">
-                                <h5><i class="fas fa-cloud"></i> クラウド・通知担当</h5>
-                                <p><strong>追加ディレクトリ:</strong> <code>functions/</code></p>
-                                <ul class="task-list" style="font-size: 0.9rem;">
-                                    <li>Cloud Functions開発</li>
-                                    <li>プッシュ通知システム</li>
-                                    <li>バックアップ機能</li>
-                                    <li>使用量監視・アラート</li>
-                                    <li>パフォーマンス監視</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item">
-                        <div class="phase-header">
-                            <h4>🎯 週5-6: App Store配信準備</h4>
-                            <div class="phase-badge">リリース</div>
-                        </div>
-                        <p><strong>目標:</strong> 商用配信レベルの品質完成</p>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 5%;"></div>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0;">
-                            <div class="task-card" style="background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%); border: 2px solid #0288d1;">
-                                <h5><i class="fas fa-store"></i> ストア対応・UI担当</h5>
-                                <p><strong>追加作業:</strong> アセット・メタデータ</p>
-                                <ul class="task-list" style="font-size: 0.9rem;">
-                                    <li>アプリアイコン全サイズ</li>
-                                    <li>スクリーンショット撮影</li>
-                                    <li>App Store説明文</li>
-                                    <li>オンボーディング画面</li>
-                                    <li>利用規約・プライバシー</li>
-                                </ul>
-                            </div>
-                            <div class="task-card" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); border: 2px solid #8e24aa;">
-                                <h5><i class="fas fa-bug"></i> QA・テスト担当</h5>
-                                <p><strong>追加ディレクトリ:</strong> <code>integration_test/</code></p>
-                                <ul class="task-list" style="font-size: 0.9rem;">
-                                    <li>自動テスト拡充</li>
-                                    <li>デバイステスト実施</li>
-                                    <li>パフォーマンステスト</li>
-                                    <li>セキュリティ監査</li>
-                                    <li>ユーザビリティテスト</li>
-                                </ul>
-                            </div>
-                            <div class="task-card" style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); border: 2px solid #2e7d32;">
-                                <h5><i class="fas fa-rocket"></i> DevOps・配信担当</h5>
-                                <p><strong>追加作業:</strong> CI/CD・ストア申請</p>
-                                <ul class="task-list" style="font-size: 0.9rem;">
-                                    <li>TestFlight配信設定</li>
-                                    <li>App Store Connect設定</li>
-                                    <li>Google Play Console</li>
-                                    <li>アプリ審査対応</li>
-                                    <li>本番環境デプロイ</li>
-                                </ul>
-                            </div>
+                        <div style="background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 10px; padding: 1rem; margin: 1rem 0;">
+                            <h5 style="color: #0ea5e9; margin-bottom: 0.5rem;"><i class="fas fa-rocket"></i> リリース必須作業</h5>
+                            <ul style="color: #0c4a6e; margin: 0; padding-left: 1.5rem;">
+                                <li><strong>App Store申請資料準備</strong> → アイコン、スクリーンショット、説明文</li>
+                                <li><strong>TestFlight配信テスト</strong> → ベータ版での最終動作確認</li>
+                                <li><strong>プライバシーポリシー作成</strong> → App Store審査必須</li>
+                                <li><strong>統合テスト完了</strong> → 全機能の連携動作確認</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 優先度別作業指示 -->
+            <!-- 機能別詳細作業指示 -->
             <div class="section">
-                <h2><i class="fas fa-exclamation-triangle"></i> 今すぐ始める作業指示</h2>
-                <div class="task-grid">
-                    <div class="task-card" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border: 2px solid #ef4444;">
-                        <h5>🚨 緊急 (今週中)</h5>
-                        <ul class="task-list">
-                            <li><strong>認証画面バグ修正</strong><br><code>lib/features/auth/presentation/pages/login_screen.dart</code></li>
-                            <li><strong>バーコード結果エラー対応</strong><br><code>lib/features/scanner/presentation/</code></li>
-                            <li><strong>Firebase接続エラー修正</strong><br><code>lib/firebase_options.dart</code></li>
-                        </ul>
+                <h2><i class="fas fa-code"></i> 機能別詳細作業指示</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem;">
+                    <!-- 開発者A：AI・バックエンドエリア -->
+                    <div class="task-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: 2px solid #3b82f6;">
+                        <h5><i class="fas fa-robot"></i> 開発者A：AI・バックエンド担当</h5>
+                        
+                        <div style="margin: 1rem 0;">
+                            <h6 style="color: #1e40af; font-size: 0.9rem; margin-bottom: 0.5rem;">🔧 担当ファイル:</h6>
+                            <div style="font-family: monospace; font-size: 0.8rem; background: #f1f5f9; padding: 0.5rem; border-radius: 5px;">
+                                <div>📁 <code>lib/features/scanner/</code></div>
+                                <div>📁 <code>lib/core/services/gemini_service.dart</code></div>
+                                <div>📁 <code>lib/features/auth/</code></div>
+                                <div>📁 <code>lib/core/services/firestore_service.dart</code></div>
+                                <div>📁 <code>functions/</code></div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 1rem 0;">
+                            <h6 style="color: #ef4444; font-size: 0.9rem;">🚨 緊急タスク (第1週):</h6>
+                            <ul class="task-list" style="font-size: 0.85rem;">
+                                <li>バーコードスキャンエラー修正</li>
+                                <li>Gemini API応答エラー解消</li>
+                                <li>Firebase認証エラー完全修正</li>
+                                <li>Firestore接続修正</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="margin: 1rem 0;">
+                            <h6 style="color: #22c55e; font-size: 0.9rem;">✨ 機能拡張 (第2週):</h6>
+                            <ul class="task-list" style="font-size: 0.85rem;">
+                                <li>レシート文字認識</li>
+                                <li>料理写真解析AI</li>
+                                <li>Face ID/Touch ID実装</li>
+                                <li>Cloud Functions開発</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="task-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); border: 2px solid #f59e0b;">
-                        <h5>⚡ 高優先度 (2週間内)</h5>
-                        <ul class="task-list">
-                            <li><strong>商品詳細画面完成</strong><br><code>lib/features/products/presentation/pages/</code></li>
-                            <li><strong>Geminiレシピ改善</strong><br><code>lib/core/services/gemini_service.dart</code></li>
-                            <li><strong>家族共有機能実装</strong><br><code>lib/features/household/</code></li>
-                        </ul>
+
+                    <!-- 開発者B：UI・フロントエンドエリア -->
+                    <div class="task-card" style="background: linear-gradient(135deg, #d1fae5 0%, #bbf7d0 100%); border: 2px solid #10b981;">
+                        <h5><i class="fas fa-mobile-alt"></i> 開発者B：UI・フロントエンド担当</h5>
+                        
+                        <div style="margin: 1rem 0;">
+                            <h6 style="color: #059669; font-size: 0.9rem; margin-bottom: 0.5rem;">🔧 担当ファイル:</h6>
+                            <div style="font-family: monospace; font-size: 0.8rem; background: #f1f5f9; padding: 0.5rem; border-radius: 5px;">
+                                <div>📁 <code>lib/features/home/</code></div>
+                                <div>📁 <code>lib/features/products/</code></div>
+                                <div>📁 <code>lib/features/household/</code></div>
+                                <div>📁 <code>lib/shared/widgets/</code></div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 1rem 0;">
+                            <h6 style="color: #ef4444; font-size: 0.9rem;">🚨 緊急タスク (第1週):</h6>
+                            <ul class="task-list" style="font-size: 0.85rem;">
+                                <li>ホーム画面レイアウト修正</li>
+                                <li>商品カード表示バグ解消</li>
+                                <li>商品詳細画面UI改善</li>
+                                <li>賞味期限表示・アラート</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="margin: 1rem 0;">
+                            <h6 style="color: #22c55e; font-size: 0.9rem;">✨ 機能拡張 (第2週):</h6>
+                            <ul class="task-list" style="font-size: 0.85rem;">
+                                <li>家族共有UI実装</li>
+                                <li>冷蔵庫キャラクター表示</li>
+                                <li>アニメーション・エフェクト</li>
+                                <li>iOS/Android適応デザイン</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="task-card" style="background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%); border: 2px solid #8b5cf6;">
-                        <h5>📋 通常 (1ヶ月内)</h5>
-                        <ul class="task-list">
-                            <li><strong>モバイル認証追加</strong><br>Face ID/Touch ID実装</li>
-                            <li><strong>プッシュ通知</strong><br>賞味期限アラート</li>
-                            <li><strong>オフライン対応</strong><br>ローカルDB同期</li>
-                        </ul>
+
+                    <!-- 開発者C：設定・統合・品質エリア -->
+                    <div class="task-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b;">
+                        <h5><i class="fas fa-cog"></i> 開発者C：設定・統合・品質担当</h5>
+                        
+                        <div style="margin: 1rem 0;">
+                            <h6 style="color: #d97706; font-size: 0.9rem; margin-bottom: 0.5rem;">🔧 担当ファイル:</h6>
+                            <div style="font-family: monospace; font-size: 0.8rem; background: #f1f5f9; padding: 0.5rem; border-radius: 5px;">
+                                <div>📁 <code>lib/features/settings/</code></div>
+                                <div>📁 <code>lib/features/history/</code></div>
+                                <div>📁 <code>test/</code></div>
+                                <div>📁 <code>integration_test/</code></div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 1rem 0;">
+                            <h6 style="color: #ef4444; font-size: 0.9rem;">🚨 緊急タスク (第1週):</h6>
+                            <ul class="task-list" style="font-size: 0.85rem;">
+                                <li>設定画面UI完成</li>
+                                <li>履歴画面実装</li>
+                                <li>統合テスト実行・修正</li>
+                                <li>品質チェック・エラー対応</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="margin: 1rem 0;">
+                            <h6 style="color: #22c55e; font-size: 0.9rem;">✨ 機能拡張 (第2週):</h6>
+                            <ul class="task-list" style="font-size: 0.85rem;">
+                                <li>App Store申請準備</li>
+                                <li>スクリーンショット作成</li>
+                                <li>プライバシーポリシー作成</li>
+                                <li>最終統合テスト</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 今すぐ開始タスク -->
+                <div style="background: #fef2f2; border: 3px solid #ef4444; border-radius: 15px; padding: 2rem; margin: 2rem 0;">
+                    <h4 style="color: #ef4444; margin-bottom: 1rem;"><i class="fas fa-fire"></i> 今すぐ開始すべき最優先タスク</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div>
+                            <h6 style="color: #991b1b; margin-bottom: 0.5rem;">🔥 今日中に開始:</h6>
+                            <ul style="color: #7f1d1d; font-size: 0.9rem; margin: 0; padding-left: 1.5rem;">
+                                <li><strong>Firebase接続テスト実行</strong><br>全サービスとの接続確認</li>
+                                <li><strong>バーコードスキャン動作確認</strong><br>実機でのスキャン精度検証</li>
+                                <li><strong>Gemini API応答テスト</strong><br>レスポンス時間・精度確認</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h6 style="color: #991b1b; margin-bottom: 0.5rem;">⚡ 週末までに完了:</h6>
+                            <ul style="color: #7f1d1d; font-size: 0.9rem; margin: 0; padding-left: 1.5rem;">
+                                <li><strong>認証画面エラー完全解消</strong><br>ログイン・ログアウト正常化</li>
+                                <li><strong>商品表示画面修正</strong><br>データ取得・表示の改善</li>
+                                <li><strong>基本機能統合テスト</strong><br>コア機能の連携動作確認</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
