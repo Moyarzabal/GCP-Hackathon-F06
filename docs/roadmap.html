@@ -448,19 +448,21 @@
                     </div>
                     
                     <div class="team-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                        <h4><i class="fas fa-user-cog"></i> 開発者C：認証・設定・履歴機能</h4>
-                        <p><strong>機能範囲:</strong> ユーザー認証→設定管理→履歴分析→アプリ品質</p>
+                        <h4><i class="fas fa-user-cog"></i> 開発者C：認証・設定・履歴・キャラクター機能</h4>
+                        <p><strong>機能範囲:</strong> ユーザー認証→設定管理→履歴分析→キャラクター画像生成</p>
                         <p><strong>フルスタック担当:</strong></p>
                         <ul style="font-size: 0.9rem;">
-                            <li><strong>📱 UI:</strong> ログイン、設定、履歴、統計画面</li>
-                            <li><strong>🔧 ロジック:</strong> 認証処理、設定管理、データ分析</li>
-                            <li><strong>🗃️ データ:</strong> ユーザーDB、設定データ、履歴データ</li>
-                            <li><strong>☁️ API:</strong> Firebase Auth、Analytics、通知</li>
+                            <li><strong>📱 UI:</strong> ログイン、設定、履歴、統計、キャラクター表示画面</li>
+                            <li><strong>🔧 ロジック:</strong> 認証処理、設定管理、データ分析、キャラクター感情制御</li>
+                            <li><strong>🗃️ データ:</strong> ユーザーDB、設定データ、履歴データ、キャラクター画像キャッシュ</li>
+                            <li><strong>☁️ API:</strong> Firebase Auth、Analytics、通知、<strong>Vertex AI Imagen</strong></li>
+                            <li><strong>🎨 画像生成:</strong> 賞味期限連動キャラクター感情表現（新鮮→困り顔→ゾンビ化）</li>
                         </ul>
                         <p><strong>担当ディレクトリ:</strong><br>
                         <code>lib/features/auth/</code><br>
                         <code>lib/features/settings/</code><br>
-                        <code>lib/features/history/</code></p>
+                        <code>lib/features/history/</code><br>
+                        <code>lib/core/services/imagen_service.dart</code></p>
                     </div>
                 </div>
             </div>
@@ -586,13 +588,13 @@
                                 </ul>
                             </div>
                             <div class="task-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b;">
-                                <h5><i class="fas fa-user-cog"></i> 開発者C：認証・設定・履歴機能</h5>
+                                <h5><i class="fas fa-user-cog"></i> 開発者C：認証・設定・履歴・キャラクター機能</h5>
                                 <ul class="task-list" style="font-size: 0.85rem;">
                                     <li>Firebase認証エラー修正</li>
                                     <li>ログイン画面完成</li>
                                     <li>設定画面UI実装</li>
                                     <li>履歴データ処理</li>
-                                    <li>統合テスト実行</li>
+                                    <li>キャラクター画像生成API統合</li>
                                 </ul>
                             </div>
                         </div>
@@ -640,13 +642,13 @@
                                 </ul>
                             </div>
                             <div class="task-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b;">
-                                <h5><i class="fas fa-user-cog"></i> 開発者C：認証・設定・履歴機能</h5>
+                                <h5><i class="fas fa-user-cog"></i> 開発者C：認証・設定・履歴・キャラクター機能</h5>
                                 <ul class="task-list" style="font-size: 0.85rem;">
                                     <li>生体認証実装</li>
                                     <li>詳細設定機能追加</li>
                                     <li>履歴分析・統計機能</li>
-                                    <li>App Store申請準備</li>
-                                    <li>最終統合テスト</li>
+                                    <li>キャラクター感情変化システム</li>
+                                    <li>App Store申請準備・統合テスト</li>
                                 </ul>
                             </div>
                         </div>
@@ -744,17 +746,18 @@
                         </div>
                     </div>
 
-                    <!-- 開発者C：認証・設定・履歴機能 -->
+                    <!-- 開発者C：認証・設定・履歴・キャラクター機能 -->
                     <div class="task-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b;">
-                        <h5><i class="fas fa-user-cog"></i> 開発者C：認証・設定・履歴機能</h5>
+                        <h5><i class="fas fa-user-cog"></i> 開発者C：認証・設定・履歴・キャラクター機能</h5>
                         
                         <div style="margin: 1rem 0;">
                             <h6 style="color: #d97706; font-size: 0.9rem; margin-bottom: 0.5rem;">🔧 フルスタック担当範囲:</h6>
                             <div style="font-family: monospace; font-size: 0.8rem; background: #f1f5f9; padding: 0.5rem; border-radius: 5px;">
                                 <div>📱 <strong>UI:</strong> <code>lib/features/auth/</code>, <code>lib/features/settings/</code></div>
-                                <div>🔧 <strong>ロジック:</strong> 認証処理、設定管理、データ分析</div>
-                                <div>🗃️ <strong>データ:</strong> <code>lib/features/history/</code> 履歴データ</div>
-                                <div>☁️ <strong>API:</strong> Firebase Auth、Analytics、通知</div>
+                                <div>🔧 <strong>ロジック:</strong> 認証処理、設定管理、データ分析、キャラクター感情制御</div>
+                                <div>🗃️ <strong>データ:</strong> <code>lib/features/history/</code> 履歴データ、キャラクター画像キャッシュ</div>
+                                <div>☁️ <strong>API:</strong> Firebase Auth、Analytics、通知、<strong>Vertex AI Imagen</strong></div>
+                                <div>🎨 <strong>画像生成:</strong> <code>lib/core/services/imagen_service.dart</code></div>
                                 <div>🧪 <strong>品質:</strong> <code>test/</code>, <code>integration_test/</code></div>
                             </div>
                         </div>
@@ -766,7 +769,7 @@
                                 <li>ログイン画面完成</li>
                                 <li>設定画面UI実装</li>
                                 <li>履歴データ処理</li>
-                                <li>統合テスト実行</li>
+                                <li>Vertex AI Imagen API統合</li>
                             </ul>
                         </div>
                         
@@ -776,8 +779,18 @@
                                 <li>生体認証実装</li>
                                 <li>詳細設定機能追加</li>
                                 <li>履歴分析・統計機能</li>
-                                <li>App Store申請準備</li>
-                                <li>最終統合テスト</li>
+                                <li><strong>🎨 キャラクター感情変化システム</strong>（新鮮→困り顔→ゾンビ化）</li>
+                                <li>App Store申請準備・最終統合テスト</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 1rem; margin: 1rem 0;">
+                            <h6 style="color: #d97706; margin-bottom: 0.5rem;"><i class="fas fa-palette"></i> キャラクター画像生成仕様</h6>
+                            <ul style="color: #92400e; font-size: 0.85rem; margin: 0; padding-left: 1.5rem;">
+                                <li><strong>新鮮期</strong>: 笑顔・元気なキャラクター（緑系）</li>
+                                <li><strong>注意期</strong>: 困り顔・心配そうなキャラクター（黄系）</li>
+                                <li><strong>危険期</strong>: ゾンビ化・腐敗したキャラクター（赤系）</li>
+                                <li><strong>技術</strong>: Vertex AI Imagen + 感情プロンプト生成</li>
                             </ul>
                         </div>
                     </div>
