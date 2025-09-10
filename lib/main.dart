@@ -14,13 +14,24 @@ void main() async {
   final errorHandler = GlobalErrorHandler.instance;
   errorHandler.initialize();
   
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
+  // Load environment variables (optional for development)
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // .env file not found, continue without it for development
+    print('Warning: .env file not found, using default values');
+  }
   
   // Initialize Firebase with DefaultFirebaseOptions
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('Firebase initialized successfully');
+  } catch (e) {
+    print('Firebase initialization failed: $e');
+    // Continue without Firebase for development
+  }
   
   // Set initial breadcrumb
   errorHandler.addBreadcrumb('アプリケーション開始', category: 'lifecycle');

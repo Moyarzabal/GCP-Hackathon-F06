@@ -16,32 +16,22 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // プラットフォームに応じたアプリケーション
-    if (PlatformInfo.isIOS) {
-      return CupertinoApp(
-        title: '冷蔵庫管理AI',
-        theme: const CupertinoThemeData(
-          primaryColor: AppColors.accent,
+    // すべてのプラットフォームでMaterialAppを使用（NavigationDestinationのため）
+    return MaterialApp(
+      title: '冷蔵庫管理AI',
+      theme: ThemeData(
+        primaryColor: AppColors.primary,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.accent,
+          primary: AppColors.accent,
+          secondary: AppColors.secondary,
+          error: AppColors.error,
         ),
-        home: const MainScreen(),
-      );
-    } else {
-      return MaterialApp(
-        title: '冷蔵庫管理AI',
-        theme: ThemeData(
-          primaryColor: AppColors.primary,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.accent,
-            primary: AppColors.accent,
-            secondary: AppColors.secondary,
-            error: AppColors.error,
-          ),
-          useMaterial3: true,
-          fontFamily: 'SF Pro Display',
-        ),
-        home: const MainScreen(),
-      );
-    }
+        useMaterial3: true,
+        fontFamily: PlatformInfo.isIOS ? 'SF Pro Display' : null,
+      ),
+      home: const MainScreen(),
+    );
   }
 }
 

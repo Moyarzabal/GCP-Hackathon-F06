@@ -11,14 +11,22 @@ class OpenFoodFactsService {
       // First check cache in Firestore
       final cachedProduct = await _firestoreService.getProductByJAN(barcode);
       if (cachedProduct != null) {
+        print('Product found in cache: $barcode');
         return cachedProduct;
       }
+
+      print('Fetching product from Open Food Facts: $barcode');
 
       // If not in cache, fetch from Open Food Facts API
       final response = await http.get(
         Uri.parse('$_baseUrl/product/$barcode.json'),
-        headers: {'User-Agent': 'FridgeManager/1.0'},
-      ).timeout(const Duration(seconds: 10));
+        headers: {
+          'User-Agent': 'FridgeManager/1.0 (iOS)',
+          'Accept': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 15));
+
+      print('Open Food Facts response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -36,19 +44,30 @@ class OpenFoodFactsService {
             'allergens': _getAllergens(product),
           };
 
+          print('Product found: ${productInfo['productName']}');
+
           // Cache the product info
-          await _firestoreService.cacheProductInfo(
-            janCode: barcode,
-            productName: productInfo['productName'] as String,
-            manufacturer: productInfo['manufacturer'] as String?,
-            category: productInfo['category'] as String?,
-            imageUrl: productInfo['imageUrl'] as String?,
-            nutritionInfo: productInfo['nutritionInfo'] as Map<String, dynamic>?,
-            allergens: productInfo['allergens'] as List<String>?,
-          );
+          try {
+            await _firestoreService.cacheProductInfo(
+              janCode: barcode,
+              productName: productInfo['productName'] as String,
+              manufacturer: productInfo['manufacturer'] as String?,
+              category: productInfo['category'] as String?,
+              imageUrl: productInfo['imageUrl'] as String?,
+              nutritionInfo: productInfo['nutritionInfo'] as Map<String, dynamic>?,
+              allergens: productInfo['allergens'] as List<String>?,
+            );
+          } catch (cacheError) {
+            print('Error caching product: $cacheError');
+            // Continue even if caching fails
+          }
 
           return productInfo;
+        } else {
+          print('Product not found in Open Food Facts database');
         }
+      } else {
+        print('Open Food Facts API error: ${response.statusCode}');
       }
       
       return null;

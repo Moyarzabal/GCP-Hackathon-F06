@@ -46,10 +46,12 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
   }
 
   void _handleError(Object error, StackTrace stackTrace) {
-    setState(() {
-      _error = error;
-      _stackTrace = stackTrace;
-    });
+    if (mounted) {
+      setState(() {
+        _error = error;
+        _stackTrace = stackTrace;
+      });
+    }
 
     // エラーコールバックを呼び出し
     widget.onError?.call(error, stackTrace);
@@ -117,10 +119,15 @@ class _ErrorBoundaryWrapperState extends State<_ErrorBoundaryWrapper> {
   void initState() {
     super.initState();
     
-    // FlutterErrorの処理を設定
+    // FlutterErrorの処理を設定（mountedチェックを追加）
     FlutterError.onError = (FlutterErrorDetails details) {
       if (mounted) {
-        widget.onError(details.exception, details.stack ?? StackTrace.current);
+        // 非同期でエラーを処理してsetStateの競合を避ける
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            widget.onError(details.exception, details.stack ?? StackTrace.current);
+          }
+        });
       }
     };
   }
