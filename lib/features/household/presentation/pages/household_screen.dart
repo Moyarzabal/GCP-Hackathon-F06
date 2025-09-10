@@ -26,7 +26,10 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
     final name = _householdNameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('世帯名を入力してください')),
+        const SnackBar(
+          content: Text('世帯名を入力してください'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -40,13 +43,19 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
           .createHousehold(name, user.uid);
       
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('世帯を作成しました。コード: $householdId')),
+        SnackBar(
+          content: Text('世帯を作成しました。コード: $householdId'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       
       Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('エラー: $e')),
+        SnackBar(
+          content: Text('エラー: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -55,7 +64,10 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
     final code = _joinCodeController.text.trim();
     if (code.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('招待コードを入力してください')),
+        const SnackBar(
+          content: Text('招待コードを入力してください'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -69,13 +81,19 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
           .joinHousehold(code, user.uid);
       
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('世帯に参加しました')),
+        const SnackBar(
+          content: Text('世帯に参加しました'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       
       Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('エラー: $e')),
+        SnackBar(
+          content: Text('エラー: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -249,25 +267,60 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: const Text('通知を有効にする'),
-                    value: settings['enableNotifications'] ?? true,
-                    onChanged: (value) async {
-                      await ref.read(firestoreServiceProvider)
-                          .updateNotificationSettings(
-                        householdData['householdId'],
-                        settings['notificationDays'] ?? 3,
-                        value,
-                      );
-                    },
+                  Card(
+                    child: SwitchListTile(
+                      title: const Text('通知を有効にする'),
+                      value: settings['enableNotifications'] ?? true,
+                      onChanged: (value) async {
+                        await ref.read(firestoreServiceProvider)
+                            .updateNotificationSettings(
+                          householdData['householdId'],
+                          settings['notificationDays'] ?? 3,
+                          value,
+                        );
+                      },
+                    ),
                   ),
-                  ListTile(
-                    title: const Text('通知タイミング'),
-                    subtitle: Text('賞味期限の${settings['notificationDays'] ?? 3}日前'),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () {
-                      // Show dialog to change notification days
-                    },
+                  const SizedBox(height: 8),
+                  Card(
+                    child: InkWell(
+                      onTap: () {
+                        // Show dialog to change notification days
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.schedule, color: Colors.blue),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    '通知タイミング',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '賞味期限の${settings['notificationDays'] ?? 3}日前',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios, color: Colors.grey),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -314,6 +367,7 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('コードをコピーしました'),
+                                behavior: SnackBarBehavior.floating,
                               ),
                             );
                           },

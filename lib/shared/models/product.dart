@@ -11,6 +11,7 @@ class Product {
   final String category;
   final String? imageUrl;
   final String? barcode;
+  final String? manufacturer;
   final int quantity;
   final String unit;
   
@@ -24,6 +25,7 @@ class Product {
     required this.category,
     this.imageUrl,
     this.barcode,
+    this.manufacturer,
     this.quantity = 1,
     this.unit = 'piece',
   });
@@ -62,6 +64,7 @@ class Product {
       'category': category,
       'imageUrl': imageUrl,
       'barcode': barcode,
+      'manufacturer': manufacturer,
       'quantity': quantity,
       'unit': unit,
     };
@@ -84,6 +87,7 @@ class Product {
       category: data['category'] as String? ?? '',
       imageUrl: data['imageUrl'] as String?,
       barcode: data['barcode'] as String?,
+      manufacturer: data['manufacturer'] as String?,
       quantity: data['quantity'] as int? ?? 1,
       unit: data['unit'] as String? ?? 'piece',
     );
@@ -99,6 +103,7 @@ class Product {
     String? category,
     String? imageUrl,
     String? barcode,
+    String? manufacturer,
     int? quantity,
     String? unit,
   }) {
@@ -112,6 +117,7 @@ class Product {
       category: category ?? this.category,
       imageUrl: imageUrl ?? this.imageUrl,
       barcode: barcode ?? this.barcode,
+      manufacturer: manufacturer ?? this.manufacturer,
       quantity: quantity ?? this.quantity,
       unit: unit ?? this.unit,
     );
