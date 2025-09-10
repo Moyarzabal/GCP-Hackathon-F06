@@ -144,7 +144,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
       state = state.copyWith(isLoading: true, error: null);
       
       // アプリケーション状態を更新
-      _ref.read(appStateProvider.notifier).updateProduct(productId, updatedProduct);
+      _ref.read(appStateProvider.notifier).updateProduct(updatedProduct);
       
       // フィルターを再適用
       _applyFilters();

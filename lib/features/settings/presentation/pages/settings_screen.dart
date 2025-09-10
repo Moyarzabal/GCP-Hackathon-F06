@@ -13,34 +13,163 @@ class SettingsScreen extends StatelessWidget {
         title: Text('設定'),
       ),
       body: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
-          ListTile(
-            leading: const Icon(Icons.notifications),
-            title: const Text('通知設定'),
-            subtitle: const Text('賞味期限の通知を管理'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showNotificationSettings(context),
+          Card(
+            child: InkWell(
+              onTap: () => _showNotificationSettings(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.notifications, color: Colors.blue),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '通知設定',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '賞味期限の通知を管理',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.family_restroom),
-            title: const Text('家族共有'),
-            subtitle: const Text('家族メンバーを管理'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showFamilySettings(context),
+          const SizedBox(height: 8),
+          Card(
+            child: InkWell(
+              onTap: () => _showFamilySettings(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.family_restroom, color: Colors.green),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '家族共有',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '家族メンバーを管理',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.category),
-            title: const Text('カテゴリ管理'),
-            subtitle: const Text('商品カテゴリをカスタマイズ'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showCategorySettings(context),
+          const SizedBox(height: 8),
+          Card(
+            child: InkWell(
+              onTap: () => _showCategorySettings(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.category, color: Colors.orange),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'カテゴリ管理',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '商品カテゴリをカスタマイズ',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
           ),
+          const SizedBox(height: 16),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('アプリについて'),
-            subtitle: const Text('バージョン 1.0.0'),
-            onTap: () => _showAboutDialog(context),
+          const SizedBox(height: 8),
+          Card(
+            child: InkWell(
+              onTap: () => _showAboutDialog(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info, color: Colors.blue),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'アプリについて',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'バージョン 1.0.0',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
           const Divider(),
           Padding(

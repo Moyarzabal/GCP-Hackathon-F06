@@ -41,9 +41,9 @@ class AppStateNotifier extends StateNotifier<AppState> {
   }
 
   /// 商品を更新
-  void updateProduct(String productId, Product updatedProduct) {
+  void updateProduct(Product updatedProduct) {
     final updatedProducts = state.products.map((product) {
-      return product.id == productId ? updatedProduct : product;
+      return product.id == updatedProduct.id ? updatedProduct : product;
     }).toList();
     state = state.copyWith(products: updatedProducts);
   }

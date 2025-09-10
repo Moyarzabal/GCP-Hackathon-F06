@@ -39,7 +39,9 @@ class ErrorHandler {
       RawReceivePort((pair) async {
         final List<dynamic> errorAndStacktrace = pair;
         final error = errorAndStacktrace[0];
-        final stackTrace = errorAndStacktrace[1] as StackTrace?;
+        final stackTrace = errorAndStacktrace[1] is StackTrace 
+            ? errorAndStacktrace[1] as StackTrace
+            : null;
         await handleAsyncError(error, stackTrace);
       }).sendPort,
     );
