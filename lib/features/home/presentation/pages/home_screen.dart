@@ -7,6 +7,9 @@ import '../../../products/presentation/pages/product_detail_screen.dart';
 import '../../../products/presentation/widgets/product_search_delegate.dart';
 import '../../../products/presentation/providers/product_provider.dart';
 import '../../../../shared/widgets/common/error_widget.dart';
+import '../../../fridge/presentation/providers/fridge_view_provider.dart';
+import '../../../fridge/presentation/widgets/fridge_overview_widget.dart';
+import '../../../fridge/presentation/pages/fridge_section_view.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -18,6 +21,9 @@ class HomeScreen extends ConsumerWidget {
     final productNotifier = ref.watch(productProvider.notifier);
     final availableCategories = ref.watch(availableCategoriesProvider);
     
+    final fridgeState = ref.watch(fridgeViewProvider);
+    final fridgeNotifier = ref.watch(fridgeViewProvider.notifier);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -51,6 +57,21 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
+          // 表示モード切替（リスト | 冷蔵庫）
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SegmentedButton<FridgeViewMode>(
+              segments: const [
+                ButtonSegment(value: FridgeViewMode.list, label: Text('リスト')),
+                ButtonSegment(value: FridgeViewMode.fridge, label: Text('冷蔵庫')),
+              ],
+              selected: {fridgeState.mode},
+              onSelectionChanged: (selection) {
+                final mode = selection.first;
+                fridgeNotifier.setMode(mode);
+              },
+            ),
+          ),
           // カテゴリフィルター
           SizedBox(
             height: 50,
@@ -88,24 +109,55 @@ class HomeScreen extends ConsumerWidget {
               onDismiss: () => productNotifier.clearError(),
             ),
           
-          // 商品リスト
+          // 表示切替（AnimatedSwitcher）
           Expanded(
-            child: productState.filteredProducts.isEmpty
-                ? _buildEmptyState(context)
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: productState.filteredProducts.length,
-                    itemBuilder: (context, index) {
-                      final product = productState.filteredProducts[index];
-                      return ProductCard(
-                        product: product,
-                        onTap: () => _showProductDetail(context, product),
-                      );
-                    },
-                  ),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: fridgeState.mode == FridgeViewMode.list
+                  ? _buildProductList(context, productState)
+                  : _buildFridgeView(context, fridgeState, fridgeNotifier),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProductList(BuildContext context, ProductState productState) {
+    if (productState.filteredProducts.isEmpty) {
+      return _buildEmptyState(context);
+    }
+    return ListView.builder(
+      key: const ValueKey('listView'),
+      padding: const EdgeInsets.all(16),
+      itemCount: productState.filteredProducts.length,
+      itemBuilder: (context, index) {
+        final product = productState.filteredProducts[index];
+        return ProductCard(
+          product: product,
+          onTap: () => _showProductDetail(context, product),
+        );
+      },
+    );
+  }
+
+  Widget _buildFridgeView(BuildContext context, FridgeViewState state, FridgeViewNotifier notifier) {
+    return Column(
+      key: const ValueKey('fridgeView'),
+      children: [
+        if (state.selectedSection == null)
+          Expanded(
+            child: FridgeOverviewWidget(
+              onSectionTap: (compartment, level) {
+                notifier.selectSection(SelectedFridgeSection(compartment: compartment, level: level));
+              },
+            ),
+          )
+        else
+          const Expanded(child: FridgeSectionView()),
+      ],
     );
   }
   
