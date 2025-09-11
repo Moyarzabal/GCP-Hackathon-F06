@@ -3,8 +3,8 @@ version: 0.1.0
 updated_at: 2025-09-11
 
 summary:
-  phase: 1
-  scope: 俯瞰図 + セクション遷移 + location(メモリのみ)
+  phase: 1+2 部分
+  scope: 俯瞰図 + セクション遷移 + location(メモリのみ) + 俯瞰図バッジ
 
 changes:
   models:
@@ -14,7 +14,7 @@ changes:
     - fridgeViewProvider: 表示モード（list|fridge）、選択セクション管理、選択セクションの商品抽出
   ui:
     - HomeScreen: SegmentedButtonで表示モード切替、AnimatedSwitcher導入
-    - FridgeOverviewWidget: 4段+両開きポケットのタップ領域
+    - FridgeOverviewWidget: 4段+両開きポケットのタップ領域、件数バッジ表示、LayoutBuilder対応
     - FridgeSectionView: 選択セクションの商品一覧 + 件数
 
 acceptance_criteria:
@@ -26,7 +26,7 @@ next:
   phase2:
     - ドラッグ&ドロップ移動
     - InteractiveViewerでパン/ズーム
-    - バッジ（期限/件数）表示
+    - 期限の警告色バッジ（件数に加え）
   phase3:
     - Firestoreへのlocation永続化
     - 家族共有との整合
