@@ -1,0 +1,107 @@
+name: InteractiveFridgeUI
+version: 0.1.0
+goal: スマホ向け4段式冷蔵庫UI（冷蔵/野菜室/冷凍/ドアポケット）を実装し、棚/段/扉ポケット単位にズーム・フォーカスできるインタラクティブ体験を提供する
+
+user_stories:
+  - id: FRIDGE-UX-01
+    as: ユーザー
+    want: 冷蔵庫全体の俯瞰図を見たい
+    so_that: 食材の物理位置を直感的に把握できる
+  - id: FRIDGE-UX-02
+    as: ユーザー
+    want: 特定の棚/室/ポケットをタップで拡大
+    so_that: そこにある食材の詳細や残量を素早く確認できる
+  - id: FRIDGE-UX-03
+    as: ユーザー
+    want: ズーム状態でアイテムを並べ替え/長押し移動
+    so_that: 実際の配置に近い形で管理できる
+  - id: FRIDGE-UX-04
+    as: ユーザー
+    want: アイテムタップで詳細/期限/編集
+    so_that: 期限更新やカテゴリ編集をすぐ行える
+  - id: FRIDGE-UX-05
+    as: ユーザー
+    want: 冷蔵/野菜室/冷凍のタブ/トグル切替
+    so_that: 欲しい室に素早くアクセスできる
+
+information_architecture:
+  entrypoint: HomeScreenに新規タブ/切り替え（リスト/冷蔵庫ビュー）
+  screens:
+    - HomeScreen: リスト/冷蔵庫の2表示モード
+    - FridgeOverviewWidget: 俯瞰図（4段 + 両開きドアポケット）
+    - FridgeSectionView: 段/室/ポケットのズーム表示
+  navigation:
+    - bottom_tabs: 既存（ホーム/スキャン/履歴/設定）
+    - within_home: SegmentedControl or toggle to switch [List | Fridge]
+
+data_model_changes:
+  add_to_product:
+    - field: location
+      type: object
+      schema:
+        compartment: enum [refrigerator, vegetable_drawer, freezer, door_left, door_right]
+        level: integer (0=最上段)
+        position: optional {x: 0..1, y: 0..1}  # ズームビューの相対座標
+      default: { compartment: refrigerator, level: 0 }
+
+state_management:
+  providers:
+    - fridgeViewProvider: 表示モード(list|fridge)、選択中の室/段/ポケット、ズーム倍率
+    - dragDropProvider: ドラッグ中アイテム、ターゲット領域、確定時のupdateProductLocation
+  interactions:
+    - tap_section -> setSelectedSection(compartment, level)
+    - pinch_zoom/pan -> setZoom(scale, offset)
+    - long_press_item -> startDrag(itemId)
+    - drop_on_section -> updateProduct.location
+
+ui_design:
+  overview:
+    layout: AspectRatio(9/16)の中に4段式レイアウト
+    drawers:
+      - top: 両開きドア（左/右）ポケット
+      - middle1: 冷蔵室棚群（level=0..n）
+      - middle2: 野菜室（引き出し1段）
+      - bottom: 冷凍庫（引き出し1段）
+    affordance: 各セクションにタップヒット領域、ホバー/アクティブハイライト
+  section_view:
+    grid: アイテムをCard/Chipで並べ、スクロール可能
+    actions: 追加、並べ替え、移動、検索、フィルタ
+  responsive:
+    smartphone: 最優先。タップ領域44dp、パン/ピンチ対応
+    tablet: 2ペイン（左=俯瞰、右=セクション）も将来対応
+
+api_contracts:
+  functions:
+    - updateProductLocation(productId, location)
+    - listProductsByLocation(compartment, level)
+
+edge_cases:
+  - 空セクション: 空状態の視覚フィードバック（ガイド文 + 追加ボタン）
+  - アイテム過多: スクロール + 折り返し表示、集約表示(“x12”)
+  - 小画面: 重要領域を優先、パンで移動
+  - 誤タップ: タップ閾値と拡大率条件で詳細遷移
+
+acceptance_criteria:
+  - ホームでワンタップ切替（リスト⇄冷蔵庫）
+  - 俯瞰図で各セクションがタップ可能
+  - セクション画面でその位置の商品のみが表示される
+  - 既存ProductCardとの詳細画面遷移が維持される
+  - 60fps相当の操作感（DevToolsでストール無しを確認）
+
+phased_delivery:
+  phase1:
+    scope: 俯瞰図 + セクション遷移 + locationフィールド（メモリ内のみ）
+    test: Widgetテスト（セクションタップでフィルタ表示）
+  phase2:
+    scope: ドラッグ&ドロップ移動、ズーム/パン
+    test: ゴールデンテスト + ジェスチャテスト
+  phase3:
+    scope: 永続化（Firestore location保存）、履歴/家族共有連携
+    test: Integrationテスト
+
+risks:
+  - ジェスチャ競合（ListViewスクロールとピンチ/パン）
+  - 小画面でのヒット領域過小
+  - 既存フィルタ/ソートとの整合
+
+
