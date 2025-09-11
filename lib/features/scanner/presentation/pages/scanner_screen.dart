@@ -54,8 +54,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
           print('Selected category: $selectedCategory');
           
           return StatefulBuilder(
-            builder: (context, setState) {
-              return AlertDialog(
+        builder: (context, setState) {
+          return AlertDialog(
             title: const Text('商品情報'),
             content: SingleChildScrollView(
               child: Column(
@@ -284,15 +284,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                   Navigator.pop(context);
                   ref.read(scannerProvider.notifier).clearLastScannedCode();
                   
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      key: ValueKey('product_added_${product.id}'),
-                      content: Text('${product.name} を追加しました'),
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                      behavior: SnackBarBehavior.floating,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
+                  // 商品追加完了の通知
+                  _showProductAddedSnackBar(context, product.name);
                 },
                 child: const Text('保存'),
               ),
@@ -420,15 +413,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     Navigator.pop(context);
                     // 手動登録完了時はスキャンを再開
                     ref.read(scannerProvider.notifier).startScanning();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        key: ValueKey('manual_product_added_${DateTime.now().millisecondsSinceEpoch}'),
-                        content: Text('${nameController.text} を追加しました'),
-                        backgroundColor: Theme.of(context).colorScheme.secondary,
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
+                    // 商品追加完了の通知
+                    _showProductAddedSnackBar(context, nameController.text);
                   }
                 },
                 child: const Text('追加'),
@@ -443,8 +429,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     try {
-      final scannerState = ref.watch(scannerProvider);
-      final scannerNotifier = ref.watch(scannerProvider.notifier);
+    final scannerState = ref.watch(scannerProvider);
+    final scannerNotifier = ref.watch(scannerProvider.notifier);
     return Scaffold(
       appBar: AppBar(
         title: const Text('バーコードスキャン'),
@@ -699,9 +685,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
             // アイコンコンテナ
             Container(
               width: 120,
@@ -715,19 +701,19 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                 ),
               ),
               child: Icon(
-                Icons.qr_code_scanner,
+            Icons.qr_code_scanner,
                 size: 60,
-                color: Theme.of(context).colorScheme.primary,
+            color: Theme.of(context).colorScheme.primary,
               ),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'バーコードをスキャンして\n商品を冷蔵庫に追加',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
+          ),
+          const SizedBox(height: 32),
+          Text(
+            'バーコードをスキャンして\n商品を冷蔵庫に追加',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[700],
+              color: Colors.grey[700],
                 height: 1.4,
               ),
             ),
@@ -765,11 +751,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                onPressed: _showManualInput,
-                style: AdaptiveButtonStyle.outlined,
+            onPressed: _showManualInput,
+            style: AdaptiveButtonStyle.outlined,
               ),
-            ),
-          ],
+          ),
+        ],
         ),
       ),
     );
@@ -831,6 +817,33 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
         ],
       ),
     );
+  }
+
+  /// 商品追加完了の通知を表示（SnackBarの代わりにダイアログを使用）
+  void _showProductAddedSnackBar(BuildContext context, String productName) {
+    // SnackBarの代わりに一時的なダイアログで通知
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text('$productName を追加しました'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+    
+    // 2秒後に自動で閉じる
+    Future.delayed(const Duration(seconds: 2), () {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+    });
   }
 
   @override
