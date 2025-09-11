@@ -30,5 +30,3 @@ next:
   phase3:
     - Firestoreへのlocation永続化
     - 家族共有との整合
-
-
