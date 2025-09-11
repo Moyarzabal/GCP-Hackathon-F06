@@ -1,0 +1,56 @@
+name: FridgeRealisticUI
+version: 0.0.1
+as_of: 2025-09-11
+
+context:
+  project: GCP-Hackathon-F06
+  platform: Flutter (iOS/Android/Web)
+  state_management: Riverpod
+  refs:
+    - file: lib/features/home/presentation/pages/home_screen.dart
+    - file: lib/features/fridge/presentation/widgets/fridge_overview_widget.dart
+    - file: lib/features/fridge/presentation/pages/fridge_section_view.dart
+    - file: lib/features/fridge/presentation/providers/fridge_view_provider.dart
+    - file: lib/shared/models/product.dart
+
+current_ux:
+  overview:
+    widget: FridgeOverviewWidget
+    visuals: 矩形ベースの簡易レイアウト（ポケット/棚/室を矩形で区切り）
+    interaction:
+      - セクションタップで選択
+      - バッジで件数表示
+    animations: なし（静的）
+  section_view:
+    widget: FridgeSectionView
+    visuals: リスト（ProductCard）
+    interaction:
+      - 戻るで俯瞰へ
+      - 商品タップで詳細へ
+  navigation:
+    in_home: SegmentedButton(list|fridge) で表示切替
+    tabs: [ホーム, スキャン, 履歴, 設定]
+
+current_model:
+  product.location:
+    compartment: enum [refrigerator, vegetableDrawer, freezer, doorLeft, doorRight]
+    level: integer (0=最上段)
+    position: optional { x: 0..1, y: 0..1 }
+
+current_state:
+  providers:
+    - fridgeViewProvider: mode(list|fridge), selectedSection
+    - sectionCountsProvider: セクション別商品数
+
+gaps:
+  - 扉/引き出しの開閉がない
+  - 3D/陰影/奥行きがない（リアル感不足）
+  - ズーム/パンは未導入（Phase1要件に留まる）
+  - アクセシビリティの動的状態（開/閉）の表現がない
+
+constraints:
+  performance: 60fps目標（アニメ同時実行時）
+  device: smartphone-first 縦画面
+  theme: Material3 カラースキーム準拠
+
+

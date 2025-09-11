@@ -1,0 +1,78 @@
+name: FridgeRealisticUI
+version: 0.1.0-plan
+goal: 本物の冷蔵庫のような扉/引き出し開閉と陰影・立体感を持つ俯瞰UIを実装し、既存のHome画面へ統合する
+
+user_stories:
+  - id: FRIDGE-REAL-01
+    as: ユーザー
+    want: 左右の扉が開閉する
+    so_that: 実機に近い操作感で中身を確認できる
+  - id: FRIDGE-REAL-02
+    as: ユーザー
+    want: 野菜室/冷凍庫の引き出しがスライドする
+    so_that: 収納の奥行きを直感的に理解できる
+  - id: FRIDGE-REAL-03
+    as: ユーザー
+    want: ズーム/パンで細部を確認
+    so_that: 片手でも素早くピンポイントで操作できる
+  - id: FRIDGE-REAL-04
+    as: ユーザー
+    want: セクションをタップしてフォーカス/アイテム一覧
+    so_that: 目的の棚へ2タップ以内で到達できる
+
+architecture:
+  files:
+    - lib/features/fridge/presentation/widgets/realistic_fridge_widget.dart
+    - lib/features/fridge/presentation/widgets/realistic_fridge_painter.dart
+  integrate:
+    - home_screen: _buildFridgeView で FridgeOverviewWidget を RealisticFridgeWidget に置換
+  state:
+    - local_state: 扉角度/引き出しオフセットはWidgetローカル(AnimationController)
+    - riverpod: sectionCountsProvider をバッジ表示に流用
+
+animations:
+  doors:
+    left:
+      angle_rad: 0.0 -> -1.25
+      duration_ms: 260
+      curve: easeOutCubic
+    right:
+      angle_rad: 0.0 -> 1.25
+      duration_ms: 260
+      curve: easeOutCubic
+  drawers:
+    vegetable:
+      translate_y: 0 -> -22%
+      duration_ms: 240
+      curve: easeOut
+    freezer:
+      translate_y: 0 -> -24%
+      duration_ms: 260
+      curve: easeOut
+
+visuals:
+  style:
+    body: 金属質グラデーション + ハイライト/シャドウ
+    doors: 角丸・エッジハイライト + 取っ手（把手）
+    interior: 棚ガラス風（半透明）
+  performance:
+    - RepaintBoundaryで領域分割
+    - Transform + Matrix4(perspective) で扉回転
+
+accessibility:
+  semantics:
+    - 左ドア: 開/閉の状態ラベル
+    - 右ドア: 開/閉の状態ラベル
+    - 野菜室/冷凍庫: 引き出し 開/閉の状態ラベル
+
+testing:
+  widget_tests:
+    - tap 左ドア -> 状態が "左ドア: 開" に更新
+    - tap 右ドア -> 状態が "右ドア: 開" に更新
+    - tap 野菜室/冷凍庫 -> 引き出しのオフセットが増加
+
+acceptance_criteria:
+  - ホームの冷蔵庫ビューがRealisticFridgeWidgetへ置換される
+  - 扉/引き出しがアニメで開閉する（60fps目標、カクつきなし）
+  - セクションタップで FridgeSectionView へ遷移
+  - 既存機能（検索/詳細/リストビュー）に回帰がない
