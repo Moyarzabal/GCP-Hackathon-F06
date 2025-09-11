@@ -74,4 +74,23 @@ final fridgeViewProvider = StateNotifierProvider<FridgeViewNotifier, FridgeViewS
   return FridgeViewNotifier(ref);
 });
 
+/// セクション別の件数を計算する派生プロバイダ
+final sectionCountsProvider = Provider<Map<String, int>>((ref) {
+  final all = ref.watch(productsProvider);
+  final Map<String, int> counts = {};
+  void inc(FridgeCompartment c, int level) {
+    final key = '${c.name}:$level';
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+  for (final p in all) {
+    final loc = p.location;
+    if (loc == null) {
+      inc(FridgeCompartment.refrigerator, 0);
+    } else {
+      inc(loc.compartment, loc.level);
+    }
+  }
+  return counts;
+});
+
 
