@@ -16,10 +16,14 @@ void main() async {
   
   // Load environment variables (optional for development)
   try {
+    print('Attempting to load .env file...');
     await dotenv.load(fileName: ".env");
+    print('.env file loaded successfully');
+    print('GEMINI_API_KEY found: ${dotenv.env['GEMINI_API_KEY'] != null}');
   } catch (e) {
     // .env file not found, continue without it for development
     print('Warning: .env file not found, using default values');
+    print('Error details: $e');
   }
   
   // Initialize Firebase with DefaultFirebaseOptions

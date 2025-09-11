@@ -57,7 +57,15 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
   final OpenFoodFactsService _openFoodFactsService = OpenFoodFactsService();
   final GeminiService _geminiService = GeminiService();
 
-  ScannerNotifier(this._ref) : super(const ScannerState());
+  ScannerNotifier(this._ref) : super(const ScannerState()) {
+    try {
+      // 初期化処理
+      print('ScannerNotifier initialized successfully');
+    } catch (e) {
+      print('Error in ScannerNotifier constructor: $e');
+      // エラー時も状態は初期化済みなので継続
+    }
+  }
 
   /// カメラ初期化
   Future<Result<void>> initializeCamera() async {
@@ -207,7 +215,17 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
         if (jsonStr != null) {
           final json = _parseJson(jsonStr);
           if (json is Map && json['expiryDays'] != null) {
-            final days = json['expiryDays'] as int;
+            final daysValue = json['expiryDays'];
+            int days;
+            if (daysValue is int) {
+              days = daysValue;
+            } else if (daysValue is String) {
+              // "3-5"のような文字列の場合は最初の数字を取得
+              final match = RegExp(r'(\d+)').firstMatch(daysValue);
+              days = match != null ? int.parse(match.group(1)!) : 7;
+            } else {
+              days = 7; // デフォルト値
+            }
             return DateTime.now().add(Duration(days: days));
           }
         }
@@ -310,7 +328,13 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
 
 /// スキャナープロバイダー
 final scannerProvider = StateNotifierProvider<ScannerNotifier, ScannerState>((ref) {
-  return ScannerNotifier(ref);
+  try {
+    return ScannerNotifier(ref);
+  } catch (e) {
+    print('Error initializing ScannerNotifier: $e');
+    // エラー時はデフォルトの状態で初期化
+    return ScannerNotifier(ref);
+  }
 });
 
 /// カメラが有効かどうかのプロバイダー
