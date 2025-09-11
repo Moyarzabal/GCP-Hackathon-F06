@@ -48,54 +48,60 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
     return AspectRatio(
       aspectRatio: 9 / 16,
       child: RepaintBoundary(
-        child: Stack(
-          children: [
-            // 本体（静的）
-            CustomPaint(size: Size.infinite, painter: FridgeBodyPainter(colorScheme: color)),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              children: [
+                // 本体（静的）
+                CustomPaint(size: Size.infinite, painter: FridgeBodyPainter(colorScheme: color)),
 
-            // ドア（左右）
-            _buildDoor(
-              alignment: Alignment.topLeft,
-              isLeft: true,
-              controller: _leftDoorCtr,
-              onTap: () => _toggle(_leftDoorCtr),
-              semanticsLabel: '左ドア',
-              badge: _buildBadge(counts, FridgeCompartment.doorLeft, 0, color),
-            ),
-            _buildDoor(
-              alignment: Alignment.topRight,
-              isLeft: false,
-              controller: _rightDoorCtr,
-              onTap: () => _toggle(_rightDoorCtr),
-              semanticsLabel: '右ドア',
-              badge: _buildBadge(counts, FridgeCompartment.doorRight, 0, color),
-            ),
+                // ドア（左右）
+                _buildDoor(
+                  constraints: constraints,
+                  isLeft: true,
+                  controller: _leftDoorCtr,
+                  onTap: () => _toggle(_leftDoorCtr),
+                  semanticsLabel: '左ドア',
+                  badge: _buildBadge(counts, FridgeCompartment.doorLeft, 0, color),
+                ),
+                _buildDoor(
+                  constraints: constraints,
+                  isLeft: false,
+                  controller: _rightDoorCtr,
+                  onTap: () => _toggle(_rightDoorCtr),
+                  semanticsLabel: '右ドア',
+                  badge: _buildBadge(counts, FridgeCompartment.doorRight, 0, color),
+                ),
 
-            // 冷蔵室の棚（タップでズームビューへ）
-            ...List.generate(3, (i) => _buildShelfTap(i, color, counts)),
+                // 冷蔵室の棚（タップでズームビューへ）
+                ...List.generate(3, (i) => _buildShelfTap(i, color, counts, constraints)),
 
-            // 野菜室 引き出し
-            _buildDrawer(
-              topFactor: 0.68,
-              heightFactor: 0.10,
-              controller: _vegDrawerCtr,
-              color: color,
-              semanticsLabel: '野菜室',
-              onTap: () => _toggle(_vegDrawerCtr),
-              badge: _buildBadge(counts, FridgeCompartment.vegetableDrawer, 0, color),
-            ),
+                // 野菜室 引き出し
+                _buildDrawer(
+                  constraints: constraints,
+                  topFactor: 0.68,
+                  heightFactor: 0.10,
+                  controller: _vegDrawerCtr,
+                  color: color,
+                  semanticsLabel: '野菜室',
+                  onTap: () => _toggle(_vegDrawerCtr),
+                  badge: _buildBadge(counts, FridgeCompartment.vegetableDrawer, 0, color),
+                ),
 
-            // 冷凍庫 引き出し
-            _buildDrawer(
-              topFactor: 0.85,
-              heightFactor: 0.10,
-              controller: _freezerCtr,
-              color: color,
-              semanticsLabel: '冷凍庫',
-              onTap: () => _toggle(_freezerCtr),
-              badge: _buildBadge(counts, FridgeCompartment.freezer, 0, color),
-            ),
-          ],
+                // 冷凍庫 引き出し
+                _buildDrawer(
+                  constraints: constraints,
+                  topFactor: 0.85,
+                  heightFactor: 0.10,
+                  controller: _freezerCtr,
+                  color: color,
+                  semanticsLabel: '冷凍庫',
+                  onTap: () => _toggle(_freezerCtr),
+                  badge: _buildBadge(counts, FridgeCompartment.freezer, 0, color),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -128,62 +134,52 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
   }
 
   Widget _buildDoor({
-    required Alignment alignment,
+    required BoxConstraints constraints,
     required bool isLeft,
     required AnimationController controller,
     required VoidCallback onTap,
     required String semanticsLabel,
     required Widget badge,
   }) {
-    return Positioned.fill(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final height = constraints.maxHeight * 0.18;
-          final doorWidth = width / 2;
-          final originX = isLeft ? 0.0 : doorWidth;
-          final originY = 0.0;
-          final angle = Tween<double>(begin: 0.0, end: isLeft ? -1.25 : 1.25)
-              .chain(CurveTween(curve: Curves.easeOutCubic))
-              .animate(controller);
+    final width = constraints.maxWidth;
+    final height = constraints.maxHeight * 0.18;
+    final doorWidth = width / 2;
+    final angle = Tween<double>(begin: 0.0, end: isLeft ? -1.25 : 1.25)
+        .chain(CurveTween(curve: Curves.easeOutCubic))
+        .animate(controller);
 
-          return AnimatedBuilder(
-            animation: controller,
-            builder: (context, _) {
-              return Stack(children: [
-                Positioned(
-                  left: isLeft ? 0 : doorWidth,
-                  top: 0,
-                  width: doorWidth,
-                  height: height,
-                  child: Semantics(
-                    label: semanticsLabel,
-                    value: controller.value > 0.01 ? '開' : '閉',
-                    button: true,
-                    child: GestureDetector(
-                      onTap: onTap,
-                      onDoubleTap: () => widget.onSectionTap(
-                        isLeft ? FridgeCompartment.doorLeft : FridgeCompartment.doorRight,
-                        0,
-                      ),
-                      child: Stack(children: [
-                        // ヒンジ回転（擬似的な3D回転をTransformで表現）
-                        Transform(
-                          alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
-                          transform: Matrix4.identity()
-                            ..setEntry(3, 2, 0.0015)
-                            ..rotateY(angle.value),
-                          child: _buildDoorPanel(isLeft),
-                        ),
-                        Positioned.fill(child: badge),
-                      ]),
-                    ),
-                  ),
-                ),
-              ]);
-            },
-          );
-        },
+    return Positioned(
+      left: isLeft ? 0 : doorWidth,
+      top: 0,
+      width: doorWidth,
+      height: height,
+      child: Semantics(
+        label: semanticsLabel,
+        value: controller.value > 0.01 ? '開' : '閉',
+        button: true,
+        child: GestureDetector(
+          onTap: onTap,
+          onDoubleTap: () => widget.onSectionTap(
+            isLeft ? FridgeCompartment.doorLeft : FridgeCompartment.doorRight,
+            0,
+          ),
+          child: Stack(children: [
+            // ヒンジ回転（擬似的な3D回転をTransformで表現）
+            AnimatedBuilder(
+              animation: controller,
+              builder: (context, _) {
+                return Transform(
+                  alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
+                  transform: Matrix4.identity()
+                    ..setEntry(3, 2, 0.0015)
+                    ..rotateY(angle.value),
+                  child: _buildDoorPanel(isLeft),
+                );
+              },
+            ),
+            Positioned.fill(child: badge),
+          ]),
+        ),
       ),
     );
   }
@@ -224,42 +220,39 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
     );
   }
 
-  Widget _buildShelfTap(int level, ColorScheme color, Map<String, int> counts) {
-    return Positioned.fill(
-      child: LayoutBuilder(builder: (context, constraints) {
-        final height = constraints.maxHeight;
-        final top = height * (0.22 + level * 0.10);
-        final shelfHeight = height * 0.08;
-        return Positioned(
-          left: 12,
-          right: 12,
-          top: top,
-          height: shelfHeight,
-          child: GestureDetector(
-            onTap: () => widget.onSectionTap(FridgeCompartment.refrigerator, level),
-            child: Container(
-              decoration: BoxDecoration(
-                color: color.surface.withOpacity(0.02),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Stack(children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('冷蔵室 棚$level', style: TextStyle(color: color.onSurfaceVariant)),
-                  ),
-                ),
-                Positioned.fill(child: _buildBadge(counts, FridgeCompartment.refrigerator, level, color)),
-              ]),
-            ),
+  Widget _buildShelfTap(int level, ColorScheme color, Map<String, int> counts, BoxConstraints constraints) {
+    final height = constraints.maxHeight;
+    final top = height * (0.22 + level * 0.10);
+    final shelfHeight = height * 0.08;
+    return Positioned(
+      left: 12,
+      right: 12,
+      top: top,
+      height: shelfHeight,
+      child: GestureDetector(
+        onTap: () => widget.onSectionTap(FridgeCompartment.refrigerator, level),
+        child: Container(
+          decoration: BoxDecoration(
+            color: color.surface.withOpacity(0.02),
+            borderRadius: BorderRadius.circular(10),
           ),
-        );
-      }),
+          child: Stack(children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('冷蔵室 棚$level', style: TextStyle(color: color.onSurfaceVariant)),
+              ),
+            ),
+            Positioned.fill(child: _buildBadge(counts, FridgeCompartment.refrigerator, level, color)),
+          ]),
+        ),
+      ),
     );
   }
 
   Widget _buildDrawer({
+    required BoxConstraints constraints,
     required double topFactor,
     required double heightFactor,
     required AnimationController controller,
@@ -268,76 +261,72 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
     required VoidCallback onTap,
     required Widget badge,
   }) {
-    return Positioned.fill(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final height = constraints.maxHeight * heightFactor;
-          final top = constraints.maxHeight * topFactor;
-          final offsetY = Tween<double>(begin: 0.0, end: -constraints.maxHeight * 0.22)
-              .chain(CurveTween(curve: Curves.easeOut))
-              .animate(controller);
-          return AnimatedBuilder(
+    final width = constraints.maxWidth;
+    final height = constraints.maxHeight * heightFactor;
+    final top = constraints.maxHeight * topFactor;
+    final offsetY = Tween<double>(begin: 0.0, end: -constraints.maxHeight * 0.22)
+        .chain(CurveTween(curve: Curves.easeOut))
+        .animate(controller);
+
+    return Positioned(
+      left: 12,
+      top: top,
+      width: width - 24,
+      height: height,
+      child: Semantics(
+        label: semanticsLabel,
+        value: controller.value > 0.01 ? '開' : '閉',
+        button: true,
+        child: GestureDetector(
+          onTap: onTap,
+          onDoubleTap: () {
+            if (semanticsLabel == '野菜室') {
+              widget.onSectionTap(FridgeCompartment.vegetableDrawer, 0);
+            } else {
+              widget.onSectionTap(FridgeCompartment.freezer, 0);
+            }
+          },
+          child: AnimatedBuilder(
             animation: controller,
             builder: (context, _) {
-              return Stack(children: [
-                Positioned(
-                  left: 12,
-                  top: top + offsetY.value,
-                  width: width - 24,
-                  height: height,
-                  child: Semantics(
-                    label: semanticsLabel,
-                    value: controller.value > 0.01 ? '開' : '閉',
-                    button: true,
-                    child: GestureDetector(
-                      onTap: onTap,
-                      onDoubleTap: () {
-                        if (semanticsLabel == '野菜室') {
-                          widget.onSectionTap(FridgeCompartment.vegetableDrawer, 0);
-                        } else {
-                          widget.onSectionTap(FridgeCompartment.freezer, 0);
-                        }
-                      },
+              return Transform.translate(
+                offset: Offset(0, offsetY.value),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        color.surfaceContainerHighest,
+                        color.surfaceContainerHigh,
+                      ],
+                    ),
+                    border: Border.all(color: color.outlineVariant),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 3)),
+                    ],
+                  ),
+                  child: Stack(children: [
+                    Align(
+                      alignment: Alignment.topCenter,
                       child: Container(
+                        width: 48,
+                        height: 4,
+                        margin: const EdgeInsets.only(top: 8),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              color.surfaceContainerHighest,
-                              color.surfaceContainerHigh,
-                            ],
-                          ),
-                          border: Border.all(color: color.outlineVariant),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 3)),
-                          ],
+                          color: color.outlineVariant,
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                        child: Stack(children: [
-                          Align(
-                            alignment: Alignment.topCenter,
-                            child: Container(
-                              width: 48,
-                              height: 4,
-                              margin: const EdgeInsets.only(top: 8),
-                              decoration: BoxDecoration(
-                                color: color.outlineVariant,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ),
-                          Positioned.fill(child: badge),
-                        ]),
                       ),
                     ),
-                  ),
+                    Positioned.fill(child: badge),
+                  ]),
                 ),
-              ]);
+              );
             },
-          );
-        },
+          ),
+        ),
       ),
     );
   }
