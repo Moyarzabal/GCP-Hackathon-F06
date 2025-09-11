@@ -1,0 +1,63 @@
+name: InteractiveFridgeUI
+version: 0.1.0
+as_of: 2025-09-11
+
+context:
+  project: GCP-Hackathon-F06
+  platform: Flutter (iOS/Android/Web)
+  state_management: Riverpod
+  refs:
+    - file: lib/app.dart
+    - file: lib/features/home/presentation/pages/home_screen.dart
+    - file: lib/features/scanner/presentation/pages/scanner_screen.dart
+    - file: docs/index.html#ui-design
+
+current_ux:
+  home_screen:
+    title: 冷蔵庫の中身
+    view: リスト表示（カテゴリフィルタ、ソート、検索）
+    empty_state: バーコードをスキャンして商品を追加
+  navigation:
+    layout: Bottom/Tab navigation (AdaptiveNavigation + IndexedStack)
+    tabs: [ホーム, スキャン, 履歴, 設定]
+  scanner_screen:
+    camera: MobileScanner
+    actions: [スキャン開始/停止, 手動追加, 結果ダイアログ]
+
+current_domain:
+  product_model:
+    fields:
+      - id: string
+      - janCode: string
+      - name: string
+      - category: string
+      - addedDate: timestamp
+      - scannedAt: timestamp
+      - expiryDate: timestamp | null
+      - manufacturer: string | null
+    notes:
+      - 物理配置(棚/室/扉)を表すフィールドは未導入
+  providers:
+    - appStateProvider: アプリ全体のプロダクト保持/更新
+    - productProvider: フィルタ/ソート状態
+    - scannerProvider: カメラ/スキャン状態
+
+gaps_for_fridge_ui:
+  - 冷蔵庫の可視化ビューが存在しない
+  - 食材の物理位置(室, 棚, 扉, 段)の表現が無い
+  - ズーム/フォーカス/棚単位の遷移が無い
+  - ドアポケット/棚/野菜室/冷凍庫のレイアウト定義が無い
+  - 既存リスト表示と新ビューの切替UIが無い
+
+constraints:
+  device: smartphone-first
+  performance: 60fpsを目標（ズーム/パン時）
+  accessibility: タップ領域44dp以上、音声読み上げ対応
+  offline: 既存キャッシュを活用（新規必須要件ではない）
+
+non_functional_baseline:
+  theming: Material3（ColorScheme from seed）
+  error_handling: InlineErrorWidget等の統一UI
+  analytics: 未導入（今後追加）
+
+
