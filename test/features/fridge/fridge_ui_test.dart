@@ -1,6 +1,7 @@
 import 'package:barcode_scanner/features/home/presentation/pages/home_screen.dart';
 import 'package:barcode_scanner/shared/models/product.dart';
 import 'package:barcode_scanner/shared/providers/app_state_provider.dart';
+import 'package:barcode_scanner/features/fridge/presentation/widgets/tesla_style_fridge_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,13 +29,15 @@ void main() {
 
     // 冷蔵庫に切替
     await tester.tap(find.text('冷蔵庫'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.byKey(const ValueKey('fridgeView')), findsOneWidget);
 
-    // セクションタップ（冷蔵室 棚0）
-    await tester.tap(find.textContaining('冷蔵室 棚0').first);
-    await tester.pumpAndSettle();
+    // セクションタップ（冷蔵室 棚1）- TeslaStyleFridgeWidgetのシングルタップでセクション詳細へ遷移
+    await tester.tap(find.textContaining('冷蔵室 棚1').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     // セクションビュー（戻るボタンと件数表示あり）
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
@@ -68,7 +71,8 @@ void main() {
 
     // 冷蔵庫に切替
     await tester.tap(find.text('冷蔵庫'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     // バッジ数が表示（"2"がどこかに表示される）
     expect(find.text('2'), findsWidgets);
