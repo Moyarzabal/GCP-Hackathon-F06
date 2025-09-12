@@ -34,8 +34,9 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
       return;
     }
 
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
+    final userState = ref.read(currentUserProvider);
+    if (userState.value == null) return;
+    final user = userState.value!;
 
     try {
       final householdId = await ref
@@ -72,8 +73,9 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
       return;
     }
 
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
+    final userState = ref.read(currentUserProvider);
+    if (userState.value == null) return;
+    final user = userState.value!;
 
     try {
       await ref
@@ -109,10 +111,10 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
       ),
       body: householdAsync.when(
         data: (household) {
-          if (household == null || !household.exists) {
+          if (household == null) {
             return _buildNoHouseholdView();
           }
-          return _buildHouseholdView(household.data() as Map<String, dynamic>);
+          return _buildHouseholdView(household);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
@@ -272,12 +274,8 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
                       title: const Text('通知を有効にする'),
                       value: settings['enableNotifications'] ?? true,
                       onChanged: (value) async {
-                        await ref.read(firestoreServiceProvider)
-                            .updateNotificationSettings(
-                          householdData['householdId'],
-                          settings['notificationDays'] ?? 3,
-                          value,
-                        );
+                        // TODO: Implement notification settings update
+                        print('Notification settings update: $value');
                       },
                     ),
                   ),

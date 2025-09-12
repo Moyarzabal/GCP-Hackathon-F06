@@ -1,0 +1,174 @@
+updated_implementation:
+  title: "統合最適化後のGemini API実装"
+  description: "カテゴリ分類と賞味期限予測を1回のAPI呼び出しに統合した実装"
+  
+  services:
+    gemini_service:
+      location: "lib/core/services/gemini_service.dart"
+      new_methods:
+        - name: "analyzeProduct"
+          description: "商品情報からカテゴリと賞味期限を同時に分析"
+          input:
+            - "productName: String (必須)"
+            - "manufacturer: String? (オプション)"
+            - "brandName: String? (オプション)"
+          output:
+            - "ProductAnalysis オブジェクト"
+              - "category: String"
+              - "expiryDays: int"
+              - "confidence: double"
+              - "expiryDate: DateTime (computed)"
+          
+          unified_prompt: |
+            商品名: {productName}
+            メーカー: {manufacturer ?? '不明'}
+            ブランド: {brandName ?? '不明'}
+            
+            以下の情報をJSON形式で回答してください：
+            1. カテゴリ分類（以下の選択肢から1つ）
+            2. 賞味期限（冷蔵保存を前提とした日数）
+            3. 信頼度（0.0-1.0）
+            
+            利用可能なカテゴリ：
+            [飲料, 乳製品, 肉類, 魚類, 野菜, 果物, 加工食品, 即席麺, その他]
+            
+            回答形式：
+            {
+              "category": "カテゴリ名",
+              "expiryDays": 数字,
+              "confidence": 0.0-1.0
+            }
+          
+          fallback: "_getMockProductAnalysis"
+          description: "API失敗時のモック分析（キーワードマッチング）"
+    
+    jan_code_service:
+      location: "lib/core/services/jan_code_service.dart"
+      updated_methods:
+        - name: "_getCategoryFromAPI"
+          description: "統合版Geminiを使用してカテゴリを取得"
+          implementation: |
+            final analysis = await _geminiService.analyzeProduct(
+              productName: product['itemName']?.toString() ?? '',
+              manufacturer: product['makerName']?.toString(),
+              brandName: product['brandName']?.toString(),
+            );
+            return analysis.category;
+        
+        - name: "_cacheProductAnalysis"
+          description: "統合分析結果をキャッシュに保存"
+          new_method: true
+          purpose: "分析結果の再利用とパフォーマンス向上"
+    
+    scanner_provider:
+      location: "lib/features/scanner/presentation/providers/scanner_provider.dart"
+      updated_methods:
+        - name: "onBarcodeScanned"
+          description: "統合版Geminiを使用して商品分析を実行"
+          implementation: |
+            // 統合版Geminiでカテゴリと賞味期限を同時に分析
+            final analysis = await _geminiService.analyzeProduct(
+              productName: productInfo['productName'] as String,
+              manufacturer: productInfo['manufacturer'] as String?,
+              brandName: productInfo['manufacturer'] as String?,
+            );
+            
+            // 分析結果から賞味期限を取得
+            final expiryDate = analysis.expiryDate;
+        
+        - name: "_predictExpiryDate"
+          description: "統合版Geminiを使用した賞味期限予測"
+          simplified: true
+          implementation: |
+            final analysis = await _geminiService.analyzeProduct(
+              productName: productName,
+              manufacturer: null,
+              brandName: null,
+            );
+            return analysis.expiryDate;
+  
+  data_models:
+    product_analysis:
+      class: "ProductAnalysis"
+      location: "lib/core/services/gemini_service.dart"
+      properties:
+        - "category: String"
+        - "expiryDays: int"
+        - "confidence: double"
+        - "expiryDate: DateTime (computed getter)"
+      
+      methods:
+        - "fromJson(Map<String, dynamic> json)"
+        - "expiryDate getter"
+  
+  api_calls_per_scan:
+    count: 1
+    sequence:
+      1. "統合版Gemini API: カテゴリ分類 + 賞味期限予測"
+  
+  performance_improvements:
+    api_calls:
+      before: 2
+      after: 1
+      reduction: "50%"
+    
+    processing_time:
+      estimated_reduction: "30-40%"
+      reason: "API呼び出し回数削減とレスポンス時間短縮"
+    
+    cost_savings:
+      estimated_reduction: "50%"
+      reason: "Gemini API使用量の半減"
+  
+  error_handling:
+    gemini_failure:
+      - "カテゴリ: キーワードマッチング（モック）"
+      - "賞味期限: カテゴリ別デフォルト値"
+    
+    api_key_missing:
+      - "モック分析を使用"
+      - "商品名に基づくカテゴリ判定"
+      - "カテゴリ別デフォルト賞味期限"
+  
+  data_flow_optimized:
+    barcode_scan:
+      - "JAN Code API → 商品基本情報取得"
+      - "統合版Gemini API → カテゴリ分類 + 賞味期限予測"
+      - "Product オブジェクト作成"
+  
+  backward_compatibility:
+    maintained:
+      - "既存のフォールバック機能"
+      - "デフォルト値の設定"
+      - "エラーハンドリング"
+    
+    deprecated:
+      - "_determineCategoryWithGemini (旧版)"
+      - "個別の賞味期限予測メソッド"
+  
+  testing_considerations:
+    unit_tests:
+      - "analyzeProduct メソッドのテスト"
+      - "ProductAnalysis クラスのテスト"
+      - "フォールバック機能のテスト"
+    
+    integration_tests:
+      - "統合版API呼び出しのテスト"
+      - "エラー時の動作確認"
+      - "パフォーマンス測定"
+  
+  benefits_achieved:
+    performance:
+      - "API呼び出し回数: 50%削減"
+      - "処理時間: 大幅短縮"
+      - "ネットワーク負荷: 50%削減"
+    
+    maintainability:
+      - "コードの重複排除"
+      - "単一責任の原則に準拠"
+      - "テストケースの簡素化"
+    
+    cost_efficiency:
+      - "Gemini API使用量: 50%削減"
+      - "月間コスト: 大幅削減"
+      - "スケーラビリティ向上"

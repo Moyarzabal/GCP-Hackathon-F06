@@ -116,8 +116,27 @@ class FirestoreService {
 
   // Product database operations (cached product info)
   Future<Map<String, dynamic>?> getProductByJAN(String janCode) async {
-    final doc = await _firestore.collection('products').doc(janCode).get();
-    return doc.exists ? doc.data() : null;
+    try {
+      final doc = await _firestore.collection('products').doc(janCode).get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        print('Cached product data: $data');
+        return data;
+      }
+      return null;
+    } catch (e) {
+      print('Error getting cached product: $e');
+      return null;
+    }
+  }
+
+  Future<void> clearProductCache(String janCode) async {
+    try {
+      await _firestore.collection('products').doc(janCode).delete();
+      print('Cleared cache for JAN code: $janCode');
+    } catch (e) {
+      print('Error clearing cache: $e');
+    }
   }
 
   Future<void> cacheProductInfo({
@@ -128,6 +147,8 @@ class FirestoreService {
     String? imageUrl,
     Map<String, dynamic>? nutritionInfo,
     List<String>? allergens,
+    int? expiryDays,
+    double? confidence,
   }) async {
     await _firestore.collection('products').doc(janCode).set({
       'janCode': janCode,
@@ -137,6 +158,8 @@ class FirestoreService {
       'nutritionInfo': nutritionInfo,
       'allergens': allergens,
       'imageUrl': imageUrl,
+      'expiryDays': expiryDays,
+      'confidence': confidence,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
