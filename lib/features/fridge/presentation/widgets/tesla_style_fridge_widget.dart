@@ -66,6 +66,7 @@ class _TeslaStyleFridgeWidgetState extends ConsumerState<TeslaStyleFridgeWidget>
     )..repeat();
 
     // アニメーション定義（テスラ風のなめらかな動き）
+    // 左ドア（左端が軸）：負の値で右側（中央側）が手前に開く
     _leftDoorAngle = Tween<double>(
       begin: 0.0,
       end: -1.2,
@@ -74,6 +75,7 @@ class _TeslaStyleFridgeWidgetState extends ConsumerState<TeslaStyleFridgeWidget>
       curve: Curves.easeInOut,
     ));
 
+    // 右ドア（右端が軸）：正の値で左側（中央側）が手前に開く
     _rightDoorAngle = Tween<double>(
       begin: 0.0,
       end: 1.2,
@@ -457,14 +459,14 @@ class TeslaStyleFridgePainter extends CustomPainter {
     // メイン冷蔵庫本体
     _draw3DFridgeBody(canvas, size);
 
-    // 扉（3D回転）
-    _draw3DDoors(canvas, size);
+    // 内部照明（棚を含む）を先に描画
+    _drawInteriorLighting(canvas, size);
 
     // 引き出し（3Dスライド）
     _draw3DDrawers(canvas, size);
 
-    // 内部照明
-    _drawInteriorLighting(canvas, size);
+    // 扉（3D回転）を最後に描画（最前面）
+    _draw3DDoors(canvas, size);
 
     // 微細な影とハイライト
     _drawSubtleShadows(canvas, size);
@@ -550,11 +552,11 @@ class TeslaStyleFridgePainter extends CustomPainter {
     final double doorHeight = size.height * 0.2;
     final double topY = size.height * 0.05;
 
-    // 左扉
+    // 左扉（左側に配置、左端が軸）
     _draw3DDoor(canvas, centerX - doorWidth, topY, doorWidth, doorHeight,
         leftDoorAngle, true);
 
-    // 右扉
+    // 右扉（右側に配置、右端が軸）
     _draw3DDoor(
         canvas, centerX, topY, doorWidth, doorHeight, rightDoorAngle, false);
   }
@@ -563,14 +565,16 @@ class TeslaStyleFridgePainter extends CustomPainter {
       double angle, bool isLeft) {
     canvas.save();
 
-    // 回転の中心点
-    final double pivotX = isLeft ? x + w : x;
+    // 回転の中心点（冷蔵庫の外側が軸）
+    // 左ドア（isLeft=true）: 左端(x)が軸で、右側（中央側）が手前に開く
+    // 右ドア（isLeft=false）: 右端(x+w)が軸で、左側（中央側）が手前に開く
+    final double pivotX = isLeft ? x : (x + w);
     final double pivotY = y + h / 2;
 
     canvas.translate(pivotX, pivotY);
     canvas.transform((Matrix4.identity()
           ..setEntry(3, 2, 0.001)
-          ..rotateY(angle))
+          ..rotateY(angle))  // angleをそのまま使用
         .storage);
     canvas.translate(-pivotX, -pivotY);
 
@@ -602,8 +606,8 @@ class TeslaStyleFridgePainter extends CustomPainter {
 
     canvas.drawRRect(doorRect, edgePaint);
 
-    // ハンドル
-    _drawMinimalistHandle(canvas, isLeft ? x + w - 12 : x + 8, y + h / 2);
+    // ハンドル（中央寄りに配置）
+    _drawMinimalistHandle(canvas, isLeft ? x + w - 20 : x + 20, y + h / 2);
 
     canvas.restore();
   }
