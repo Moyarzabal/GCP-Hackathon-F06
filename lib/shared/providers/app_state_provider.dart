@@ -73,6 +73,26 @@ class AppStateNotifier extends StateNotifier<AppState> {
   void clearError() {
     state = state.copyWith(error: null);
   }
+
+  /// 商品の画像を更新
+  void updateProductImage(String productId, String imageUrl) {
+    print('🔄 updateProductImage called: productId=$productId, imageUrl=$imageUrl');
+    print('📦 Current products count: ${state.products.length}');
+    
+    final updatedProducts = state.products.map((product) {
+      if (product.id == productId) {
+        print('✅ Found product to update: ${product.name}');
+        print('    Old imageUrl: ${product.imageUrl}');
+        print('    New imageUrl: $imageUrl');
+        return product.copyWith(imageUrl: imageUrl);
+      }
+      return product;
+    }).toList();
+    
+    print('📦 Updated products count: ${updatedProducts.length}');
+    state = state.copyWith(products: updatedProducts);
+    print('✅ updateProductImage completed');
+  }
 }
 
 /// アプリケーション状態プロバイダー
