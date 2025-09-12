@@ -18,6 +18,16 @@ class HomeScreen extends ConsumerWidget {
     final productNotifier = ref.watch(productProvider.notifier);
     final availableCategories = ref.watch(availableCategoriesProvider);
     
+    // appStateProviderの商品リストを使用（画像更新が反映される）
+    final products = appState.products;
+    
+    // デバッグログ: 商品リストの状態を確認
+    print('🏠 HomeScreen: 商品リストの状態');
+    print('   商品数: ${products.length}');
+    for (var product in products) {
+      print('   商品ID: ${product.id}, 名前: ${product.name}, 画像URL: ${product.imageUrl}');
+    }
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -31,7 +41,7 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () {
               showSearch(
                 context: context,
-                delegate: ProductSearchDelegate(appState.products),
+                delegate: ProductSearchDelegate(products),
               );
             },
           ),
@@ -90,13 +100,13 @@ class HomeScreen extends ConsumerWidget {
           
           // 商品リスト
           Expanded(
-            child: productState.filteredProducts.isEmpty
+            child: products.isEmpty
                 ? _buildEmptyState(context)
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: productState.filteredProducts.length,
+                    itemCount: products.length,
                     itemBuilder: (context, index) {
-                      final product = productState.filteredProducts[index];
+                      final product = products[index];
                       return ProductCard(
                         product: product,
                         onTap: () => _showProductDetail(context, product),

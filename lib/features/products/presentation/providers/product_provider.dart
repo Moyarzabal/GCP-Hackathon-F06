@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/app_exception.dart';
 import '../../../../core/errors/result.dart';
@@ -57,8 +58,10 @@ class ProductNotifier extends StateNotifier<ProductState> {
   final Ref _ref;
 
   ProductNotifier(this._ref) : super(const ProductState()) {
-    // 初期フィルタリング
-    _applyFilters();
+    // 初期フィルタリングは遅延実行
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyFilters();
+    });
   }
 
   /// 商品を検索
@@ -82,6 +85,10 @@ class ProductNotifier extends StateNotifier<ProductState> {
   /// フィルターとソートを適用
   void _applyFilters() {
     try {
+      // プロバイダーが利用可能かチェック
+      if (!_ref.exists(productsProvider)) {
+        return;
+      }
       final allProducts = _ref.read(productsProvider);
       var filteredProducts = <Product>[...allProducts];
 
@@ -220,9 +227,13 @@ class ProductNotifier extends StateNotifier<ProductState> {
 final productProvider = StateNotifierProvider<ProductNotifier, ProductState>((ref) {
   final notifier = ProductNotifier(ref);
   
-  // 商品リストが変更されたらフィルターを再適用
+  // 商品リストが変更されたらフィルターを再適用（遅延実行）
   ref.listen(productsProvider, (previous, next) {
-    notifier._applyFilters();
+    if (previous != next) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifier._applyFilters();
+      });
+    }
   });
   
   return notifier;

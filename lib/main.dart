@@ -8,6 +8,9 @@ import 'app.dart';
 import 'core/errors/global_error_handler.dart';
 import 'shared/widgets/error_boundary.dart';
 
+// グローバルなProviderContainerを作成（後で初期化）
+late ProviderContainer globalContainer;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -51,6 +54,9 @@ void main() async {
   // Set initial breadcrumb
   errorHandler.addBreadcrumb('アプリケーション開始', category: 'lifecycle');
   
+  // ProviderContainerを作成してglobalContainerに設定
+  globalContainer = ProviderContainer();
+  
   runApp(
     RootErrorBoundary(
       onError: (error, stackTrace) {
@@ -61,8 +67,9 @@ void main() async {
           fatal: true,
         );
       },
-      child: const ProviderScope(
-        child: MyApp(),
+      child: ProviderScope(
+        parent: globalContainer,
+        child: const MyApp(),
       ),
     ),
   );

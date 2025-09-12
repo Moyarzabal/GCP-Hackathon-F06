@@ -10,6 +10,7 @@ import '../../../../shared/widgets/adaptive/adaptive_button.dart';
 import '../../../../shared/widgets/adaptive/adaptive_loading.dart';
 import '../../../../shared/widgets/common/error_widget.dart';
 import '../../../products/presentation/providers/product_provider.dart';
+import '../../../../core/services/image_generation_service.dart';
 
 // 共通のカテゴリリスト
 const List<String> _defaultCategories = [
@@ -149,14 +150,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  selectedDate != null
-                                      ? '${selectedDate!.year}/${selectedDate!.month}/${selectedDate!.day}'
+                        children: [
+                          Text(
+                            selectedDate != null
+                                ? '${selectedDate!.year}/${selectedDate!.month}/${selectedDate!.day}'
                                       : (aiPredictedDate != null
                                           ? '${aiPredictedDate!.year}/${aiPredictedDate!.month}/${aiPredictedDate!.day}'
                                           : '日付を選択'),
-                                  style: TextStyle(
+                            style: TextStyle(
                                     color: (selectedDate != null || aiPredictedDate != null) ? _textColor : Colors.grey,
                                     fontSize: 16,
                                   ),
@@ -245,14 +246,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     category: selectedCategory,
                   );
                   
-                  // アプリ状態に商品を更新
-                  ref.read(appStateProvider.notifier).updateProduct(updatedProduct);
+                  // 画像生成を非同期で実行
+                  _generateAndAddProduct(updatedProduct, ref, context);
                   
                   Navigator.pop(context);
                   ref.read(scannerProvider.notifier).clearLastScannedCode();
-                  
-                  // 商品追加完了の通知
-                  _showProductAddedSnackBar(context, product.name);
                 },
                 child: const Text('保存'),
               ),
@@ -283,10 +281,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               width: double.maxFinite,
               height: MediaQuery.of(context).size.height * 0.5,
               child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   // 商品名セクション
                   _buildInfoSection(
                     context: context,
@@ -296,7 +294,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     iconColor: _blockAccentColor,
                     textColor: _textColor,
                     child: TextField(
-                      controller: nameController,
+                    controller: nameController,
                       decoration: InputDecoration(
                         hintText: '商品名を入力してください',
                         border: OutlineInputBorder(
@@ -329,7 +327,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     iconColor: _blockAccentColor,
                     textColor: _textColor,
                     child: DropdownButtonFormField<String>(
-                      value: selectedCategory,
+                    value: selectedCategory,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -348,8 +346,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                         filled: true,
                       ),
                       items: _defaultCategories
-                          .map((cat) => DropdownMenuItem(
-                                value: cat,
+                        .map((cat) => DropdownMenuItem(
+                              value: cat,
                                 child: Row(
                                   children: [
                                     Icon(
@@ -361,16 +359,16 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                                     Text(cat, style: TextStyle(color: _textColor)),
                                   ],
                                 ),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            selectedCategory = value;
-                          });
-                        }
-                      },
-                    ),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          selectedCategory = value;
+                        });
+                      }
+                    },
+                  ),
                   ),
                   const SizedBox(height: 12),
                   
@@ -383,40 +381,40 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     iconColor: _blockAccentColor,
                     textColor: _textColor,
                     child: InkWell(
-                      onTap: () async {
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now().add(const Duration(days: 7)),
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now().add(const Duration(days: 7)),
                           firstDate: DateTime(DateTime.now().year - 10, 1, 1),
                           lastDate: DateTime(DateTime.now().year + 10, 12, 31),
-                        );
-                        if (date != null) {
-                          setState(() {
-                            selectedDate = date;
-                          });
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
+                      );
+                      if (date != null) {
+                        setState(() {
+                          selectedDate = date;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
                           color: _innerUIBackgroundColor,
                           border: Border.all(color: _innerUIBorderColor),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              selectedDate != null
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            selectedDate != null
                                   ? '${selectedDate!.year}/${selectedDate!.month}/${selectedDate!.day}'
                                   : '日付を選択',
-                              style: TextStyle(
+                            style: TextStyle(
                                 color: (selectedDate != null) ? _textColor : Colors.grey,
                                 fontSize: 16,
-                              ),
                             ),
+                          ),
                             Icon(Icons.edit_calendar, size: 20, color: _textColor.withOpacity(0.6)),
-                          ],
+                        ],
                         ),
                       ),
                     ),
@@ -451,14 +449,12 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                       expiryDate: selectedDate,
                     );
                     
-                    // アプリ状態に商品を追加
-                    ref.read(appStateProvider.notifier).addProduct(product);
+                    // 画像生成を非同期で実行
+                    _generateAndAddProduct(product, ref, context);
                     
                     Navigator.pop(context);
                     // 手動登録完了時はスキャンを再開
                     ref.read(scannerProvider.notifier).startScanning();
-                    // 商品追加完了の通知
-                    _showProductAddedSnackBar(context, nameController.text);
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -805,9 +801,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
               // メインアイコンコンテナ
               Container(
                 width: 160,
@@ -843,11 +839,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                       ),
                     ),
                     // メインアイコン
-                    Icon(
-                      Icons.qr_code_scanner,
+          Icon(
+            Icons.qr_code_scanner,
                       size: 60,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+            color: Theme.of(context).colorScheme.primary,
+          ),
                     // アニメーション用の波紋効果
                     Positioned(
                       child: Container(
@@ -868,10 +864,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               const SizedBox(height: 40),
               
               // メインタイトル
-              Text(
+          Text(
                 'バーコードをスキャン',
-                textAlign: TextAlign.center,
-                style: TextStyle(
+            textAlign: TextAlign.center,
+            style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -889,9 +885,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                   fontWeight: FontWeight.w400,
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 48),
+            ),
+          ),
+          const SizedBox(height: 48),
               
               // 機能説明カード
               Container(
@@ -1144,6 +1140,52 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
         ),
       ),
     );
+  }
+
+  /// 画像生成と商品追加を実行
+  Future<void> _generateAndAddProduct(Product product, WidgetRef ref, BuildContext context) async {
+    try {
+      // まず商品を追加（画像なしで）
+      ref.read(appStateProvider.notifier).addProduct(product);
+      
+      // 商品追加完了の通知を表示
+      _showProductAddedSnackBar(context, product.name);
+      
+      // 画像生成を非同期で実行（refを渡さない）
+      _generateImageAsync(product);
+    } catch (e) {
+      print('❌ 商品追加エラー: $e');
+    }
+  }
+
+  /// 画像生成を非同期で実行（refを使用しない）
+  Future<void> _generateImageAsync(Product product) async {
+    try {
+      // 賞味期限までの日数を計算
+      final daysUntilExpiry = product.expiryDate != null 
+          ? product.expiryDate!.difference(DateTime.now()).inDays
+          : 7; // デフォルト値
+      
+      print('🎨 商品キャラクター生成開始: ${product.name} (${product.category}, 賞味期限まで${daysUntilExpiry}日)');
+      
+      final imageUrl = await ImageGenerationService.generateProductIcon(
+        productName: product.name,
+        daysUntilExpiry: daysUntilExpiry,
+        category: product.category,
+        productId: product.id, // 商品IDを渡す
+      );
+      
+      if (imageUrl != null) {
+        // 画像生成完了のログ（商品更新はImageGenerationServiceで実行）
+        print('✅ 商品キャラクター生成完了: ${product.name}');
+        print('🖼️ キャラクター画像URL: $imageUrl');
+        print('ℹ️ 商品更新はImageGenerationServiceで実行されました');
+      } else {
+        print('⚠️ 商品キャラクター生成失敗: ${product.name}');
+      }
+    } catch (e) {
+      print('❌ キャラクター生成エラー: $e');
+    }
   }
 
   /// 商品追加完了の通知を表示（SnackBarの代わりにダイアログを使用）
