@@ -662,7 +662,7 @@ class TeslaStyleFridgePainter extends CustomPainter {
     // 取っ手
     final double handleY = y + h / 2;
     final Paint handlePaint = Paint()
-      ..color = accentColor.withOpacity(0.8 + offset.abs() * 0.01)
+      ..color = accentColor.withOpacity(math.min(0.8 + offset.abs() * 0.01, 1.0))
       ..strokeWidth = 3.0
       ..strokeCap = StrokeCap.round;
 
