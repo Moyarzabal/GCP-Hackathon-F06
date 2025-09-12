@@ -252,14 +252,16 @@ class TeslaStyle3DFridgePainter extends CustomPainter {
   void _draw3DDoor(Canvas canvas, double x, double y, double w, double h, double angle, bool isLeft) {
     canvas.save();
     
-    // 回転の中心点（ヒンジ位置）- 外側を固定して内側から開く
-    final double pivotX = isLeft ? x : x + w;
+    // 回転の中心点（ヒンジ位置）- 冷蔵庫の外側が軸
+    // 左ドア（isLeft=true）: 左端(x)が軸で、右側（中央側）が手前に開く
+    // 右ドア（isLeft=false）: 右端(x+w)が軸で、左側（中央側）が手前に開く
+    final double pivotX = isLeft ? x : (x + w);
     final double pivotY = y + h / 2;
     
     canvas.translate(pivotX, pivotY);
     canvas.transform((Matrix4.identity()
           ..setEntry(3, 2, 0.001) // 3D透視効果
-          ..rotateY(isLeft ? -angle : angle))  // 左ドアは負の角度で右に開く
+          ..rotateY(angle))  // angleをそのまま使用
         .storage);
     canvas.translate(-pivotX, -pivotY);
     
@@ -292,8 +294,8 @@ class TeslaStyle3DFridgePainter extends CustomPainter {
     
     canvas.drawRRect(doorRect, edgePaint);
     
-    // ハンドル（内側に配置）
-    _drawTeslaHandle(canvas, isLeft ? x + w - 12 : x + 12, y + h/2, isLeft);
+    // ハンドル（中央寄りに配置）
+    _drawTeslaHandle(canvas, isLeft ? x + w - 20 : x + 20, y + h/2, isLeft);
     
     // 扉が開いている場合の3D効果
     if (angle.abs() > 0.1) {
