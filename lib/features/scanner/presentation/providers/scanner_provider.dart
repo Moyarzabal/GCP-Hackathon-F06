@@ -179,9 +179,6 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
         imageUrl: productInfo['imageUrl'] as String?,
       );
 
-      // アプリケーション状態に商品を追加
-      _ref.read(appStateProvider.notifier).addProduct(product);
-
       print('🎉 商品処理完了: ${product.name}');
       state = state.copyWith(
         scannedProduct: product,
