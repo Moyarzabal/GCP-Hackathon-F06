@@ -78,8 +78,22 @@ class OpenFoodFactsService {
   }
 
   String _getProductName(Map<String, dynamic> product) {
-    return product['product_name_ja'] ?? 
-           product['product_name_en'] ?? 
+    // 日本語名を最優先で取得
+    if (product['product_name_ja'] != null && product['product_name_ja'].toString().isNotEmpty) {
+      return product['product_name_ja'];
+    }
+    
+    // 日本語の商品名（product_name）を次に優先
+    if (product['product_name'] != null && product['product_name'].toString().isNotEmpty) {
+      final name = product['product_name'].toString();
+      // 日本語文字が含まれているかチェック
+      if (RegExp(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]').hasMatch(name)) {
+        return name;
+      }
+    }
+    
+    // 英語名を最後に使用
+    return product['product_name_en'] ?? 
            product['product_name'] ?? 
            'Unknown Product';
   }
