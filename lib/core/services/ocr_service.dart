@@ -1,12 +1,15 @@
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+// import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:intl/intl.dart';
 
 class OCRService {
-  final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.japanese);
+  // final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.japanese);
 
-  Future<DateTime?> extractExpiryDate(InputImage inputImage) async {
+  Future<DateTime?> extractExpiryDate(dynamic inputImage) async {
     try {
-      final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+      // TODO: Re-enable when google_mlkit_text_recognition is available
+      // final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+      print('OCR service temporarily disabled - google_mlkit_text_recognition not available');
+      return null;
       
       // List of possible date patterns to search for
       final datePatterns = [
@@ -30,60 +33,60 @@ class OCRService {
         RegExp(r'USE\s*BY[:：\s]*(.+)', caseSensitive: false),
       ];
 
-      List<DateTime> foundDates = [];
+      // List<DateTime> foundDates = [];
 
-      for (TextBlock block in recognizedText.blocks) {
-        for (TextLine line in block.lines) {
-          final text = line.text;
-          
-          // Check for expiry date keywords first
-          bool isExpiryLine = false;
-          for (final keywordPattern in [
-            RegExp(r'賞味期限'),
-            RegExp(r'消費期限'),
-            RegExp(r'期限'),
-            RegExp(r'EXP', caseSensitive: false),
-            RegExp(r'BEST\s*BEFORE', caseSensitive: false),
-            RegExp(r'USE\s*BY', caseSensitive: false),
-          ]) {
-            if (keywordPattern.hasMatch(text)) {
-              isExpiryLine = true;
-              break;
-            }
-          }
+      // for (TextBlock block in recognizedText.blocks) {
+      //   for (TextLine line in block.lines) {
+      //     final text = line.text;
+      //     
+      //     // Check for expiry date keywords first
+      //     bool isExpiryLine = false;
+      //     for (final keywordPattern in [
+      //       RegExp(r'賞味期限'),
+      //       RegExp(r'消費期限'),
+      //       RegExp(r'期限'),
+      //       RegExp(r'EXP', caseSensitive: false),
+      //       RegExp(r'BEST\s*BEFORE', caseSensitive: false),
+      //       RegExp(r'USE\s*BY', caseSensitive: false),
+      //     ]) {
+      //       if (keywordPattern.hasMatch(text)) {
+      //         isExpiryLine = true;
+      //         break;
+      //       }
+      //     }
 
-          // Try to extract dates from the text
-          for (final pattern in datePatterns) {
-            final matches = pattern.allMatches(text);
-            for (final match in matches) {
-              DateTime? date = _parseDate(match, text);
-              if (date != null) {
-                foundDates.add(date);
-                // If this line contains expiry keywords, prioritize this date
-                if (isExpiryLine) {
-                  return date;
-                }
-              }
-            }
-          }
-        }
-      }
+      //     // Try to extract dates from the text
+      //     for (final pattern in datePatterns) {
+      //       final matches = pattern.allMatches(text);
+      //       for (final match in matches) {
+      //         DateTime? date = _parseDate(match, text);
+      //         if (date != null) {
+      //           foundDates.add(date);
+      //           // If this line contains expiry keywords, prioritize this date
+      //           if (isExpiryLine) {
+      //             return date;
+      //           }
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
 
-      // Return the nearest future date if multiple dates found
-      if (foundDates.isNotEmpty) {
-        final now = DateTime.now();
-        foundDates.sort((a, b) => a.compareTo(b));
-        
-        // Find the first date that's in the future
-        for (final date in foundDates) {
-          if (date.isAfter(now.subtract(const Duration(days: 1)))) {
-            return date;
-          }
-        }
-        
-        // If no future dates, return the latest date
-        return foundDates.last;
-      }
+      // // Return the nearest future date if multiple dates found
+      // if (foundDates.isNotEmpty) {
+      //   final now = DateTime.now();
+      //   foundDates.sort((a, b) => a.compareTo(b));
+      //   
+      //   // Find the first date that's in the future
+      //   for (final date in foundDates) {
+      //     if (date.isAfter(now.subtract(const Duration(days: 1)))) {
+      //       return date;
+      //     }
+      //   }
+      //   
+      //   // If no future dates, return the latest date
+      //   return foundDates.last;
+      // }
 
       return null;
     } catch (e) {
@@ -143,10 +146,13 @@ class OCRService {
     }
   }
 
-  Future<String?> extractText(InputImage inputImage) async {
+  Future<String?> extractText(dynamic inputImage) async {
     try {
-      final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
-      return recognizedText.text;
+      // TODO: Re-enable when google_mlkit_text_recognition is available
+      // final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+      // return recognizedText.text;
+      print('OCR text extraction temporarily disabled - google_mlkit_text_recognition not available');
+      return null;
     } catch (e) {
       print('Error during text extraction: $e');
       return null;
@@ -154,6 +160,6 @@ class OCRService {
   }
 
   void dispose() {
-    _textRecognizer.close();
+    // _textRecognizer.close();
   }
 }

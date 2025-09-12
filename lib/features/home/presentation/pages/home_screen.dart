@@ -73,7 +73,7 @@ class HomeScreen extends ConsumerWidget {
                       ? Theme.of(context).colorScheme.primary 
                       : null,
                     labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : null,
+                      color: isSelected ? Colors.black : null,
                     ),
                   ),
                 );
