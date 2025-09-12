@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
@@ -34,17 +33,9 @@ class ErrorHandler {
       return true; // エラーが処理されたことを示す
     };
 
-    // Isolate のエラーハンドリング
-    Isolate.current.addErrorListener(
-      RawReceivePort((pair) async {
-        final List<dynamic> errorAndStacktrace = pair;
-        final error = errorAndStacktrace[0];
-        final stackTrace = errorAndStacktrace[1] is StackTrace 
-            ? errorAndStacktrace[1] as StackTrace
-            : null;
-        await handleAsyncError(error, stackTrace);
-      }).sendPort,
-    );
+    // Isolate のエラーハンドリング（Webでは使用しない）
+    // Web以外のプラットフォームでのみIsolateを使用
+    // Webではdart:isolateがサポートされていないため
   }
 
   /// Flutter フレームワークエラーの処理
