@@ -181,8 +181,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       floatingActionButton: selectionState.selectedProductIds.isNotEmpty
           ? FloatingActionButton(
               onPressed: () => _showDeleteConfirmation(context, selectionNotifier),
-              backgroundColor: Colors.red,
-              child: const Icon(Icons.delete, color: Colors.white),
+              backgroundColor: const Color(0xFFD4A5A5),
+              child: const Icon(Icons.delete, color: Colors.black),
             )
           : null,
     );
@@ -289,17 +289,107 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('商品を削除'),
-        content: Text('選択された${selectionState.selectedCount}個の商品を削除しますか？'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1D3CE).withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.delete_outline,
+                color: const Color(0xFFD4A5A5),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              '商品を削除',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '選択された${selectionState.selectedCount}個の商品を削除しますか？',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1D3CE).withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFFD4A5A5).withOpacity(0.5),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_outlined,
+                    color: const Color(0xFFB87B7B),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'この操作は取り消せません',
+                      style: TextStyle(
+                        color: const Color(0xFF8B5A5A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('キャンセル'),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'キャンセル',
+              style: TextStyle(fontSize: 16),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('削除'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD4A5A5),
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              '削除',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
