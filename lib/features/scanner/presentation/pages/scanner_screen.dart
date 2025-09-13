@@ -115,6 +115,55 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                         style: TextStyle(fontSize: 16, color: _textColor),
                       ),
                     ),
+                  // カテゴリセクション
+                  _buildInfoSection(
+                    context: context,
+                    icon: Icons.category,
+                    title: 'カテゴリ',
+                    backgroundColor: _blockBackgroundColor,
+                    iconColor: _blockAccentColor,
+                    textColor: _textColor,
+                    child: DropdownButtonFormField<String>(
+                      value: selectedCategory,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: _innerUIBackgroundColor,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: _innerUIBorderColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: _innerUIBorderColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: _blockAccentColor),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      items: _defaultCategories.map((String category) {
+                        return DropdownMenuItem<String>(
+                          value: category,
+                          child: Row(
+                            children: [
+                              Icon(
+                                _categoryIcons[category] ?? Icons.category,
+                                size: 16,
+                                color: _textColor,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(category, style: TextStyle(color: _textColor)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            selectedCategory = newValue;
+                          });
+                        }
+                      },
+                    ),
+                  ),
                   // 賞味期限セクション
                   _buildInfoSection(
                     context: context,
@@ -178,55 +227,6 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                       ),
                     ),
                   ),
-                  // カテゴリセクション
-                  _buildInfoSection(
-                    context: context,
-                    icon: Icons.category,
-                    title: 'カテゴリ',
-                    backgroundColor: _blockBackgroundColor,
-                    iconColor: _blockAccentColor,
-                    textColor: _textColor,
-                    child: DropdownButtonFormField<String>(
-                      value: selectedCategory,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: _innerUIBackgroundColor,
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: _innerUIBorderColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: _innerUIBorderColor),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: _blockAccentColor),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      items: _defaultCategories.map((String category) {
-                        return DropdownMenuItem<String>(
-                          value: category,
-                          child: Row(
-                            children: [
-                              Icon(
-                                _categoryIcons[category] ?? Icons.category,
-                                size: 16,
-                                color: _textColor,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(category, style: TextStyle(color: _textColor)),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            selectedCategory = newValue;
-                          });
-                        }
-                      },
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -267,6 +267,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     // 手動登録時はスキャンを停止
     ref.read(scannerProvider.notifier).stopScanning();
     final nameController = TextEditingController();
+    final manufacturerController = TextEditingController();
     String selectedCategory = '食品';
     DateTime? selectedDate;
     
@@ -297,6 +298,39 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     controller: nameController,
                       decoration: InputDecoration(
                         hintText: '商品名を入力してください',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: _innerUIBorderColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: _innerUIBorderColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: _blockAccentColor),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        fillColor: _innerUIBackgroundColor,
+                        filled: true,
+                      ),
+                      style: TextStyle(color: _textColor),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // メーカーセクション
+                  _buildInfoSection(
+                    context: context,
+                    icon: Icons.business,
+                    title: 'メーカー',
+                    backgroundColor: _blockBackgroundColor,
+                    iconColor: _blockAccentColor,
+                    textColor: _textColor,
+                    child: TextField(
+                    controller: manufacturerController,
+                      decoration: InputDecoration(
+                        hintText: 'メーカー名を入力してください（任意）',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(color: _innerUIBorderColor),
@@ -382,11 +416,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     textColor: _textColor,
                     child: InkWell(
                     onTap: () async {
-                      final date = await showDatePicker(
+                        final date = await _showCustomDatePicker(
                         context: context,
-                        initialDate: DateTime.now().add(const Duration(days: 7)),
+                          initialDate: selectedDate ?? DateTime.now().add(const Duration(days: 7)),
                           firstDate: DateTime(DateTime.now().year - 10, 1, 1),
-                          lastDate: DateTime(DateTime.now().year + 10, 12, 31),
+                        lastDate: DateTime(DateTime.now().year + 10, 12, 31),
                       );
                       if (date != null) {
                         setState(() {
@@ -397,23 +431,36 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                          color: _innerUIBackgroundColor,
-                          border: Border.all(color: _innerUIBorderColor),
+                        color: _innerUIBackgroundColor,
+                        border: Border.all(color: _innerUIBorderColor),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             selectedDate != null
-                                  ? '${selectedDate!.year}/${selectedDate!.month}/${selectedDate!.day}'
-                                  : '日付を選択',
+                                ? '${selectedDate!.year}/${selectedDate!.month}/${selectedDate!.day}'
+                                      : '日付を選択',
                             style: TextStyle(
-                                color: (selectedDate != null) ? _textColor : Colors.grey,
-                                fontSize: 16,
+                                    color: (selectedDate != null) ? _textColor : Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                if (selectedDate != null)
+                                  Text(
+                                    _formatExpiryDate(selectedDate!),
+                            style: TextStyle(
+                                      fontSize: 12,
+                                      color: _getExpiryDateColor(selectedDate!),
+                                    ),
                             ),
+                              ],
                           ),
-                            Icon(Icons.edit_calendar, size: 20, color: _textColor.withOpacity(0.6)),
+                          Icon(Icons.edit_calendar, size: 20, color: _textColor.withOpacity(0.6)),
                         ],
                         ),
                       ),
@@ -443,6 +490,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                       id: DateTime.now().millisecondsSinceEpoch.toString(),
                       janCode: 'MANUAL_${DateTime.now().millisecondsSinceEpoch}',
                       name: nameController.text,
+                      manufacturer: manufacturerController.text.isNotEmpty ? manufacturerController.text : null,
                       category: selectedCategory,
                       scannedAt: DateTime.now(),
                       addedDate: DateTime.now(),
