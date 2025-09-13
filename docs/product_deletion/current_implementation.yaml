@@ -20,7 +20,7 @@ current_implementation:
         - "商品カードの表示"
         - "商品詳細画面への遷移"
         - "空状態の表示"
-      missing_features
+      missing_features:
         - "長押しジェスチャー"
         - "選択モード"
         - "複数選択機能"
