@@ -1166,22 +1166,21 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
           ? product.expiryDate!.difference(DateTime.now()).inDays
           : 7; // デフォルト値
       
-      print('🎨 商品キャラクター生成開始: ${product.name} (${product.category}, 賞味期限まで${daysUntilExpiry}日)');
+      print('🎨 複数段階キャラクター生成開始: ${product.name} (${product.category})');
       
-      final imageUrl = await ImageGenerationService.generateProductIcon(
+      final imageUrls = await ImageGenerationService.generateMultiStageProductIcons(
         productName: product.name,
-        daysUntilExpiry: daysUntilExpiry,
         category: product.category,
         productId: product.id, // 商品IDを渡す
       );
       
-      if (imageUrl != null) {
+      if (imageUrls != null && imageUrls.isNotEmpty) {
         // 画像生成完了のログ（商品更新はImageGenerationServiceで実行）
-        print('✅ 商品キャラクター生成完了: ${product.name}');
-        print('🖼️ キャラクター画像URL: $imageUrl');
+        print('✅ 複数段階キャラクター生成完了: ${product.name}');
+        print('🖼️ 生成された画像数: ${imageUrls.length}');
         print('ℹ️ 商品更新はImageGenerationServiceで実行されました');
       } else {
-        print('⚠️ 商品キャラクター生成失敗: ${product.name}');
+        print('⚠️ 複数段階キャラクター生成失敗: ${product.name}');
       }
     } catch (e) {
       print('❌ キャラクター生成エラー: $e');

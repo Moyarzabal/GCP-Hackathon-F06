@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import '../../../../shared/models/product.dart';
+import '../../../../shared/providers/app_state_provider.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends ConsumerWidget {
   final Product product;
   final VoidCallback onTap;
   const ProductCard({
@@ -12,12 +14,22 @@ class ProductCard extends StatelessWidget {
   }) : super(key: key);
   
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 最新の商品情報を取得（appStateProviderを使用）
+    final appState = ref.watch(appStateProvider);
+    final currentProduct = appState.products.firstWhere(
+      (p) => p.id == product.id,
+      orElse: () => product,
+    );
+
     // デバッグログ: 商品の状態を確認
     print('🔍 ProductCard: 商品の状態');
-    print('   商品ID: ${product.id}');
-    print('   商品名: ${product.name}');
-    print('   画像URL: ${product.imageUrl}');
+    print('   商品ID: ${currentProduct.id}');
+    print('   商品名: ${currentProduct.name}');
+    print('   画像URL: ${currentProduct.imageUrl}');
+    print('   現在の画像URL: ${currentProduct.currentImageUrl}');
+    print('   画像段階: ${currentProduct.currentImageStage}');
+    print('   複数画像数: ${currentProduct.imageUrls?.length ?? 0}');
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -31,20 +43,20 @@ class ProductCard extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: product.statusColor.withOpacity(0.1),
+                  color: currentProduct.statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                      ? _buildImageWidget()
-                      : Center(
-                          child: Text(
-                            product.emotionState,
-                            style: const TextStyle(fontSize: 32),
-                          ),
-                        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: currentProduct.currentImageUrl != null && currentProduct.currentImageUrl!.isNotEmpty
+              ? _buildImageWidget(currentProduct)
+              : Center(
+                  child: Text(
+                    currentProduct.emotionState,
+                    style: const TextStyle(fontSize: 32),
+                  ),
                 ),
+        ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -53,7 +65,7 @@ class ProductCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      product.name,
+                      currentProduct.name,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -65,7 +77,7 @@ class ProductCard extends StatelessWidget {
                         const Icon(Icons.category, size: 14, color: Colors.grey),
                         const SizedBox(width: 4),
                         Text(
-                          product.category,
+                          currentProduct.category,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -75,12 +87,12 @@ class ProductCard extends StatelessWidget {
                         const Icon(Icons.access_time, size: 14, color: Colors.grey),
                         const SizedBox(width: 4),
                         Text(
-                          product.expiryDate != null
-                              ? '${product.daysUntilExpiry}日後'
+                          currentProduct.expiryDate != null
+                              ? '${currentProduct.daysUntilExpiry}日後'
                               : '期限なし',
                           style: TextStyle(
                             fontSize: 12,
-                            color: product.statusColor,
+                            color: currentProduct.statusColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -99,12 +111,12 @@ class ProductCard extends StatelessWidget {
       ),
     );
   }
-  Widget _buildImageWidget() {
+  Widget _buildImageWidget(Product product) {
     try {
       // Base64画像データかどうかを判定
-      if (product.imageUrl!.startsWith('data:image/')) {
+      if (product.currentImageUrl!.startsWith('data:image/')) {
         // Base64画像データの場合
-        final base64String = product.imageUrl!.split(',')[1];
+        final base64String = product.currentImageUrl!.split(',')[1];
         final bytes = base64Decode(base64String);
         return Image.memory(
           bytes,
@@ -124,7 +136,7 @@ class ProductCard extends StatelessWidget {
       } else {
         // 通常のURLの場合
         return Image.network(
-          product.imageUrl!,
+          product.currentImageUrl!,
           width: 60,
           height: 60,
           fit: BoxFit.cover,

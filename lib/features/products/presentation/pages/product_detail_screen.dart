@@ -23,6 +23,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   
   @override
   Widget build(BuildContext context) {
+    // 商品の状態を監視して最新の商品情報を取得
+    final appState = ref.watch(appStateProvider);
+    final currentProduct = appState.products.firstWhere(
+      (p) => p.id == widget.product.id,
+      orElse: () => widget.product,
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('商品詳細'),
@@ -44,25 +50,25 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: widget.product.statusColor.withOpacity(0.1),
+                  color: currentProduct.statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: widget.product.imageUrl != null && widget.product.imageUrl!.isNotEmpty
-                      ? _buildImageWidget()
-                      : Center(
-                          child: Text(
-                            widget.product.emotionState,
-                            style: const TextStyle(fontSize: 64),
-                          ),
-                        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: currentProduct.currentImageUrl != null && currentProduct.currentImageUrl!.isNotEmpty
+              ? _buildImageWidget(currentProduct)
+              : Center(
+                  child: Text(
+                    currentProduct.emotionState,
+                    style: const TextStyle(fontSize: 64),
+                  ),
                 ),
+        ),
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              widget.product.name,
+              currentProduct.name,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -78,38 +84,38 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     _DetailRow(
                       icon: Icons.category,
                       label: 'カテゴリ',
-                      value: widget.product.category,
+                      value: currentProduct.category,
                     ),
                     const Divider(),
                     _DetailRow(
                       icon: Icons.qr_code,
                       label: 'JANコード',
-                      value: widget.product.janCode ?? '未設定',
+                      value: currentProduct.janCode ?? '未設定',
                     ),
                     const Divider(),
                     _DetailRow(
                       icon: Icons.calendar_today,
                       label: '賞味期限',
-                      value: widget.product.expiryDate != null
-                          ? '${widget.product.expiryDate!.year}/${widget.product.expiryDate!.month}/${widget.product.expiryDate!.day}'
+                      value: currentProduct.expiryDate != null
+                          ? '${currentProduct.expiryDate!.year}/${currentProduct.expiryDate!.month}/${currentProduct.expiryDate!.day}'
                           : '未設定',
-                      valueColor: widget.product.statusColor,
+                      valueColor: currentProduct.statusColor,
                     ),
                     const Divider(),
                     _DetailRow(
                       icon: Icons.access_time,
                       label: '残り日数',
-                      value: widget.product.expiryDate != null
-                          ? '${widget.product.daysUntilExpiry}日'
+                      value: currentProduct.expiryDate != null
+                          ? '${currentProduct.daysUntilExpiry}日'
                           : '—',
-                      valueColor: widget.product.statusColor,
+                      valueColor: currentProduct.statusColor,
                     ),
                     const Divider(),
                     _DetailRow(
                       icon: Icons.add_circle,
                       label: '登録日',
-                      value: widget.product.scannedAt != null
-                          ? '${widget.product.scannedAt!.year}/${widget.product.scannedAt!.month}/${widget.product.scannedAt!.day}'
+                      value: currentProduct.scannedAt != null
+                          ? '${currentProduct.scannedAt!.year}/${currentProduct.scannedAt!.month}/${currentProduct.scannedAt!.day}'
                           : '未設定',
                     ),
                   ],
@@ -124,12 +130,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       ),
     );
   }
-  Widget _buildImageWidget() {
+  Widget _buildImageWidget(Product product) {
     try {
       // Base64画像データかどうかを判定
-      if (widget.product.imageUrl!.startsWith('data:image/')) {
+      if (product.currentImageUrl!.startsWith('data:image/')) {
         // Base64画像データの場合
-        final base64String = widget.product.imageUrl!.split(',')[1];
+        final base64String = product.currentImageUrl!.split(',')[1];
         final bytes = base64Decode(base64String);
         return Image.memory(
           bytes,
@@ -140,7 +146,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             print('❌ Base64画像デコードエラー: $error');
             return Center(
               child: Text(
-                widget.product.emotionState,
+                product.emotionState,
                 style: const TextStyle(fontSize: 64),
               ),
             );
@@ -149,7 +155,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       } else {
         // 通常のURLの場合
         return Image.network(
-          widget.product.imageUrl!,
+          product.currentImageUrl!,
           width: 120,
           height: 120,
           fit: BoxFit.cover,
@@ -157,7 +163,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             print('❌ ネットワーク画像読み込みエラー: $error');
             return Center(
               child: Text(
-                widget.product.emotionState,
+                product.emotionState,
                 style: const TextStyle(fontSize: 64),
               ),
             );
@@ -190,7 +196,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       print('❌ 画像表示エラー: $e');
       return Center(
         child: Text(
-          widget.product.emotionState,
+          product.emotionState,
           style: const TextStyle(fontSize: 64),
         ),
       );
@@ -198,7 +204,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
   /// おすすめレシピセクションを構築
   Widget _buildRecipeSection() {
-    final recipes = RecipeService.getRandomRecipes(widget.product.category);
+    final appState = ref.watch(appStateProvider);
+    final currentProduct = appState.products.firstWhere(
+      (p) => p.id == widget.product.id,
+      orElse: () => widget.product,
+    );
+    final recipes = RecipeService.getRandomRecipes(currentProduct.category);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -403,9 +414,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   /// 編集ダイアログを表示
   void _showEditDialog(BuildContext context) {
-    final nameController = TextEditingController(text: widget.product.name);
-    String selectedCategory = widget.product.category;
-    DateTime? selectedDate = widget.product.expiryDate;
+    final appState = ref.read(appStateProvider);
+    final currentProduct = appState.products.firstWhere(
+      (p) => p.id == widget.product.id,
+      orElse: () => widget.product,
+    );
+    final nameController = TextEditingController(text: currentProduct.name);
+    String selectedCategory = currentProduct.category;
+    DateTime? selectedDate = currentProduct.expiryDate;
     
     // 商品追加時と同じ色定数を使用（白ベース）
     const _dialogBackgroundColor = Colors.white; // 背景色（白）
@@ -583,7 +599,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
-                    final updatedProduct = widget.product.copyWith(
+                    final updatedProduct = currentProduct.copyWith(
                       name: nameController.text,
                       category: selectedCategory,
                       expiryDate: selectedDate,
@@ -592,7 +608,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     // アプリ状態の商品を更新
                     ref.read(appStateProvider.notifier).updateProduct(updatedProduct);
                     
+                    // ダイアログを閉じる
                     Navigator.pop(context);
+
                     // 編集完了の通知
                     _showProductUpdatedSnackBar(context, nameController.text);
                   }
@@ -754,6 +772,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       }
     });
   }
+
 }
 
 class _DetailRow extends StatelessWidget {
