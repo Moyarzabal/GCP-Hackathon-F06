@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// 商品の画像段階を表す列挙型
+enum ImageStage {
+  veryFresh,    // 7日以上
+  fresh,        // 3-7日
+  warning,      // 1-3日
+  urgent,       // 1日未満
+  expired,      // 期限切れ
+}
+
 class Product {
   final String? id;
   final String? janCode;
@@ -9,7 +18,8 @@ class Product {
   final DateTime? addedDate;
   final DateTime? expiryDate;
   final String category;
-  final String? imageUrl;
+  final String? imageUrl; // 後方互換性のため残す
+  final Map<ImageStage, String>? imageUrls; // 各段階の画像URL
   final String? barcode;
   final String? manufacturer;
   final int quantity;
@@ -24,6 +34,7 @@ class Product {
     this.expiryDate,
     required this.category,
     this.imageUrl,
+    this.imageUrls,
     this.barcode,
     this.manufacturer,
     this.quantity = 1,
@@ -45,6 +56,27 @@ class Product {
     if (days >= 1) return '😰';
     return '💀';
   }
+
+  /// 現在の残り日数に応じた画像段階を取得
+  ImageStage get currentImageStage {
+    final days = daysUntilExpiry;
+    if (days > 7) return ImageStage.veryFresh;
+    if (days > 3) return ImageStage.fresh;
+    if (days > 1) return ImageStage.warning;
+    if (days >= 1) return ImageStage.urgent;
+    return ImageStage.expired;
+  }
+
+  /// 現在の残り日数に応じた画像URLを取得
+  String? get currentImageUrl {
+    // 新しい複数画像システムを優先
+    if (imageUrls != null && imageUrls!.isNotEmpty) {
+      final stage = currentImageStage;
+      return imageUrls![stage];
+    }
+    // 後方互換性のため既存のimageUrlも使用
+    return imageUrl;
+  }
   
   Color get statusColor {
     final days = daysUntilExpiry;
@@ -63,6 +95,7 @@ class Product {
       'expiryDate': expiryDate?.millisecondsSinceEpoch,
       'category': category,
       'imageUrl': imageUrl,
+      'imageUrls': imageUrls?.map((key, value) => MapEntry(key.name, value)),
       'barcode': barcode,
       'manufacturer': manufacturer,
       'quantity': quantity,
@@ -71,6 +104,20 @@ class Product {
   }
 
   static Product fromFirestore(String id, Map<String, dynamic> data) {
+    // imageUrlsの変換
+    Map<ImageStage, String>? imageUrls;
+    if (data['imageUrls'] != null) {
+      final imageUrlsData = data['imageUrls'] as Map<String, dynamic>;
+      imageUrls = {};
+      for (final entry in imageUrlsData.entries) {
+        final stage = ImageStage.values.firstWhere(
+          (e) => e.name == entry.key,
+          orElse: () => ImageStage.veryFresh,
+        );
+        imageUrls[stage] = entry.value as String;
+      }
+    }
+
     return Product(
       id: id,
       janCode: data['janCode'] as String?,
@@ -86,6 +133,7 @@ class Product {
           : null,
       category: data['category'] as String? ?? '',
       imageUrl: data['imageUrl'] as String?,
+      imageUrls: imageUrls,
       barcode: data['barcode'] as String?,
       manufacturer: data['manufacturer'] as String?,
       quantity: data['quantity'] as int? ?? 1,
@@ -102,6 +150,7 @@ class Product {
     DateTime? expiryDate,
     String? category,
     String? imageUrl,
+    Map<ImageStage, String>? imageUrls,
     String? barcode,
     String? manufacturer,
     int? quantity,
@@ -116,6 +165,7 @@ class Product {
       expiryDate: expiryDate ?? this.expiryDate,
       category: category ?? this.category,
       imageUrl: imageUrl ?? this.imageUrl,
+      imageUrls: imageUrls ?? this.imageUrls,
       barcode: barcode ?? this.barcode,
       manufacturer: manufacturer ?? this.manufacturer,
       quantity: quantity ?? this.quantity,

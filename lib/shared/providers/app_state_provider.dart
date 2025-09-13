@@ -93,6 +93,34 @@ class AppStateNotifier extends StateNotifier<AppState> {
     state = state.copyWith(products: updatedProducts);
     print('✅ updateProductImage completed');
   }
+
+  /// 商品の複数段階画像を更新
+  void updateProductMultiStageImages(String productId, Map<ImageStage, String> imageUrls) {
+    print('🔄 updateProductMultiStageImages called: productId=$productId');
+    print('📦 Current products count: ${state.products.length}');
+    print('🖼️ Image URLs count: ${imageUrls.length}');
+
+    final updatedProducts = state.products.map((product) {
+      if (product.id == productId) {
+        print('✅ Found product to update: ${product.name}');
+        print('    Old imageUrls: ${product.imageUrls?.length ?? 0} stages');
+        print('    New imageUrls: ${imageUrls.length} stages');
+
+        // 既存のimageUrlも保持（後方互換性のため）
+        final currentImageUrl = product.imageUrl;
+
+        return product.copyWith(
+          imageUrls: imageUrls,
+          imageUrl: currentImageUrl, // 既存のimageUrlを保持
+        );
+      }
+      return product;
+    }).toList();
+
+    print('📦 Updated products count: ${updatedProducts.length}');
+    state = state.copyWith(products: updatedProducts);
+    print('✅ updateProductMultiStageImages completed');
+  }
 }
 
 /// アプリケーション状態プロバイダー
