@@ -40,28 +40,41 @@ class MockAuthRepository extends _i1.Mock implements _i2.AuthRepository {
     String? password,
   ) =>
       (super.noSuchMethod(
-            Invocation.method(#signInWithEmail, [email, password]),
-            returnValue: _i3.Future<_i4.Result<_i5.User>>.value(
-              _i6.dummyValue<_i4.Result<_i5.User>>(
-                this,
-                Invocation.method(#signInWithEmail, [email, password]),
-              ),
-            ),
-          )
-          as _i3.Future<_i4.Result<_i5.User>>);
+        Invocation.method(
+          #signInWithEmail,
+          [
+            email,
+            password,
+          ],
+        ),
+        returnValue: _i3.Future<_i4.Result<_i5.User>>.value(
+            _i6.dummyValue<_i4.Result<_i5.User>>(
+          this,
+          Invocation.method(
+            #signInWithEmail,
+            [
+              email,
+              password,
+            ],
+          ),
+        )),
+      ) as _i3.Future<_i4.Result<_i5.User>>);
 
   @override
-  _i3.Future<_i4.Result<_i5.User>> signInWithGoogle() =>
-      (super.noSuchMethod(
-            Invocation.method(#signInWithGoogle, []),
-            returnValue: _i3.Future<_i4.Result<_i5.User>>.value(
-              _i6.dummyValue<_i4.Result<_i5.User>>(
-                this,
-                Invocation.method(#signInWithGoogle, []),
-              ),
-            ),
-          )
-          as _i3.Future<_i4.Result<_i5.User>>);
+  _i3.Future<_i4.Result<_i5.User>> signInWithGoogle() => (super.noSuchMethod(
+        Invocation.method(
+          #signInWithGoogle,
+          [],
+        ),
+        returnValue: _i3.Future<_i4.Result<_i5.User>>.value(
+            _i6.dummyValue<_i4.Result<_i5.User>>(
+          this,
+          Invocation.method(
+            #signInWithGoogle,
+            [],
+          ),
+        )),
+      ) as _i3.Future<_i4.Result<_i5.User>>);
 
   @override
   _i3.Future<_i4.Result<_i5.User>> createAccount(
@@ -70,79 +83,101 @@ class MockAuthRepository extends _i1.Mock implements _i2.AuthRepository {
     String? displayName,
   ) =>
       (super.noSuchMethod(
-            Invocation.method(#createAccount, [email, password, displayName]),
-            returnValue: _i3.Future<_i4.Result<_i5.User>>.value(
-              _i6.dummyValue<_i4.Result<_i5.User>>(
-                this,
-                Invocation.method(#createAccount, [
-                  email,
-                  password,
-                  displayName,
-                ]),
-              ),
-            ),
-          )
-          as _i3.Future<_i4.Result<_i5.User>>);
+        Invocation.method(
+          #createAccount,
+          [
+            email,
+            password,
+            displayName,
+          ],
+        ),
+        returnValue: _i3.Future<_i4.Result<_i5.User>>.value(
+            _i6.dummyValue<_i4.Result<_i5.User>>(
+          this,
+          Invocation.method(
+            #createAccount,
+            [
+              email,
+              password,
+              displayName,
+            ],
+          ),
+        )),
+      ) as _i3.Future<_i4.Result<_i5.User>>);
 
   @override
-  _i3.Future<_i4.Result<void>> signOut() =>
-      (super.noSuchMethod(
-            Invocation.method(#signOut, []),
-            returnValue: _i3.Future<_i4.Result<void>>.value(
-              _i6.dummyValue<_i4.Result<void>>(
-                this,
-                Invocation.method(#signOut, []),
-              ),
-            ),
-          )
-          as _i3.Future<_i4.Result<void>>);
+  _i3.Future<_i4.Result<void>> signOut() => (super.noSuchMethod(
+        Invocation.method(
+          #signOut,
+          [],
+        ),
+        returnValue:
+            _i3.Future<_i4.Result<void>>.value(_i6.dummyValue<_i4.Result<void>>(
+          this,
+          Invocation.method(
+            #signOut,
+            [],
+          ),
+        )),
+      ) as _i3.Future<_i4.Result<void>>);
 
   @override
-  _i3.Future<_i4.Result<_i5.User?>> getCurrentUser() =>
-      (super.noSuchMethod(
-            Invocation.method(#getCurrentUser, []),
-            returnValue: _i3.Future<_i4.Result<_i5.User?>>.value(
-              _i6.dummyValue<_i4.Result<_i5.User?>>(
-                this,
-                Invocation.method(#getCurrentUser, []),
-              ),
-            ),
-          )
-          as _i3.Future<_i4.Result<_i5.User?>>);
+  _i3.Future<_i4.Result<_i5.User?>> getCurrentUser() => (super.noSuchMethod(
+        Invocation.method(
+          #getCurrentUser,
+          [],
+        ),
+        returnValue: _i3.Future<_i4.Result<_i5.User?>>.value(
+            _i6.dummyValue<_i4.Result<_i5.User?>>(
+          this,
+          Invocation.method(
+            #getCurrentUser,
+            [],
+          ),
+        )),
+      ) as _i3.Future<_i4.Result<_i5.User?>>);
 
   @override
   _i3.Future<_i4.Result<void>> resetPassword(String? email) =>
       (super.noSuchMethod(
-            Invocation.method(#resetPassword, [email]),
-            returnValue: _i3.Future<_i4.Result<void>>.value(
-              _i6.dummyValue<_i4.Result<void>>(
-                this,
-                Invocation.method(#resetPassword, [email]),
-              ),
-            ),
-          )
-          as _i3.Future<_i4.Result<void>>);
+        Invocation.method(
+          #resetPassword,
+          [email],
+        ),
+        returnValue:
+            _i3.Future<_i4.Result<void>>.value(_i6.dummyValue<_i4.Result<void>>(
+          this,
+          Invocation.method(
+            #resetPassword,
+            [email],
+          ),
+        )),
+      ) as _i3.Future<_i4.Result<void>>);
 
   @override
-  _i3.Future<_i4.Result<void>> sendEmailVerification() =>
-      (super.noSuchMethod(
-            Invocation.method(#sendEmailVerification, []),
-            returnValue: _i3.Future<_i4.Result<void>>.value(
-              _i6.dummyValue<_i4.Result<void>>(
-                this,
-                Invocation.method(#sendEmailVerification, []),
-              ),
-            ),
-          )
-          as _i3.Future<_i4.Result<void>>);
+  _i3.Future<_i4.Result<void>> sendEmailVerification() => (super.noSuchMethod(
+        Invocation.method(
+          #sendEmailVerification,
+          [],
+        ),
+        returnValue:
+            _i3.Future<_i4.Result<void>>.value(_i6.dummyValue<_i4.Result<void>>(
+          this,
+          Invocation.method(
+            #sendEmailVerification,
+            [],
+          ),
+        )),
+      ) as _i3.Future<_i4.Result<void>>);
 
   @override
-  _i3.Stream<_i5.User?> watchAuthStateChanges() =>
-      (super.noSuchMethod(
-            Invocation.method(#watchAuthStateChanges, []),
-            returnValue: _i3.Stream<_i5.User?>.empty(),
-          )
-          as _i3.Stream<_i5.User?>);
+  _i3.Stream<_i5.User?> watchAuthStateChanges() => (super.noSuchMethod(
+        Invocation.method(
+          #watchAuthStateChanges,
+          [],
+        ),
+        returnValue: _i3.Stream<_i5.User?>.empty(),
+      ) as _i3.Stream<_i5.User?>);
 
   @override
   _i3.Future<_i4.Result<_i5.User>> updateProfile({
@@ -150,45 +185,58 @@ class MockAuthRepository extends _i1.Mock implements _i2.AuthRepository {
     String? photoUrl,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#updateProfile, [], {
+        Invocation.method(
+          #updateProfile,
+          [],
+          {
+            #displayName: displayName,
+            #photoUrl: photoUrl,
+          },
+        ),
+        returnValue: _i3.Future<_i4.Result<_i5.User>>.value(
+            _i6.dummyValue<_i4.Result<_i5.User>>(
+          this,
+          Invocation.method(
+            #updateProfile,
+            [],
+            {
               #displayName: displayName,
               #photoUrl: photoUrl,
-            }),
-            returnValue: _i3.Future<_i4.Result<_i5.User>>.value(
-              _i6.dummyValue<_i4.Result<_i5.User>>(
-                this,
-                Invocation.method(#updateProfile, [], {
-                  #displayName: displayName,
-                  #photoUrl: photoUrl,
-                }),
-              ),
-            ),
-          )
-          as _i3.Future<_i4.Result<_i5.User>>);
+            },
+          ),
+        )),
+      ) as _i3.Future<_i4.Result<_i5.User>>);
 
   @override
   _i3.Future<_i4.Result<void>> updatePassword(String? newPassword) =>
       (super.noSuchMethod(
-            Invocation.method(#updatePassword, [newPassword]),
-            returnValue: _i3.Future<_i4.Result<void>>.value(
-              _i6.dummyValue<_i4.Result<void>>(
-                this,
-                Invocation.method(#updatePassword, [newPassword]),
-              ),
-            ),
-          )
-          as _i3.Future<_i4.Result<void>>);
+        Invocation.method(
+          #updatePassword,
+          [newPassword],
+        ),
+        returnValue:
+            _i3.Future<_i4.Result<void>>.value(_i6.dummyValue<_i4.Result<void>>(
+          this,
+          Invocation.method(
+            #updatePassword,
+            [newPassword],
+          ),
+        )),
+      ) as _i3.Future<_i4.Result<void>>);
 
   @override
-  _i3.Future<_i4.Result<void>> deleteAccount() =>
-      (super.noSuchMethod(
-            Invocation.method(#deleteAccount, []),
-            returnValue: _i3.Future<_i4.Result<void>>.value(
-              _i6.dummyValue<_i4.Result<void>>(
-                this,
-                Invocation.method(#deleteAccount, []),
-              ),
-            ),
-          )
-          as _i3.Future<_i4.Result<void>>);
+  _i3.Future<_i4.Result<void>> deleteAccount() => (super.noSuchMethod(
+        Invocation.method(
+          #deleteAccount,
+          [],
+        ),
+        returnValue:
+            _i3.Future<_i4.Result<void>>.value(_i6.dummyValue<_i4.Result<void>>(
+          this,
+          Invocation.method(
+            #deleteAccount,
+            [],
+          ),
+        )),
+      ) as _i3.Future<_i4.Result<void>>);
 }

@@ -107,30 +107,43 @@ class Product {
     // imageUrlsの変換
     Map<ImageStage, String>? imageUrls;
     if (data['imageUrls'] != null) {
+      print('🔍 Product.fromFirestore: imageUrls found for product $id');
+      print('    Raw imageUrls data: ${data['imageUrls']}');
+      print('    Type: ${data['imageUrls'].runtimeType}');
+      
       final imageUrlsData = data['imageUrls'] as Map<String, dynamic>;
       imageUrls = {};
       for (final entry in imageUrlsData.entries) {
+        print('    Processing entry: ${entry.key} -> ${entry.value}');
         final stage = ImageStage.values.firstWhere(
           (e) => e.name == entry.key,
           orElse: () => ImageStage.veryFresh,
         );
         imageUrls[stage] = entry.value as String;
       }
+      print('    Converted imageUrls: $imageUrls');
+    } else {
+      print('🔍 Product.fromFirestore: no imageUrls for product $id');
+    }
+
+    // Timestamp型とmillisecondsSinceEpochの両方に対応
+    DateTime? _parseDateTime(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) {
+        return value.toDate();
+      } else if (value is int) {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      }
+      return null;
     }
 
     return Product(
       id: id,
       janCode: data['janCode'] as String?,
       name: data['name'] as String? ?? '',
-      scannedAt: data['scannedAt'] != null 
-          ? DateTime.fromMillisecondsSinceEpoch(data['scannedAt'] as int)
-          : null,
-      addedDate: data['addedDate'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(data['addedDate'] as int)
-          : null,
-      expiryDate: data['expiryDate'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(data['expiryDate'] as int)
-          : null,
+      scannedAt: _parseDateTime(data['scannedAt']),
+      addedDate: _parseDateTime(data['addedDate']),
+      expiryDate: _parseDateTime(data['expiryDate']),
       category: data['category'] as String? ?? '',
       imageUrl: data['imageUrl'] as String?,
       imageUrls: imageUrls,

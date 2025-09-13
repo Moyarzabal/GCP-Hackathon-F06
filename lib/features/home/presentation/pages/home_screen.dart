@@ -8,11 +8,25 @@ import '../../../products/presentation/widgets/product_search_delegate.dart';
 import '../../../products/presentation/providers/product_provider.dart';
 import '../../../../shared/widgets/common/error_widget.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
   
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Firebaseから商品データを読み込み
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(appStateProvider.notifier).loadProductsFromFirebase();
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final productState = ref.watch(productProvider);
     final productNotifier = ref.watch(productProvider.notifier);
@@ -61,6 +75,22 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
+          // エラー表示
+          if (appState.error != null)
+            InlineErrorWidget(
+              message: appState.error!,
+              onDismiss: () {
+                ref.read(appStateProvider.notifier).clearError();
+              },
+            ),
+          // ローディング表示
+          if (appState.isLoading)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
           // カテゴリフィルター
           SizedBox(
             height: 50,

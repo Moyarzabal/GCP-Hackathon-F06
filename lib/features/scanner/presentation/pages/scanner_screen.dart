@@ -484,25 +484,39 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                 ),
               ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (nameController.text.isNotEmpty) {
-                    final product = Product(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      janCode: 'MANUAL_${DateTime.now().millisecondsSinceEpoch}',
-                      name: nameController.text,
-                      manufacturer: manufacturerController.text.isNotEmpty ? manufacturerController.text : null,
-                      category: selectedCategory,
-                      scannedAt: DateTime.now(),
-                      addedDate: DateTime.now(),
-                      expiryDate: selectedDate,
-                    );
-                    
-                    // 画像生成を非同期で実行
-                    _generateAndAddProduct(product, ref, context);
-                    
-                    Navigator.pop(context);
-                    // 手動登録完了時はスキャンを再開
-                    ref.read(scannerProvider.notifier).startScanning();
+                    try {
+                      final product = Product(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        janCode: 'MANUAL_${DateTime.now().millisecondsSinceEpoch}',
+                        name: nameController.text,
+                        manufacturer: manufacturerController.text.isNotEmpty ? manufacturerController.text : null,
+                        category: selectedCategory,
+                        scannedAt: DateTime.now(),
+                        addedDate: DateTime.now(),
+                        expiryDate: selectedDate,
+                      );
+                      
+                      // 画像生成を非同期で実行
+                      print('🔍 手動入力商品追加: ${product.name} (${product.category})');
+                      await _generateAndAddProduct(product, ref, context);
+                      
+                      Navigator.pop(context);
+                      // 手動登録完了時はスキャンを再開
+                      ref.read(scannerProvider.notifier).startScanning();
+                    } catch (e) {
+                      print('❌ 手動入力商品追加エラー: $e');
+                      // エラー通知を表示
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('商品の追加に失敗しました: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -1193,16 +1207,46 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   /// 画像生成と商品追加を実行
   Future<void> _generateAndAddProduct(Product product, WidgetRef ref, BuildContext context) async {
     try {
-      // まず商品を追加（画像なしで）
-      ref.read(appStateProvider.notifier).addProduct(product);
+      print('🔄 _generateAndAddProduct開始: ${product.name} (${product.category})');
       
-      // 商品追加完了の通知を表示
-      _showProductAddedSnackBar(context, product.name);
+      // Firebaseに商品を追加
+      await ref.read(appStateProvider.notifier).addProductToFirebase(product);
       
-      // 画像生成を非同期で実行（refを渡さない）
-      _generateImageAsync(product);
+      print('✅ Firebase商品追加完了: ${product.name}');
+      
+      // 商品追加完了の通知を表示（contextが有効な場合のみ）
+      if (context.mounted) {
+        _showProductAddedSnackBar(context, product.name);
+      }
+      
+      // 最新の商品情報を取得（IDが設定された状態）
+      final appState = ref.read(appStateProvider);
+      final updatedProduct = appState.products.firstWhere(
+        (p) => p.name == product.name && p.category == product.category,
+        orElse: () => product,
+      );
+      
+      print('🔍 更新された商品情報: ID=${updatedProduct.id}, 名前=${updatedProduct.name}');
+      
+      // 画像生成を非同期で実行（更新された商品情報を使用）
+      print('🎨 画像生成開始: ${updatedProduct.name}');
+      try {
+        await _generateImageAsync(updatedProduct);
+        print('✅ 画像生成完了: ${updatedProduct.name}');
+      } catch (e) {
+        print('❌ 画像生成エラー: $e');
+      }
     } catch (e) {
       print('❌ 商品追加エラー: $e');
+      // エラー通知を表示
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('商品の追加に失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -1215,6 +1259,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
           : 7; // デフォルト値
       
       print('🎨 複数段階キャラクター生成開始: ${product.name} (${product.category})');
+      print('🔍 商品ID: ${product.id}');
       
       final imageUrls = await ImageGenerationService.generateMultiStageProductIcons(
         productName: product.name,

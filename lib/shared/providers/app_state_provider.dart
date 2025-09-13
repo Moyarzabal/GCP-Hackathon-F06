@@ -1,5 +1,9 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/product.dart';
+import '../../features/products/data/datasources/product_datasource.dart';
+import '../../features/products/data/providers/product_data_source_provider.dart';
+import '../../core/errors/result.dart';
 
 /// アプリケーションの基本状態を管理するプロバイダー
 class AppState {
@@ -32,7 +36,10 @@ class AppState {
 
 /// アプリケーション状態のStateNotifier
 class AppStateNotifier extends StateNotifier<AppState> {
-  AppStateNotifier() : super(AppState());
+  final ProductDataSource? _dataSource;
+  StreamSubscription<List<Product>>? _productsSubscription;
+
+  AppStateNotifier([this._dataSource]) : super(AppState());
 
   /// 商品を追加
   void addProduct(Product product) {
@@ -94,6 +101,145 @@ class AppStateNotifier extends StateNotifier<AppState> {
     print('✅ updateProductImage completed');
   }
 
+  /// Firebaseから商品を読み込み
+  Future<void> loadProductsFromFirebase() async {
+    if (_dataSource == null) {
+      setError('Firebase data source is not available');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      clearError();
+
+      print('🔄 loadProductsFromFirebase: 開始');
+      final products = await _dataSource!.getAllProducts();
+      print('✅ loadProductsFromFirebase: ${products.length}個の商品を読み込み');
+      
+      // 各商品のimageUrlsを確認
+      for (var product in products) {
+        print('   商品ID: ${product.id}, 名前: ${product.name}');
+        print('   imageUrl: ${product.imageUrl}');
+        print('   imageUrls: ${product.imageUrls?.length ?? 0}個の段階');
+        if (product.imageUrls != null) {
+          for (var entry in product.imageUrls!.entries) {
+            print('     ${entry.key.name}: ${entry.value}');
+          }
+        }
+      }
+      
+      state = state.copyWith(products: products, isLoading: false);
+    } catch (e) {
+      print('❌ loadProductsFromFirebase エラー: $e');
+      setError('Failed to load products from Firebase: $e');
+      setLoading(false);
+    }
+  }
+
+  /// Firebaseに商品を追加
+  Future<Product> addProductToFirebase(Product product) async {
+    if (_dataSource == null) {
+      setError('Firebase data source is not available');
+      throw Exception('Firebase data source is not available');
+    }
+
+    try {
+      setLoading(true);
+      clearError();
+
+      final productId = await _dataSource!.addProduct(product);
+      final productWithId = product.copyWith(id: productId);
+      
+      // ローカル状態も更新
+      addProduct(productWithId);
+      setLoading(false);
+      
+      return productWithId;
+    } catch (e) {
+      setError('Failed to add product to Firebase: $e');
+      setLoading(false);
+      rethrow;
+    }
+  }
+
+  /// Firebaseで商品を更新
+  Future<void> updateProductInFirebase(Product product) async {
+    if (_dataSource == null) {
+      setError('Firebase data source is not available');
+      return;
+    }
+
+    if (product.id == null) {
+      setError('Product ID is required for update');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      clearError();
+
+      await _dataSource!.updateProduct(product);
+      
+      // ローカル状態も更新
+      updateProduct(product);
+      setLoading(false);
+    } catch (e) {
+      setError('Failed to update product in Firebase: $e');
+      setLoading(false);
+    }
+  }
+
+  /// Firebaseから商品を削除
+  Future<void> deleteProductFromFirebase(String productId) async {
+    if (_dataSource == null) {
+      setError('Firebase data source is not available');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      clearError();
+
+      await _dataSource!.deleteProduct(productId);
+      
+      // ローカル状態も更新
+      removeProduct(productId);
+      setLoading(false);
+    } catch (e) {
+      setError('Failed to delete product from Firebase: $e');
+      setLoading(false);
+    }
+  }
+
+  /// Firebaseの商品ストリームを監視
+  void watchProductsFromFirebase() {
+    if (_dataSource == null) {
+      setError('Firebase data source is not available');
+      return;
+    }
+
+    try {
+      _productsSubscription?.cancel();
+      _productsSubscription = _dataSource!.watchProducts().listen(
+        (products) {
+          state = state.copyWith(products: products);
+        },
+        onError: (error) {
+          setError('Failed to watch products from Firebase: $error');
+        },
+      );
+    } catch (e) {
+      setError('Failed to start watching products from Firebase: $e');
+    }
+  }
+
+  /// リソースをクリーンアップ
+  @override
+  void dispose() {
+    _productsSubscription?.cancel();
+    super.dispose();
+  }
+
   /// 商品の複数段階画像を更新
   void updateProductMultiStageImages(String productId, Map<ImageStage, String> imageUrls) {
     print('🔄 updateProductMultiStageImages called: productId=$productId');
@@ -125,7 +271,9 @@ class AppStateNotifier extends StateNotifier<AppState> {
 
 /// アプリケーション状態プロバイダー
 final appStateProvider = StateNotifierProvider<AppStateNotifier, AppState>((ref) {
-  return AppStateNotifier();
+  // FirebaseDataSourceを注入（利用可能な場合）
+  final dataSource = ref.watch(productDataSourceProvider);
+  return AppStateNotifier(dataSource);
 });
 
 /// 商品リストを取得する便利プロバイダー
