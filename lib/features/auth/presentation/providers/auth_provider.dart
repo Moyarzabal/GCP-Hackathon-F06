@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/errors/app_exception.dart';
 import '../../../../core/utils/result.dart';
 import '../../../../core/services/service_locator.dart';
 import '../../domain/entities/user.dart';

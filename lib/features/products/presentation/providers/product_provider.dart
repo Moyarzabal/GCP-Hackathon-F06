@@ -62,6 +62,13 @@ class ProductNotifier extends StateNotifier<ProductState> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _applyFilters();
     });
+    
+    // appStateProviderの変更を監視してフィルタリングを再実行
+    _ref.listen(appStateProvider, (previous, next) {
+      if (previous?.products != next.products) {
+        _applyFilters();
+      }
+    });
   }
 
   /// 商品を検索
@@ -91,6 +98,8 @@ class ProductNotifier extends StateNotifier<ProductState> {
       }
       final allProducts = _ref.read(productsProvider);
       var filteredProducts = <Product>[...allProducts];
+
+      // 論理削除フィルターはFirebaseクエリレベルで実行されるため、ここでは不要
 
       // 検索フィルター
       if (state.searchQuery.isNotEmpty) {
@@ -190,6 +199,48 @@ class ProductNotifier extends StateNotifier<ProductState> {
     } catch (e, stackTrace) {
       final exception = DatabaseException(
         '商品の削除に失敗しました',
+        details: e.toString(),
+        stackTrace: stackTrace,
+      );
+      
+      state = state.copyWith(
+        isLoading: false,
+        error: exception.message,
+      );
+      
+      return Result.failure(exception);
+    }
+  }
+
+  /// 選択された商品を一括削除
+  Future<Result<void>> deleteSelectedProducts(List<String> productIds) async {
+    print('🗑️ ProductProvider.deleteSelectedProducts: 開始');
+    print('   削除対象商品数: ${productIds.length}');
+    print('   削除対象商品ID: $productIds');
+    
+    if (productIds.isEmpty) {
+      print('❌ 削除対象商品がありません');
+      return Result.success(null);
+    }
+
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+      
+      // Firebaseから選択された商品を一括削除
+      print('🔄 AppStateProvider.deleteProductsFromFirebaseを呼び出し');
+      await _ref.read(appStateProvider.notifier).deleteProductsFromFirebase(productIds);
+      print('✅ AppStateProvider.deleteProductsFromFirebase完了');
+      
+      // フィルターを再適用
+      print('🔄 フィルターを再適用');
+      _applyFilters();
+      print('✅ フィルター再適用完了');
+      
+      state = state.copyWith(isLoading: false);
+      return Result.success(null);
+    } catch (e, stackTrace) {
+      final exception = DatabaseException(
+        '商品の一括削除に失敗しました',
         details: e.toString(),
         stackTrace: stackTrace,
       );

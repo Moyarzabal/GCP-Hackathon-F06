@@ -31,12 +31,18 @@ class AuthService {
   }
 
   // メールアドレスでサインアップ
-  Future<UserCredential?> signUpWithEmail(String email, String password) async {
+  Future<UserCredential?> signUpWithEmail(String email, String password, [String? displayName]) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      
+      // 表示名を設定
+      if (displayName != null && displayName.isNotEmpty) {
+        await credential.user?.updateDisplayName(displayName);
+      }
+      
       return credential;
     } catch (e) {
       print('Sign up error: $e');

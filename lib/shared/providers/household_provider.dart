@@ -1,31 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'auth_provider.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 
 // 世帯情報を管理するプロバイダー
 final userHouseholdProvider = StreamProvider<Map<String, dynamic>?>((ref) {
-  final authState = ref.watch(currentUserProvider);
-  return authState.when(
-    data: (user) {
-      if (user == null) return Stream.value(null);
-      
-      return FirebaseFirestore.instance
-          .collection('households')
-          .where('members', arrayContains: user.uid)
-          .snapshots()
-          .map((snapshot) {
-        if (snapshot.docs.isEmpty) return null;
-        
-        final doc = snapshot.docs.first;
-        return {
-          'id': doc.id,
-          ...doc.data(),
-        };
-      });
-    },
-    loading: () => Stream.value(null),
-    error: (_, __) => Stream.value(null),
-  );
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value(null);
+  
+  return FirebaseFirestore.instance
+      .collection('households')
+      .where('members', arrayContains: user.id)
+      .snapshots()
+      .map((snapshot) {
+    if (snapshot.docs.isEmpty) return null;
+    
+    final doc = snapshot.docs.first;
+    return {
+      'id': doc.id,
+      ...doc.data(),
+    };
+  });
 });
 
 // Firestoreサービスプロバイダー

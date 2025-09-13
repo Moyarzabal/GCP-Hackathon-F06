@@ -24,6 +24,7 @@ class Product {
   final String? manufacturer;
   final int quantity;
   final String unit;
+  final DateTime? deletedAt; // 論理削除用フィールド
   
   Product({
     this.id,
@@ -39,6 +40,7 @@ class Product {
     this.manufacturer,
     this.quantity = 1,
     this.unit = 'piece',
+    this.deletedAt,
   });
   
   int get daysUntilExpiry {
@@ -100,6 +102,7 @@ class Product {
       'manufacturer': manufacturer,
       'quantity': quantity,
       'unit': unit,
+      'deletedAt': deletedAt?.millisecondsSinceEpoch,
     };
   }
 
@@ -151,6 +154,7 @@ class Product {
       manufacturer: data['manufacturer'] as String?,
       quantity: data['quantity'] as int? ?? 1,
       unit: data['unit'] as String? ?? 'piece',
+      deletedAt: _parseDateTime(data['deletedAt']),
     );
   }
 
@@ -168,6 +172,7 @@ class Product {
     String? manufacturer,
     int? quantity,
     String? unit,
+    DateTime? deletedAt,
   }) {
     return Product(
       id: id ?? this.id,
@@ -183,6 +188,7 @@ class Product {
       manufacturer: manufacturer ?? this.manufacturer,
       quantity: quantity ?? this.quantity,
       unit: unit ?? this.unit,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 }
