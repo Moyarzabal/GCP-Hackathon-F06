@@ -43,6 +43,16 @@ class MockProductDataSource extends _i1.Mock implements _i2.ProductDataSource {
       ) as _i3.Future<List<_i4.Product>>);
 
   @override
+  _i3.Future<List<_i4.Product>> getAllProductsIncludingDeleted() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAllProductsIncludingDeleted,
+          [],
+        ),
+        returnValue: _i3.Future<List<_i4.Product>>.value(<_i4.Product>[]),
+      ) as _i3.Future<List<_i4.Product>>);
+
+  @override
   _i3.Future<_i4.Product?> getProduct(String? id) => (super.noSuchMethod(
         Invocation.method(
           #getProduct,
