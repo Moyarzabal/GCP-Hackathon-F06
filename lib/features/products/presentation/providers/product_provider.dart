@@ -5,20 +5,31 @@ import '../../../../core/errors/result.dart';
 import '../../../../shared/models/product.dart';
 import '../../../../shared/providers/app_state_provider.dart';
 
+/// ソート方向
+enum SortDirection {
+  ascending('昇順'),
+  descending('降順');
+
+  const SortDirection(this.displayName);
+  final String displayName;
+}
+
 /// 商品管理の状態を表すクラス
 class ProductState {
   final List<Product> filteredProducts;
   final String searchQuery;
   final String selectedCategory;
   final ProductSortType sortType;
+  final SortDirection sortDirection;
   final bool isLoading;
   final String? error;
 
   const ProductState({
     this.filteredProducts = const [],
     this.searchQuery = '',
-    this.selectedCategory = 'all',
+    this.selectedCategory = 'すべて',
     this.sortType = ProductSortType.expiryDate,
+    this.sortDirection = SortDirection.ascending,
     this.isLoading = false,
     this.error,
   });
@@ -28,6 +39,7 @@ class ProductState {
     String? searchQuery,
     String? selectedCategory,
     ProductSortType? sortType,
+    SortDirection? sortDirection,
     bool? isLoading,
     String? error,
   }) {
@@ -36,6 +48,7 @@ class ProductState {
       searchQuery: searchQuery ?? this.searchQuery,
       selectedCategory: selectedCategory ?? this.selectedCategory,
       sortType: sortType ?? this.sortType,
+      sortDirection: sortDirection ?? this.sortDirection,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
     );
@@ -85,18 +98,35 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
   /// ソートタイプを変更
   void setSortType(ProductSortType sortType) {
-    state = state.copyWith(sortType: sortType);
+    // 同じソートタイプが選択された場合は方向を切り替え
+    if (state.sortType == sortType) {
+      final newDirection = state.sortDirection == SortDirection.ascending
+          ? SortDirection.descending
+          : SortDirection.ascending;
+      state = state.copyWith(sortDirection: newDirection);
+    } else {
+      // 異なるソートタイプの場合は昇順で開始
+      state = state.copyWith(
+        sortType: sortType,
+        sortDirection: SortDirection.ascending,
+      );
+    }
+    _applyFilters();
+  }
+
+  /// ソート方向を切り替え
+  void toggleSortDirection() {
+    final newDirection = state.sortDirection == SortDirection.ascending
+        ? SortDirection.descending
+        : SortDirection.ascending;
+    state = state.copyWith(sortDirection: newDirection);
     _applyFilters();
   }
 
   /// フィルターとソートを適用
   void _applyFilters() {
     try {
-      // プロバイダーが利用可能かチェック
-      if (!_ref.exists(productsProvider)) {
-        return;
-      }
-      final allProducts = _ref.read(productsProvider);
+      final allProducts = _ref.read(appStateProvider).products;
       var filteredProducts = <Product>[...allProducts];
 
       // 論理削除フィルターはFirebaseクエリレベルで実行されるため、ここでは不要
@@ -111,7 +141,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
       }
 
       // カテゴリフィルター
-      if (state.selectedCategory != 'all') {
+      if (state.selectedCategory != 'すべて') {
         filteredProducts = filteredProducts.where((product) {
           return product.category == state.selectedCategory;
         }).toList();
@@ -119,24 +149,37 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
       // ソート
       filteredProducts.sort((a, b) {
+        int comparison;
         switch (state.sortType) {
           case ProductSortType.name:
-            return a.name.compareTo(b.name);
+            comparison = a.name.compareTo(b.name);
+            break;
           case ProductSortType.expiryDate:
             if (a.expiryDate == null && b.expiryDate == null) return 0;
             if (a.expiryDate == null) return 1;
             if (b.expiryDate == null) return -1;
-            return a.expiryDate!.compareTo(b.expiryDate!);
+            comparison = a.expiryDate!.compareTo(b.expiryDate!);
+            break;
           case ProductSortType.addedDate:
             if (a.addedDate == null && b.addedDate == null) return 0;
             if (a.addedDate == null) return 1;
             if (b.addedDate == null) return -1;
-            return b.addedDate!.compareTo(a.addedDate!);
+            comparison = a.addedDate!.compareTo(b.addedDate!);
+            break;
           case ProductSortType.category:
             final categoryCompare = a.category.compareTo(b.category);
-            if (categoryCompare != 0) return categoryCompare;
-            return a.name.compareTo(b.name);
+            if (categoryCompare != 0) {
+              comparison = categoryCompare;
+            } else {
+              comparison = a.name.compareTo(b.name);
+            }
+            break;
         }
+
+        // 降順の場合は比較結果を反転
+        return state.sortDirection == SortDirection.descending
+            ? -comparison
+            : comparison;
       });
 
       state = state.copyWith(
@@ -267,10 +310,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
   /// 利用可能なカテゴリを取得
   List<String> getAvailableCategories() {
-    final allProducts = _ref.read(productsProvider);
-    final categories = allProducts.map((p) => p.category).toSet().toList();
-    categories.sort();
-    return ['all', ...categories];
+    return ['すべて', ..._defaultCategories];
   }
 }
 
@@ -279,8 +319,8 @@ final productProvider = StateNotifierProvider<ProductNotifier, ProductState>((re
   final notifier = ProductNotifier(ref);
   
   // 商品リストが変更されたらフィルターを再適用（遅延実行）
-  ref.listen(productsProvider, (previous, next) {
-    if (previous != next) {
+  ref.listen(appStateProvider, (previous, next) {
+    if (previous?.products != next.products) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         notifier._applyFilters();
       });
@@ -295,8 +335,16 @@ final filteredProductsProvider = Provider<List<Product>>((ref) {
   return ref.watch(productProvider).filteredProducts;
 });
 
+/// デフォルトカテゴリ一覧（商品追加時と同じ）
+const List<String> _defaultCategories = [
+  '飲料',
+  '食品', 
+  '調味料',
+  '冷凍食品',
+  'その他'
+];
+
 /// 利用可能なカテゴリを取得するプロバイダー
 final availableCategoriesProvider = Provider<List<String>>((ref) {
-  final notifier = ref.watch(productProvider.notifier);
-  return notifier.getAvailableCategories();
+  return ['すべて', ..._defaultCategories];
 });
