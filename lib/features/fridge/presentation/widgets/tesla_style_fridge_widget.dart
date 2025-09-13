@@ -66,19 +66,19 @@ class _TeslaStyleFridgeWidgetState extends ConsumerState<TeslaStyleFridgeWidget>
     )..repeat();
 
     // アニメーション定義（テスラ風のなめらかな動き）
-    // 左ドア（左端が軸）：負の値で右側（中央側）が手前に開く
+    // 左ドア（左端が軸）：正の値で右側（中央側）が手前に開く
     _leftDoorAngle = Tween<double>(
       begin: 0.0,
-      end: -1.2,
+      end: 1.3,
     ).animate(CurvedAnimation(
       parent: _leftDoorController,
       curve: Curves.easeInOut,
     ));
 
-    // 右ドア（右端が軸）：正の値で左側（中央側）が手前に開く
+    // 右ドア（右端が軸）：負の値で左側（中央側）が手前に開く
     _rightDoorAngle = Tween<double>(
       begin: 0.0,
-      end: 1.2,
+      end: -1.3,
     ).animate(CurvedAnimation(
       parent: _rightDoorController,
       curve: Curves.easeInOut,
@@ -171,12 +171,12 @@ class _TeslaStyleFridgeWidgetState extends ConsumerState<TeslaStyleFridgeWidget>
       builder: (context, constraints) {
         return Stack(
           children: [
-            // 左扉
+            // 左扉（サイズ拡大に合わせて調整）
             _buildTouchZone(
               constraints: constraints,
               alignment: Alignment.topLeft,
-              widthFactor: 0.5,
-              heightFactor: 0.2,
+              widthFactor: 0.4,  // 扉の幅に合わせて調整
+              heightFactor: 0.55,  // 扉の高さに合わせて拡大
               topOffset: 0.05,
               onTap: () => _toggleLeftDoor(),
               onDoubleTap: () =>
@@ -186,12 +186,12 @@ class _TeslaStyleFridgeWidgetState extends ConsumerState<TeslaStyleFridgeWidget>
               badge: _buildTeslaBadge(counts, FridgeCompartment.doorLeft, 0),
             ),
 
-            // 右扉
+            // 右扉（サイズ拡大に合わせて調整）
             _buildTouchZone(
               constraints: constraints,
               alignment: Alignment.topRight,
-              widthFactor: 0.5,
-              heightFactor: 0.2,
+              widthFactor: 0.4,  // 扉の幅に合わせて調整
+              heightFactor: 0.55,  // 扉の高さに合わせて拡大
               topOffset: 0.05,
               onTap: () => _toggleRightDoor(),
               onDoubleTap: () =>
@@ -548,8 +548,8 @@ class TeslaStyleFridgePainter extends CustomPainter {
 
   void _draw3DDoors(Canvas canvas, Size size) {
     final double centerX = size.width / 2;
-    final double doorWidth = size.width * 0.38;
-    final double doorHeight = size.height * 0.2;
+    final double doorWidth = size.width * 0.4;  // 扉の幅を拡大
+    final double doorHeight = size.height * 0.55;  // 扉の高さを大幅に拡大して棚全体を覆う
     final double topY = size.height * 0.05;
 
     // 左扉（左側に配置、左端が軸）
@@ -573,7 +573,7 @@ class TeslaStyleFridgePainter extends CustomPainter {
 
     canvas.translate(pivotX, pivotY);
     canvas.transform((Matrix4.identity()
-          ..setEntry(3, 2, 0.001)
+          ..setEntry(3, 2, 0.001)  // 透視投影
           ..rotateY(angle))  // angleをそのまま使用
         .storage);
     canvas.translate(-pivotX, -pivotY);
@@ -606,10 +606,51 @@ class TeslaStyleFridgePainter extends CustomPainter {
 
     canvas.drawRRect(doorRect, edgePaint);
 
+    // 扉の厚み（3D奥行き表現）
+    if (angle.abs() > 0.1) {
+      _drawDoorDepth(canvas, x, y, w, h, angle, isLeft);
+    }
+
     // ハンドル（中央寄りに配置）
     _drawMinimalistHandle(canvas, isLeft ? x + w - 20 : x + 20, y + h / 2);
 
     canvas.restore();
+  }
+
+  void _drawDoorDepth(Canvas canvas, double x, double y, double w, double h, double angle, bool isLeft) {
+    // 扉の厚み（手前に開く扉の側面）
+    final double thickness = 12;
+    final double offsetX = math.sin(angle) * thickness;
+    final double offsetZ = math.cos(angle) * thickness - thickness;
+    
+    final Path depthPath = Path();
+    if (isLeft) {
+      // 左扉の側面
+      depthPath.moveTo(x, y);
+      depthPath.lineTo(x + offsetX, y + offsetZ);
+      depthPath.lineTo(x + offsetX, y + h + offsetZ);
+      depthPath.lineTo(x, y + h);
+      depthPath.close();
+    } else {
+      // 右扉の側面
+      depthPath.moveTo(x + w, y);
+      depthPath.lineTo(x + w + offsetX, y + offsetZ);
+      depthPath.lineTo(x + w + offsetX, y + h + offsetZ);
+      depthPath.lineTo(x + w, y + h);
+      depthPath.close();
+    }
+    
+    final Paint depthPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          TeslaStyleColors.shadow.withOpacity(0.4),
+          TeslaStyleColors.shadow.withOpacity(0.2),
+        ],
+      ).createShader(depthPath.getBounds());
+    
+    canvas.drawPath(depthPath, depthPaint);
   }
 
   void _drawMinimalistHandle(Canvas canvas, double x, double y) {
