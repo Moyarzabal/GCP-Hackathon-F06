@@ -150,8 +150,8 @@ class ProductNotifier extends StateNotifier<ProductState> {
     try {
       state = state.copyWith(isLoading: true, error: null);
       
-      // アプリケーション状態を更新
-      _ref.read(appStateProvider.notifier).updateProduct(updatedProduct);
+      // Firebaseで商品を更新
+      await _ref.read(appStateProvider.notifier).updateProductInFirebase(updatedProduct);
       
       // フィルターを再適用
       _applyFilters();
@@ -179,8 +179,8 @@ class ProductNotifier extends StateNotifier<ProductState> {
     try {
       state = state.copyWith(isLoading: true, error: null);
       
-      // アプリケーション状態から削除
-      _ref.read(appStateProvider.notifier).removeProduct(productId);
+      // Firebaseから商品を削除
+      await _ref.read(appStateProvider.notifier).deleteProductFromFirebase(productId);
       
       // フィルターを再適用
       _applyFilters();

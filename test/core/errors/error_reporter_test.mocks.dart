@@ -26,8 +26,13 @@ import 'package:mockito/src/dummies.dart' as _i4;
 // ignore_for_file: subtype_of_sealed_class
 
 class _FakeLevel_0 extends _i1.SmartFake implements _i2.Level {
-  _FakeLevel_0(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
+  _FakeLevel_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 /// A class which mocks [Logger].
@@ -39,75 +44,76 @@ class MockLogger extends _i1.Mock implements _i3.Logger {
   }
 
   @override
-  String get name =>
-      (super.noSuchMethod(
-            Invocation.getter(#name),
-            returnValue: _i4.dummyValue<String>(this, Invocation.getter(#name)),
-          )
-          as String);
+  String get name => (super.noSuchMethod(
+        Invocation.getter(#name),
+        returnValue: _i4.dummyValue<String>(
+          this,
+          Invocation.getter(#name),
+        ),
+      ) as String);
 
   @override
-  Map<String, _i3.Logger> get children =>
-      (super.noSuchMethod(
-            Invocation.getter(#children),
-            returnValue: <String, _i3.Logger>{},
-          )
-          as Map<String, _i3.Logger>);
+  Map<String, _i3.Logger> get children => (super.noSuchMethod(
+        Invocation.getter(#children),
+        returnValue: <String, _i3.Logger>{},
+      ) as Map<String, _i3.Logger>);
 
   @override
-  String get fullName =>
-      (super.noSuchMethod(
-            Invocation.getter(#fullName),
-            returnValue: _i4.dummyValue<String>(
-              this,
-              Invocation.getter(#fullName),
-            ),
-          )
-          as String);
+  String get fullName => (super.noSuchMethod(
+        Invocation.getter(#fullName),
+        returnValue: _i4.dummyValue<String>(
+          this,
+          Invocation.getter(#fullName),
+        ),
+      ) as String);
 
   @override
-  _i2.Level get level =>
-      (super.noSuchMethod(
-            Invocation.getter(#level),
-            returnValue: _FakeLevel_0(this, Invocation.getter(#level)),
-          )
-          as _i2.Level);
+  _i2.Level get level => (super.noSuchMethod(
+        Invocation.getter(#level),
+        returnValue: _FakeLevel_0(
+          this,
+          Invocation.getter(#level),
+        ),
+      ) as _i2.Level);
 
   @override
-  _i5.Stream<_i2.Level?> get onLevelChanged =>
-      (super.noSuchMethod(
-            Invocation.getter(#onLevelChanged),
-            returnValue: _i5.Stream<_i2.Level?>.empty(),
-          )
-          as _i5.Stream<_i2.Level?>);
+  _i5.Stream<_i2.Level?> get onLevelChanged => (super.noSuchMethod(
+        Invocation.getter(#onLevelChanged),
+        returnValue: _i5.Stream<_i2.Level?>.empty(),
+      ) as _i5.Stream<_i2.Level?>);
 
   @override
-  _i5.Stream<_i6.LogRecord> get onRecord =>
-      (super.noSuchMethod(
-            Invocation.getter(#onRecord),
-            returnValue: _i5.Stream<_i6.LogRecord>.empty(),
-          )
-          as _i5.Stream<_i6.LogRecord>);
+  _i5.Stream<_i6.LogRecord> get onRecord => (super.noSuchMethod(
+        Invocation.getter(#onRecord),
+        returnValue: _i5.Stream<_i6.LogRecord>.empty(),
+      ) as _i5.Stream<_i6.LogRecord>);
 
   @override
   set level(_i2.Level? value) => super.noSuchMethod(
-    Invocation.setter(#level, value),
-    returnValueForMissingStub: null,
-  );
+        Invocation.setter(
+          #level,
+          value,
+        ),
+        returnValueForMissingStub: null,
+      );
 
   @override
   void clearListeners() => super.noSuchMethod(
-    Invocation.method(#clearListeners, []),
-    returnValueForMissingStub: null,
-  );
+        Invocation.method(
+          #clearListeners,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 
   @override
-  bool isLoggable(_i2.Level? value) =>
-      (super.noSuchMethod(
-            Invocation.method(#isLoggable, [value]),
-            returnValue: false,
-          )
-          as bool);
+  bool isLoggable(_i2.Level? value) => (super.noSuchMethod(
+        Invocation.method(
+          #isLoggable,
+          [value],
+        ),
+        returnValue: false,
+      ) as bool);
 
   @override
   void log(
@@ -116,64 +122,162 @@ class MockLogger extends _i1.Mock implements _i3.Logger {
     Object? error,
     StackTrace? stackTrace,
     _i5.Zone? zone,
-  ]) => super.noSuchMethod(
-    Invocation.method(#log, [logLevel, message, error, stackTrace, zone]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void finest(Object? message, [Object? error, StackTrace? stackTrace]) =>
+  ]) =>
       super.noSuchMethod(
-        Invocation.method(#finest, [message, error, stackTrace]),
+        Invocation.method(
+          #log,
+          [
+            logLevel,
+            message,
+            error,
+            stackTrace,
+            zone,
+          ],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
-  void finer(Object? message, [Object? error, StackTrace? stackTrace]) =>
+  void finest(
+    Object? message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) =>
       super.noSuchMethod(
-        Invocation.method(#finer, [message, error, stackTrace]),
+        Invocation.method(
+          #finest,
+          [
+            message,
+            error,
+            stackTrace,
+          ],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
-  void fine(Object? message, [Object? error, StackTrace? stackTrace]) =>
+  void finer(
+    Object? message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) =>
       super.noSuchMethod(
-        Invocation.method(#fine, [message, error, stackTrace]),
+        Invocation.method(
+          #finer,
+          [
+            message,
+            error,
+            stackTrace,
+          ],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
-  void config(Object? message, [Object? error, StackTrace? stackTrace]) =>
+  void fine(
+    Object? message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) =>
       super.noSuchMethod(
-        Invocation.method(#config, [message, error, stackTrace]),
+        Invocation.method(
+          #fine,
+          [
+            message,
+            error,
+            stackTrace,
+          ],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
-  void info(Object? message, [Object? error, StackTrace? stackTrace]) =>
+  void config(
+    Object? message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) =>
       super.noSuchMethod(
-        Invocation.method(#info, [message, error, stackTrace]),
+        Invocation.method(
+          #config,
+          [
+            message,
+            error,
+            stackTrace,
+          ],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
-  void warning(Object? message, [Object? error, StackTrace? stackTrace]) =>
+  void info(
+    Object? message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) =>
       super.noSuchMethod(
-        Invocation.method(#warning, [message, error, stackTrace]),
+        Invocation.method(
+          #info,
+          [
+            message,
+            error,
+            stackTrace,
+          ],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
-  void severe(Object? message, [Object? error, StackTrace? stackTrace]) =>
+  void warning(
+    Object? message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) =>
       super.noSuchMethod(
-        Invocation.method(#severe, [message, error, stackTrace]),
+        Invocation.method(
+          #warning,
+          [
+            message,
+            error,
+            stackTrace,
+          ],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
-  void shout(Object? message, [Object? error, StackTrace? stackTrace]) =>
+  void severe(
+    Object? message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) =>
       super.noSuchMethod(
-        Invocation.method(#shout, [message, error, stackTrace]),
+        Invocation.method(
+          #severe,
+          [
+            message,
+            error,
+            stackTrace,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void shout(
+    Object? message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #shout,
+          [
+            message,
+            error,
+            stackTrace,
+          ],
+        ),
         returnValueForMissingStub: null,
       );
 }
