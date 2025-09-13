@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
+import 'package:table_calendar/table_calendar.dart';
 import '../../../../shared/models/product.dart';
 import '../../../../shared/providers/app_state_provider.dart';
 import '../../../scanner/presentation/pages/scanner_screen.dart';
@@ -420,6 +421,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       orElse: () => widget.product,
     );
     final nameController = TextEditingController(text: currentProduct.name);
+    final manufacturerController = TextEditingController(text: currentProduct.manufacturer ?? '');
     String selectedCategory = currentProduct.category;
     DateTime? selectedDate = currentProduct.expiryDate;
     
@@ -458,6 +460,39 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         controller: nameController,
                         decoration: InputDecoration(
                           hintText: '商品名を入力してください',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _innerUIBorderColor),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _innerUIBorderColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _blockAccentColor),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          fillColor: _innerUIBackgroundColor,
+                          filled: true,
+                        ),
+                        style: TextStyle(color: _textColor),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // メーカーセクション
+                    _buildInfoSection(
+                      context: context,
+                      icon: Icons.business,
+                      title: 'メーカー',
+                      backgroundColor: _blockBackgroundColor,
+                      iconColor: _blockAccentColor,
+                      textColor: _textColor,
+                      child: TextField(
+                        controller: manufacturerController,
+                        decoration: InputDecoration(
+                          hintText: 'メーカー名を入力してください（任意）',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(color: _innerUIBorderColor),
@@ -601,6 +636,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   if (nameController.text.isNotEmpty) {
                     final updatedProduct = currentProduct.copyWith(
                       name: nameController.text,
+                      manufacturer: manufacturerController.text.isNotEmpty ? manufacturerController.text : null,
                       category: selectedCategory,
                       expiryDate: selectedDate,
                     );
@@ -677,24 +713,292 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     required BuildContext context,
     required DateTime initialDate,
   }) async {
-    return await showDatePicker(
+    DateTime selectedDate = initialDate;
+    int selectedYear = initialDate.year;
+    int selectedMonth = initialDate.month;
+    int selectedDayInt = initialDate.day;
+
+    final firstDate = DateTime(DateTime.now().year - 10, 1, 1);
+    final lastDate = DateTime(DateTime.now().year + 10, 12, 31);
+
+    return showDialog<DateTime>(
       context: context,
-      initialDate: initialDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF4A90C2),
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Color(0xFF2C5F8A),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('賞味期限を選択'),
+            contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            content: SizedBox(
+              width: 400,
+              height: 450,
+              child: Stack(
+                children: [
+                  // カレンダー
+                  Padding(
+                    padding: const EdgeInsets.only(top: 50),
+                    child: TableCalendar<DateTime>(
+                      firstDay: firstDate,
+                      lastDay: lastDate,
+                      focusedDay: selectedDate,
+                      selectedDayPredicate: (day) {
+                        return isSameDay(selectedDate, day);
+                      },
+                      onDaySelected: (selectedDay, focusedDay) {
+                        if (!isSameDay(selectedDate, selectedDay)) {
+                          setState(() {
+                            selectedDate = selectedDay;
+                            selectedYear = selectedDay.year;
+                            selectedMonth = selectedDay.month;
+                            selectedDayInt = selectedDay.day;
+                          });
+                        }
+                      },
+                      calendarFormat: CalendarFormat.month,
+                      startingDayOfWeek: StartingDayOfWeek.sunday,
+                      calendarStyle: CalendarStyle(
+                        outsideDaysVisible: false,
+                        selectedDecoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        todayDecoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        defaultDecoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                        ),
+                        weekendDecoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                        ),
+                        holidayDecoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                        ),
+                        markerDecoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.secondary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      headerStyle: HeaderStyle(
+                        formatButtonVisible: false,
+                        titleCentered: true,
+                        titleTextStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        leftChevronIcon: const Icon(Icons.chevron_left),
+                        rightChevronIcon: const Icon(Icons.chevron_right),
+                      ),
+                      availableCalendarFormats: const {
+                        CalendarFormat.month: '月表示',
+                      },
+                      locale: 'ja_JP',
+                      onHeaderTapped: (date) => _showMonthYearPicker(context, date, firstDate, lastDate, setState, (newDate) {
+                        setState(() {
+                          // 選択した日付が有効な範囲内になるように調整
+                          if (newDate.isBefore(firstDate)) {
+                            selectedDate = firstDate;
+                          } else if (newDate.isAfter(lastDate)) {
+                            selectedDate = lastDate;
+                          } else {
+                            selectedDate = newDate;
+                          }
+                        });
+                      }),
+                    ),
+                  ),
+                  // 右上のボタン
+                  Positioned(
+                    top: 25,
+                    right: 8,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 今日ボタン
+                        GestureDetector(
+                          onTap: () {
+                            // 今日の日付に移動
+                            setState(() {
+                              selectedDate = DateTime.now();
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[100],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.blue[300]!,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.today,
+                                  size: 12,
+                                  color: Colors.blue[700],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '今日',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.blue[700],
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('キャンセル'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(selectedDate),
+                child: const Text('選択'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// 月年選択ダイアログを表示
+  void _showMonthYearPicker(BuildContext context, DateTime currentDate, DateTime firstDate, DateTime lastDate, StateSetter setState, Function(DateTime) onDateSelected) {
+    int selectedYear = currentDate.year;
+    int selectedMonth = currentDate.month;
+
+    // 年の範囲を現在年±10年に設定
+    final currentYear = DateTime.now().year;
+    final minYear = currentYear - 10;
+    final maxYear = currentYear + 10;
+    final yearRange = maxYear - minYear + 1;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, dialogSetState) => AlertDialog(
+          title: const Text('年月を選択'),
+          content: SizedBox(
+            width: 300,
+            height: 300,
+            child: Row(
+              children: [
+                // 年選択
+                Expanded(
+                  child: Column(
+                    children: [
+                      const Text('年', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: ListWheelScrollView.useDelegate(
+                          itemExtent: 40,
+                          controller: FixedExtentScrollController(
+                            initialItem: selectedYear - minYear,
+                          ),
+                          onSelectedItemChanged: (index) {
+                            dialogSetState(() {
+                              selectedYear = minYear + index;
+                            });
+                          },
+                          childDelegate: ListWheelChildBuilderDelegate(
+                            builder: (context, index) {
+                              if (index >= yearRange) return null;
+                              return Center(
+                                child: Text(
+                                  '${minYear + index}年',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: selectedYear == minYear + index
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: selectedYear == minYear + index
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.black,
+                                  ),
+                                ),
+                              );
+                            },
+                            childCount: yearRange,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                // 月選択
+                Expanded(
+                  child: Column(
+                    children: [
+                      const Text('月', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: ListWheelScrollView.useDelegate(
+                          itemExtent: 40,
+                          controller: FixedExtentScrollController(
+                            initialItem: selectedMonth - 1,
+                          ),
+                          onSelectedItemChanged: (index) {
+                            dialogSetState(() {
+                              selectedMonth = index + 1;
+                            });
+                          },
+                          childDelegate: ListWheelChildBuilderDelegate(
+                            builder: (context, index) {
+                              return Center(
+                                child: Text(
+                                  '${index + 1}月',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: selectedMonth == index + 1
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: selectedMonth == index + 1
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.black,
+                                  ),
+                                ),
+                              );
+                            },
+                            childCount: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          child: child!,
-        );
-      },
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newDate = DateTime(selectedYear, selectedMonth, 1);
+                onDateSelected(newDate);
+                Navigator.of(context).pop();
+              },
+              child: const Text('選択'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
