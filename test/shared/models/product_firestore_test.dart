@@ -34,6 +34,7 @@ void main() {
           'manufacturer': 'Test Manufacturer',
           'quantity': 2,
           'unit': 'pieces',
+          'deletedAt': null,
         };
 
         // Act
@@ -54,6 +55,7 @@ void main() {
         expect(product.manufacturer, equals('Test Manufacturer'));
         expect(product.quantity, equals(2));
         expect(product.unit, equals('pieces'));
+        expect(product.deletedAt, isNull);
       });
 
       test('should parse millisecondsSinceEpoch correctly (backward compatibility)', () {
@@ -81,6 +83,27 @@ void main() {
         expect(product.category, equals('Food'));
         expect(product.quantity, equals(1));
         expect(product.unit, equals('piece'));
+        expect(product.deletedAt, isNull);
+      });
+
+      test('should parse deletedAt field correctly', () {
+        // Arrange
+        final testDate = DateTime(2024, 12, 19, 10, 30);
+        final firestoreData = {
+          'name': 'Deleted Product',
+          'category': 'Food',
+          'quantity': 1,
+          'unit': 'piece',
+          'deletedAt': testDate.millisecondsSinceEpoch,
+        };
+
+        // Act
+        final product = Product.fromFirestore('test-id', firestoreData);
+
+        // Assert
+        expect(product.id, equals('test-id'));
+        expect(product.name, equals('Deleted Product'));
+        expect(product.deletedAt, equals(testDate));
       });
 
       test('should handle null values gracefully', () {

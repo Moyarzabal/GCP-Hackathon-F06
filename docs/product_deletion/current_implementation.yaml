@@ -1,0 +1,131 @@
+current_implementation:
+  overview: "冷蔵庫アプリの現在の実装状況"
+  
+  architecture:
+    pattern: "Clean Architecture + Riverpod State Management"
+    layers:
+      - presentation: "UI層（Widgets, Providers）"
+      - domain: "ビジネスロジック層（Models, Services）"
+      - data: "データアクセス層（DataSources, Repositories）"
+  
+  existing_components:
+    home_screen:
+      file: "lib/features/home/presentation/pages/home_screen.dart"
+      responsibilities:
+        - "商品リストの表示"
+        - "検索機能"
+        - "カテゴリフィルター"
+        - "ソート機能"
+      current_features:
+        - "商品カードの表示"
+        - "商品詳細画面への遷移"
+        - "空状態の表示"
+      missing_features
+        - "長押しジェスチャー"
+        - "選択モード"
+        - "複数選択機能"
+        - "削除ボタン"
+        - "削除確認ダイアログ"
+    
+    product_card:
+      file: "lib/features/home/presentation/widgets/product_card.dart"
+      responsibilities:
+        - "個別商品の表示"
+        - "商品情報の表示（名前、カテゴリ、期限）"
+        - "画像の表示（Base64/URL対応）"
+        - "タップ時の詳細画面遷移"
+      current_features:
+        - "商品情報の表示"
+        - "画像表示（エラーハンドリング付き）"
+        - "タップイベント"
+      missing_features:
+        - "長押しジェスチャー"
+        - "選択状態の表示"
+        - "チェックボックス"
+        - "選択時のハイライト"
+    
+    product_provider:
+      file: "lib/features/products/presentation/providers/product_provider.dart"
+      responsibilities:
+        - "商品状態の管理"
+        - "フィルタリング・ソート"
+        - "商品の編集・削除"
+      current_features:
+        - "単一商品の削除（deleteProduct）"
+        - "フィルタリング機能"
+        - "ソート機能"
+        - "エラーハンドリング"
+      missing_features:
+        - "複数商品の一括削除"
+        - "選択状態の管理"
+        - "選択モードの切り替え"
+    
+    firestore_datasource:
+      file: "lib/features/products/data/datasources/firestore_product_datasource.dart"
+      responsibilities:
+        - "Firebase Firestoreとの通信"
+        - "CRUD操作の実装"
+      current_features:
+        - "単一商品の削除（deleteProduct）"
+        - "商品の取得・追加・更新"
+        - "リアルタイム更新（watchProducts）"
+        - "エラーハンドリング"
+      missing_features:
+        - "複数商品の一括削除（batch delete）"
+    
+    product_model:
+      file: "lib/shared/models/product.dart"
+      responsibilities:
+        - "商品データの定義"
+        - "Firestore変換"
+        - "ビジネスロジック（期限計算等）"
+      current_features:
+        - "商品プロパティの定義"
+        - "期限計算ロジック"
+        - "画像段階の管理"
+        - "Firestore変換メソッド"
+      status: "complete"
+  
+  state_management:
+    current_providers:
+      - "appStateProvider: アプリ全体の状態管理"
+      - "productProvider: 商品のフィルタリング・ソート"
+      - "productsProvider: 商品リストの管理"
+    missing_providers:
+      - "productSelectionProvider: 選択状態の管理"
+  
+  ui_interactions:
+    current_gestures:
+      - "タップ: 商品詳細画面への遷移"
+    missing_gestures:
+      - "長押し: 選択モードの切り替え"
+      - "選択モードでのタップ: 商品の選択/選択解除"
+  
+  deletion_functionality:
+    current:
+      - "単一商品の削除（ProductProvider.deleteProduct）"
+      - "Firebaseからの削除（FirestoreProductDataSource.deleteProduct）"
+    missing:
+      - "複数商品の一括削除"
+      - "選択状態の管理"
+      - "削除確認ダイアログ"
+      - "部分削除の処理"
+  
+  error_handling:
+    current:
+      - "Firebase例外の処理"
+      - "ネットワークエラーの処理"
+      - "UI上でのエラー表示"
+    missing:
+      - "削除失敗時の処理"
+      - "部分削除成功時の処理"
+      - "選択状態のエラー処理"
+  
+  testing:
+    current_coverage:
+      - "単体テスト: 一部実装済み"
+      - "ウィジェットテスト: 一部実装済み"
+    missing_tests:
+      - "選択機能のテスト"
+      - "削除機能のテスト"
+      - "統合テスト"
