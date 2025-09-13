@@ -42,14 +42,14 @@ class Futuristic3DFridgePainter extends CustomPainter {
     // メイン冷蔵庫本体（3D）
     _draw3DFridgeBody(canvas, size, perspective, vanishingY);
     
-    // 内部照明とグロー効果
+    // 内部照明とグロー効果（扉の後ろに描画）
     _drawInteriorLighting(canvas, size, perspective, vanishingY);
-    
-    // 扉（3D回転）
-    _draw3DDoors(canvas, size, perspective, vanishingY);
     
     // 引き出し（3Dスライド）
     _draw3DDrawers(canvas, size, perspective, vanishingY);
+    
+    // 扉（3D回転）- 最後に描画して前面に配置
+    _draw3DDoors(canvas, size, perspective, vanishingY);
     
     // ホログラム風UI要素
     _drawHologramUI(canvas, size);
@@ -223,8 +223,8 @@ class Futuristic3DFridgePainter extends CustomPainter {
 
   void _draw3DDoors(Canvas canvas, Size size, double perspective, double vanishingY) {
     final double centerX = size.width / 2;
-    final double doorWidth = size.width * 0.4;
-    final double doorHeight = size.height * 0.18;
+    final double doorWidth = size.width * 0.425; // 扉を大きくして棚を覆うように
+    final double doorHeight = size.height * 0.5; // 扉の高さを拡大して棚全体を覆う
     final double topY = size.height * 0.05;
     
     // 左扉
@@ -237,8 +237,8 @@ class Futuristic3DFridgePainter extends CustomPainter {
   void _draw3DDoor(Canvas canvas, double x, double y, double w, double h, double angle, bool isLeft) {
     canvas.save();
     
-    // 回転の中心点
-    final double pivotX = isLeft ? x + w : x;
+    // 回転の中心点（左扉は左端、右扉は右端を軸に）
+    final double pivotX = isLeft ? x : x + w;
     final double pivotY = y + h / 2;
     
     canvas.translate(pivotX, pivotY);
@@ -248,25 +248,39 @@ class Futuristic3DFridgePainter extends CustomPainter {
         .storage);
     canvas.translate(-pivotX, -pivotY);
     
-    // 扉面
+    // 扉面（奥行きと立体感を強調）
     final RRect doorRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(x, y, w, h),
       const Radius.circular(15),
     );
     
-    // ガラス風マテリアル
-    final Paint doorPaint = Paint()
+    // メタリック素材と半透明ガラスの組み合わせ
+    final Paint doorBasePaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          hologramCyan.withOpacity(0.3),
-          neonBlue.withOpacity(0.2),
+          darkMetal.withOpacity(0.85),
+          const Color(0xFF37474F).withOpacity(0.8),
+          darkMetal.withOpacity(0.75),
+        ],
+      ).createShader(Rect.fromLTWH(x, y, w, h));
+    
+    canvas.drawRRect(doorRect, doorBasePaint);
+    
+    // ガラス風オーバーレイ
+    final Paint glassPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          hologramCyan.withOpacity(0.2),
+          neonBlue.withOpacity(0.15),
           Colors.transparent,
         ],
       ).createShader(Rect.fromLTWH(x, y, w, h));
     
-    canvas.drawRRect(doorRect, doorPaint);
+    canvas.drawRRect(doorRect, glassPaint);
     
     // エッジ発光
     final Paint edgePaint = Paint()
@@ -276,10 +290,51 @@ class Futuristic3DFridgePainter extends CustomPainter {
     
     canvas.drawRRect(doorRect, edgePaint);
     
-    // ハンドル
-    _drawFuturisticHandle(canvas, isLeft ? x + w - 15 : x + 5, y + h/2, isLeft);
+    // 扉の厚み（3D奥行き表現）
+    if (angle.abs() > 0.1) {
+      _drawDoorDepth(canvas, x, y, w, h, angle, isLeft);
+    }
+    
+    // ハンドル（位置調整）
+    _drawFuturisticHandle(canvas, isLeft ? x + w - 20 : x + 20, y + h/2, isLeft);
     
     canvas.restore();
+  }
+
+  void _drawDoorDepth(Canvas canvas, double x, double y, double w, double h, double angle, bool isLeft) {
+    // 扉の厚み（手前に開く扉の側面）
+    final double thickness = 15;
+    final double offsetX = math.sin(angle) * thickness;
+    final double offsetZ = math.cos(angle) * thickness - thickness;
+    
+    final Path depthPath = Path();
+    if (isLeft) {
+      // 左扉の側面
+      depthPath.moveTo(x, y);
+      depthPath.lineTo(x + offsetX, y + offsetZ);
+      depthPath.lineTo(x + offsetX, y + h + offsetZ);
+      depthPath.lineTo(x, y + h);
+      depthPath.close();
+    } else {
+      // 右扉の側面
+      depthPath.moveTo(x + w, y);
+      depthPath.lineTo(x + w + offsetX, y + offsetZ);
+      depthPath.lineTo(x + w + offsetX, y + h + offsetZ);
+      depthPath.lineTo(x + w, y + h);
+      depthPath.close();
+    }
+    
+    final Paint depthPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          darkMetal.withOpacity(0.9),
+          const Color(0xFF37474F).withOpacity(0.7),
+        ],
+      ).createShader(depthPath.getBounds());
+    
+    canvas.drawPath(depthPath, depthPaint);
   }
 
   void _drawFuturisticHandle(Canvas canvas, double x, double y, bool isLeft) {
