@@ -73,7 +73,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
     // アニメーション定義
     _leftDoorAngle = Tween<double>(
       begin: 0.0,
-      end: -1.4, // より大きな開き角度
+      end: 1.4, // 手前に開くように正の値に変更
     ).animate(CurvedAnimation(
       parent: _leftDoorController,
       curve: Curves.elasticOut,
@@ -81,7 +81,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
     
     _rightDoorAngle = Tween<double>(
       begin: 0.0,
-      end: 1.4,
+      end: -1.4, // 手前に開くように負の値に変更
     ).animate(CurvedAnimation(
       parent: _rightDoorController,
       curve: Curves.elasticOut,
@@ -184,12 +184,12 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
       builder: (context, constraints) {
         return Stack(
           children: [
-            // 左扉
+            // 左扉（サイズ拡大に合わせて調整）
             _buildTouchZone(
               constraints: constraints,
               alignment: Alignment.topLeft,
-              widthFactor: 0.5,
-              heightFactor: 0.18,
+              widthFactor: 0.425,
+              heightFactor: 0.5,
               onTap: () => _toggleLeftDoor(),
               onDoubleTap: () => widget.onSectionTap(FridgeCompartment.doorLeft, 0),
               semanticsLabel: '左ドア',
@@ -197,12 +197,12 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
               badge: _buildHologramBadge(counts, FridgeCompartment.doorLeft, 0),
             ),
             
-            // 右扉
+            // 右扉（サイズ拡大に合わせて調整）
             _buildTouchZone(
               constraints: constraints,
               alignment: Alignment.topRight,
-              widthFactor: 0.5,
-              heightFactor: 0.18,
+              widthFactor: 0.425,
+              heightFactor: 0.5,
               onTap: () => _toggleRightDoor(),
               onDoubleTap: () => widget.onSectionTap(FridgeCompartment.doorRight, 0),
               semanticsLabel: '右ドア',
