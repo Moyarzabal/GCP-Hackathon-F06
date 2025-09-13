@@ -8,6 +8,7 @@ import '../../../products/presentation/widgets/product_search_delegate.dart';
 import '../../../products/presentation/providers/product_provider.dart';
 import '../../../products/presentation/providers/product_selection_provider.dart';
 import '../../../../shared/widgets/common/error_widget.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -35,14 +36,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final selectionState = ref.watch(productSelectionProvider);
     final selectionNotifier = ref.watch(productSelectionProvider.notifier);
     
-    // appStateProviderの商品リストを使用（画像更新が反映される）
-    final products = appState.products;
+    // ソート済みの商品リストを使用
+    final products = productState.filteredProducts;
     
     // デバッグログ: 商品リストの状態を確認
     print('🏠 HomeScreen: 商品リストの状態');
-    print('   商品数: ${products.length}');
+    print('   全商品数: ${appState.products.length}');
+    print('   フィルター済み商品数: ${products.length}');
+    print('   現在のソートタイプ: ${productState.sortType.displayName}');
+    print('   現在のソート方向: ${productState.sortDirection.displayName}');
     for (var product in products) {
-      print('   商品ID: ${product.id}, 名前: ${product.name}, 画像URL: ${product.imageUrl}');
+      print('   商品ID: ${product.id}, 名前: ${product.name}, 賞味期限: ${product.expiryDate}');
     }
     
     return Scaffold(
@@ -69,15 +73,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               );
             },
           ),
+          // カテゴリ選択アイコン
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.filter_list),
+            onSelected: (category) {
+              productNotifier.filterByCategory(category);
+            },
+            itemBuilder: (context) => availableCategories.map((category) {
+              final isSelected = category == productState.selectedCategory;
+              return PopupMenuItem(
+                value: category,
+                child: Row(
+                  children: [
+                    if (isSelected) const Icon(Icons.check, size: 16),
+                    if (isSelected) const SizedBox(width: 8),
+                    Text(category == 'all' ? 'すべて' : category),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          // Material Design Iconsのソートアイコン
           PopupMenuButton<ProductSortType>(
-            icon: const Icon(Icons.sort),
+            icon: Icon(
+              productState.sortDirection == SortDirection.ascending
+                  ? MdiIcons.sortAscending
+                  : MdiIcons.sortDescending,
+              // color: Theme.of(context).colorScheme.primary,
+            ),
             onSelected: (sortType) {
               productNotifier.setSortType(sortType);
             },
             itemBuilder: (context) => ProductSortType.values.map((sortType) {
+              final isSelected = sortType == productState.sortType;
               return PopupMenuItem(
                 value: sortType,
-                child: Text(sortType.displayName),
+                child: Row(
+                  children: [
+                    if (isSelected) const Icon(Icons.check, size: 16),
+                    if (isSelected) const SizedBox(width: 8),
+                    Text(sortType.displayName),
+                    const Spacer(),
+                    if (isSelected)
+                      Icon(
+                        productState.sortDirection == SortDirection.ascending
+                            ? MdiIcons.sortAscending
+                            : MdiIcons.sortDescending,
+                        size: 16,
+                        // color: Theme.of(context).colorScheme.primary,
+                      ),
+                  ],
+                ),
               );
             }).toList(),
           ),
@@ -101,36 +147,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: CircularProgressIndicator(),
               ),
             ),
-          // カテゴリフィルター
-          SizedBox(
-            height: 50,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: availableCategories.length,
-              itemBuilder: (context, index) {
-                final category = availableCategories[index];
-                final isSelected = category == productState.selectedCategory;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(category == 'all' ? 'すべて' : category),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      productNotifier.filterByCategory(category);
-                    },
-                    backgroundColor: isSelected 
-                      ? Theme.of(context).colorScheme.primary 
-                      : null,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.black : null,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          
+
           // エラー表示
           if (productState.error != null)
             InlineErrorWidget(

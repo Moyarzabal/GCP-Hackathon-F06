@@ -1,0 +1,98 @@
+name: ソート機能の現在の実装
+description: 商品リストのソート機能の実装状況
+
+components:
+  product_provider:
+    file: lib/features/products/presentation/providers/product_provider.dart
+    status: 実装済み
+    features:
+      - ProductSortType enum定義（名前順、賞味期限順、追加日順、カテゴリ順）
+      - setSortType()メソッドでソートタイプ変更
+      - _applyFilters()メソッドでソート処理実装
+      - filteredProductsでソート済み商品リストを提供
+    issues:
+      - ソート機能は実装されているが、UIで使用されていない
+
+  home_screen:
+    file: lib/features/home/presentation/pages/home_screen.dart
+    status: 問題あり
+    features:
+      - ソートボタン（PopupMenuButton）は実装済み
+      - setSortType()を呼び出している
+    issues:
+      - appState.productsを直接使用（ソートされていない）
+      - productProvider.filteredProductsを使用していない
+      - ソートボタンを押しても実際には並び替えされない
+
+  product_state:
+    file: lib/features/products/presentation/providers/product_provider.dart
+    status: 実装済み
+    features:
+      - ProductStateクラスでソート状態を管理
+      - sortTypeフィールドで現在のソートタイプを保持
+      - copyWith()メソッドで状態更新
+
+data_flow:
+  current:
+    - HomeScreenでappState.productsを直接表示
+    - ソートボタンでsetSortType()を呼び出し
+    - ProductProviderでソート処理は実行されるが、結果が使用されない
+    - ユーザーにはソートされていない商品リストが表示される
+
+  expected:
+    - HomeScreenでproductProvider.filteredProductsを使用
+    - ソートボタンでsetSortType()を呼び出し
+    - ProductProviderでソート処理が実行される
+    - ソート済みの商品リストがユーザーに表示される
+
+sort_types:
+  name:
+    display_name: "名前順"
+    implementation: "a.name.compareTo(b.name)"
+    status: 実装済み
+    
+  expiry_date:
+    display_name: "賞味期限順"
+    implementation: "a.expiryDate!.compareTo(b.expiryDate!)"
+    status: 実装済み
+    
+  added_date:
+    display_name: "追加日順"
+    implementation: "b.addedDate!.compareTo(a.addedDate!)"
+    status: 実装済み
+    
+  category:
+    display_name: "カテゴリ順"
+    implementation: "a.category.compareTo(b.category) + a.name.compareTo(b.name)"
+    status: 実装済み
+
+ui_components:
+  sort_button:
+    type: PopupMenuButton<ProductSortType>
+    location: AppBar actions
+    status: 実装済み
+    functionality:
+      - ソートタイプの選択肢を表示
+      - 選択時にsetSortType()を呼び出し
+    issues:
+      - 選択しても実際のソート結果が反映されない
+
+  product_list:
+    type: ListView.builder
+    data_source: appState.products（問題）
+    should_be: productProvider.filteredProducts
+    status: 修正が必要
+
+testing:
+  unit_tests:
+    status: 未実装
+    needed:
+      - ProductSortTypeの各ソートタイプのテスト
+      - setSortType()メソッドのテスト
+      - _applyFilters()メソッドのソート処理テスト
+
+  integration_tests:
+    status: 未実装
+    needed:
+      - ソートボタンのタップテスト
+      - ソート結果の表示確認テスト

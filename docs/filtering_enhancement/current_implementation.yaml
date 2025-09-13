@@ -1,0 +1,90 @@
+# 現在のフィルタリング実装
+implementation:
+  name: "カテゴリフィルタリング機能"
+  version: "1.0.0"
+  
+  # アーキテクチャ
+  architecture:
+    pattern: "Provider Pattern with StateNotifier"
+    state_management: "Riverpod"
+    
+  # 主要コンポーネント
+  components:
+    - name: "ProductNotifier"
+      file: "lib/features/products/presentation/providers/product_provider.dart"
+      responsibilities:
+        - 商品状態の管理
+        - カテゴリフィルタリングロジック
+        - ソート機能
+      key_methods:
+        - "filterByCategory(String category)"
+        - "getAvailableCategories()"
+        - "_applyFilters()"
+    
+    - name: "HomeScreen"
+      file: "lib/features/home/presentation/pages/home_screen.dart"
+      responsibilities:
+        - UI表示
+        - カテゴリ選択UI
+        - 商品リスト表示
+      ui_components:
+        - "FilterChip List (横スクロール)"
+        - "ProductCard List"
+        - "AppBar with actions"
+    
+    - name: "availableCategoriesProvider"
+      file: "lib/features/products/presentation/providers/product_provider.dart"
+      responsibilities:
+        - 利用可能なカテゴリの提供
+        - 動的カテゴリリスト生成
+
+  # 現在のUI実装
+  ui_implementation:
+    category_filter:
+      type: "FilterChip List"
+      layout: "Horizontal Scrollable"
+      location: "HomeScreen lines 130-158"
+      features:
+        - 横スクロール可能
+        - 選択状態の視覚的表示
+        - タップでカテゴリ選択
+      current_categories:
+        - "すべて (all)"
+        - "動的に生成されるカテゴリ"
+
+  # データフロー
+  data_flow:
+    - step: "商品データ取得"
+      source: "Firebase Firestore"
+      target: "appStateProvider"
+    
+    - step: "カテゴリ抽出"
+      source: "appStateProvider.products"
+      target: "availableCategoriesProvider"
+      method: "getAvailableCategories()"
+    
+    - step: "カテゴリ選択"
+      source: "FilterChip tap"
+      target: "ProductNotifier.filterByCategory()"
+    
+    - step: "フィルタリング適用"
+      source: "ProductNotifier._applyFilters()"
+      target: "ProductState.filteredProducts"
+    
+    - step: "UI更新"
+      source: "ProductState.filteredProducts"
+      target: "HomeScreen ListView"
+
+  # 現在の制限事項
+  limitations:
+    - "UIが横スクロールのFilterChipリスト"
+    - "ドロップダウン形式ではない"
+    - "複数選択は未対応（要求に合致）"
+    - "カテゴリが多くなると横スクロールが長くなる"
+
+  # 技術スタック
+  tech_stack:
+    - "Flutter"
+    - "Riverpod (State Management)"
+    - "Material Design"
+    - "Firebase Firestore"
