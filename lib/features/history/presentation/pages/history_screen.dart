@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/models/product.dart';
@@ -64,11 +65,16 @@ class HistoryScreen extends ConsumerWidget {
                               color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Center(
-                              child: Text(
-                                product.emotionState,
-                                style: const TextStyle(fontSize: 24),
-                              ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: product.currentImageUrl != null && product.currentImageUrl!.isNotEmpty
+                                  ? _buildImageWidget(product)
+                                  : Center(
+                                      child: Text(
+                                        product.emotionState,
+                                        style: const TextStyle(fontSize: 24),
+                                      ),
+                                    ),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -111,5 +117,69 @@ class HistoryScreen extends ConsumerWidget {
               },
             ),
     );
+  }
+
+  /// 画像ウィジェットを構築（Base64とネットワーク画像に対応）
+  Widget _buildImageWidget(Product product) {
+    try {
+      // Base64画像データかどうかを判定
+      if (product.currentImageUrl!.startsWith('data:image/')) {
+        // Base64画像データの場合
+        final base64String = product.currentImageUrl!.split(',')[1];
+        final bytes = base64Decode(base64String);
+        return Image.memory(
+          bytes,
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print('❌ Base64画像デコードエラー: $error');
+            return Center(
+              child: Text(
+                product.emotionState,
+                style: const TextStyle(fontSize: 24),
+              ),
+            );
+          },
+        );
+      } else {
+        // 通常のURLの場合
+        return Image.network(
+          product.currentImageUrl!,
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print('❌ ネットワーク画像読み込みエラー: $error');
+            return Center(
+              child: Text(
+                product.emotionState,
+                style: const TextStyle(fontSize: 24),
+              ),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                strokeWidth: 2,
+              ),
+            );
+          },
+        );
+      }
+    } catch (e) {
+      print('❌ 画像表示エラー: $e');
+      return Center(
+        child: Text(
+          product.emotionState,
+          style: const TextStyle(fontSize: 24),
+        ),
+      );
+    }
   }
 }
