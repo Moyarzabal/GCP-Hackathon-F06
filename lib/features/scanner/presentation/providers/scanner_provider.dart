@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../../../core/errors/app_exception.dart';
 import '../../../../core/errors/result.dart';
 import '../../../../shared/models/product.dart';
-import '../../../../shared/providers/app_state_provider.dart';
 import '../../../../core/services/jan_code_service.dart';
 import '../../../../core/services/gemini_service.dart';
 

@@ -15,6 +15,7 @@ class FirestoreProductDataSource implements ProductDataSource {
       Logger.debug('Fetching all products from Firestore');
       final querySnapshot = await _firestore
           .collection(_collection)
+          .where('deletedAt', isNull: true) // 論理削除されていない商品のみ取得
           .orderBy('addedDate', descending: true)
           .get();
       
@@ -30,6 +31,30 @@ class FirestoreProductDataSource implements ProductDataSource {
     } catch (e, stackTrace) {
       Logger.error('Unexpected error while fetching products', e, stackTrace);
       throw Exception('Failed to get products: $e');
+    }
+  }
+
+  @override
+  Future<List<Product>> getAllProductsIncludingDeleted() async {
+    try {
+      Logger.debug('Fetching all products including deleted from Firestore');
+      final querySnapshot = await _firestore
+          .collection(_collection)
+          .orderBy('addedDate', descending: true)
+          .get();
+      
+      final products = querySnapshot.docs
+          .map((doc) => Product.fromFirestore(doc.id, doc.data()))
+          .toList();
+      
+      Logger.debug('Successfully fetched ${products.length} products (including deleted)');
+      return products;
+    } on FirebaseException catch (e) {
+      Logger.error('Firebase error while fetching all products including deleted', e, e.stackTrace);
+      throw Exception('Failed to get all products including deleted: ${e.message}');
+    } catch (e, stackTrace) {
+      Logger.error('Unexpected error while fetching all products including deleted', e, stackTrace);
+      throw Exception('Failed to get all products including deleted: $e');
     }
   }
 
@@ -100,15 +125,58 @@ class FirestoreProductDataSource implements ProductDataSource {
   @override
   Future<void> deleteProduct(String id) async {
     try {
-      Logger.debug('Deleting product with id: $id');
-      await _firestore.collection(_collection).doc(id).delete();
-      Logger.debug('Successfully deleted product: $id');
+      Logger.debug('Soft deleting product with id: $id');
+      final now = DateTime.now();
+      await _firestore.collection(_collection).doc(id).update({
+        'deletedAt': now.millisecondsSinceEpoch
+      });
+      Logger.debug('Successfully soft deleted product: $id');
     } on FirebaseException catch (e) {
-      Logger.error('Firebase error while deleting product $id', e, e.stackTrace);
+      Logger.error('Firebase error while soft deleting product $id', e, e.stackTrace);
       throw Exception('Failed to delete product: ${e.message}');
     } catch (e, stackTrace) {
-      Logger.error('Unexpected error while deleting product $id', e, stackTrace);
+      Logger.error('Unexpected error while soft deleting product $id', e, stackTrace);
       throw Exception('Failed to delete product: $e');
+    }
+  }
+
+  /// 複数商品を一括論理削除
+  Future<void> deleteProducts(List<String> productIds) async {
+    print('🗑️ FirestoreProductDataSource.deleteProducts: 開始');
+    print('   削除対象商品数: ${productIds.length}');
+    print('   削除対象商品ID: $productIds');
+    
+    if (productIds.isEmpty) {
+      print('❌ 削除対象商品がありません');
+      Logger.debug('No products to delete');
+      return;
+    }
+
+    try {
+      Logger.debug('Soft deleting ${productIds.length} products: $productIds');
+      print('🔄 Firestore batch操作で一括論理削除を実行');
+      
+      // Firestore batch操作を使用して一括論理削除
+      final batch = _firestore.batch();
+      final now = DateTime.now();
+      for (final id in productIds) {
+        print('   商品ID $id にdeletedAt=${now.millisecondsSinceEpoch}を設定');
+        batch.update(
+          _firestore.collection(_collection).doc(id),
+          {'deletedAt': now.millisecondsSinceEpoch}
+        );
+      }
+      
+      print('🔄 Firestore batch操作をコミット');
+      await batch.commit();
+      print('✅ Firestore batch操作完了');
+      Logger.debug('Successfully soft deleted ${productIds.length} products');
+    } on FirebaseException catch (e) {
+      Logger.error('Firebase error while soft deleting products', e, e.stackTrace);
+      throw Exception('Failed to delete products: ${e.message}');
+    } catch (e, stackTrace) {
+      Logger.error('Unexpected error while soft deleting products', e, stackTrace);
+      throw Exception('Failed to delete products: $e');
     }
   }
 
@@ -118,6 +186,7 @@ class FirestoreProductDataSource implements ProductDataSource {
       Logger.debug('Starting to watch products stream');
       return _firestore
           .collection(_collection)
+          .where('deletedAt', isNull: true) // 論理削除されていない商品のみ取得
           .orderBy('addedDate', descending: true)
           .snapshots()
           .map((snapshot) {

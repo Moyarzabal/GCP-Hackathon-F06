@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/product.dart';
 import '../../features/products/data/datasources/product_datasource.dart';
+import '../../features/products/data/datasources/firestore_product_datasource.dart';
 import '../../features/products/data/providers/product_data_source_provider.dart';
-import '../../core/errors/result.dart';
 
 /// アプリケーションの基本状態を管理するプロバイダー
 class AppState {
@@ -211,6 +211,50 @@ class AppStateNotifier extends StateNotifier<AppState> {
     }
   }
 
+  /// Firebaseから複数商品を一括論理削除
+  Future<void> deleteProductsFromFirebase(List<String> productIds) async {
+    print('🗑️ AppStateProvider.deleteProductsFromFirebase: 開始');
+    print('   削除対象商品数: ${productIds.length}');
+    print('   削除対象商品ID: $productIds');
+    
+    if (_dataSource == null) {
+      print('❌ Firebase data source is not available');
+      setError('Firebase data source is not available');
+      return;
+    }
+
+    if (productIds.isEmpty) {
+      print('❌ 削除対象商品がありません');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      clearError();
+
+      // FirestoreProductDataSourceの一括論理削除機能を使用
+      if (_dataSource is FirestoreProductDataSource) {
+        print('🔄 FirestoreProductDataSource.deleteProductsを呼び出し');
+        await (_dataSource as FirestoreProductDataSource).deleteProducts(productIds);
+        print('✅ FirestoreProductDataSource.deleteProducts完了');
+      } else {
+        // フォールバック: 個別に論理削除
+        print('🔄 個別論理削除を実行');
+        for (final productId in productIds) {
+          await _dataSource!.deleteProduct(productId);
+        }
+        print('✅ 個別論理削除完了');
+      }
+      
+      // ローカル状態は更新しない（論理削除なので、ストリームで自動更新される）
+      print('✅ 論理削除完了 - ストリームで自動更新されます');
+      setLoading(false);
+    } catch (e) {
+      setError('Failed to delete products from Firebase: $e');
+      setLoading(false);
+    }
+  }
+
   /// Firebaseの商品ストリームを監視
   void watchProductsFromFirebase() {
     if (_dataSource == null) {
@@ -291,4 +335,19 @@ final expiringProductsProvider = Provider<List<Product>>((ref) {
 final expiredProductsProvider = Provider<List<Product>>((ref) {
   final products = ref.watch(productsProvider);
   return products.where((product) => product.daysUntilExpiry <= 0).toList();
+});
+
+/// 履歴画面用の商品プロバイダー（削除済み含む）
+final allProductsProvider = FutureProvider<List<Product>>((ref) async {
+  print('📚 allProductsProvider: 開始');
+  final dataSource = ref.watch(productDataSourceProvider);
+  print('📚 dataSource: $dataSource');
+  if (dataSource == null) {
+    print('❌ Product data source is not available');
+    throw Exception('Product data source is not available');
+  }
+  print('🔄 getAllProductsIncludingDeletedを呼び出し');
+  final products = await dataSource.getAllProductsIncludingDeleted();
+  print('✅ getAllProductsIncludingDeleted完了: ${products.length}個の商品');
+  return products;
 });

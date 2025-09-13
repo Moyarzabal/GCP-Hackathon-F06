@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:typed_data';
 
 class ImagenService {
   static const String _projectId = 'gcp-f06-barcode';

@@ -7,6 +7,7 @@ import '../../../../shared/providers/app_state_provider.dart';
 import '../../../scanner/presentation/pages/scanner_screen.dart';
 import '../../../../core/services/recipe_service.dart';
 import '../widgets/recipe_card.dart';
+import '../providers/product_provider.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final Product product;
@@ -641,14 +642,27 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       expiryDate: selectedDate,
                     );
                     
-                    // アプリ状態の商品を更新
-                    ref.read(appStateProvider.notifier).updateProduct(updatedProduct);
-                    
-                    // ダイアログを閉じる
-                    Navigator.pop(context);
-
-                    // 編集完了の通知
-                    _showProductUpdatedSnackBar(context, nameController.text);
+                    // Firebaseで商品を更新
+                    ref.read(productProvider.notifier).editProduct(
+                      currentProduct.id!,
+                      updatedProduct,
+                    ).then((result) {
+                      if (result.isSuccess) {
+                        // ダイアログを閉じる
+                        Navigator.pop(context);
+                        
+                        // 編集完了の通知
+                        _showProductUpdatedSnackBar(context, nameController.text);
+                      } else {
+                        // エラー表示
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('商品の更新に失敗しました: ${result.exception?.message}'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    });
                   }
                 },
                 style: ElevatedButton.styleFrom(

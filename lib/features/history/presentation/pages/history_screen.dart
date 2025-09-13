@@ -3,119 +3,167 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/models/product.dart';
 import '../../../../shared/providers/app_state_provider.dart';
+import '../../../products/presentation/pages/product_detail_screen.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({Key? key}) : super(key: key);
   
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final products = ref.watch(productsProvider);
-    final sortedProducts = List<Product>.from(products)
-      ..sort((a, b) {
-        final aDate = a.scannedAt ?? DateTime(0);
-        final bDate = b.scannedAt ?? DateTime(0);
-        return bDate.compareTo(aDate);
-      });
+    final allProductsAsync = ref.watch(allProductsProvider);
     
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('スキャン履歴'),
-      ),
-      body: sortedProducts.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.history,
-                    size: 80,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '履歴がありません',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
+    return allProductsAsync.when(
+      data: (products) {
+        final sortedProducts = List<Product>.from(products)
+          ..sort((a, b) {
+            final aDate = a.scannedAt ?? DateTime(0);
+            final bDate = b.scannedAt ?? DateTime(0);
+            return bDate.compareTo(aDate);
+          });
+    
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('スキャン履歴'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  _reloadHistory(ref);
+                },
+                tooltip: '履歴をリロード',
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: sortedProducts.length,
-              itemBuilder: (context, index) {
-                final product = sortedProducts[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: InkWell(
-                    onTap: () {
-                      // タップ時の処理（必要に応じて実装）
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(8),
+            ],
+          ),
+          body: sortedProducts.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.history,
+                        size: 80,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '履歴がありません',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: sortedProducts.length,
+                  itemBuilder: (context, index) {
+                    final product = sortedProducts[index];
+                    final isDeleted = product.deletedAt != null;
+                    
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      color: isDeleted ? Colors.grey[100] : null,
+                      child: InkWell(
+                        onTap: () {
+                          // 商品詳細画面に遷移
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductDetailScreen(product: product),
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: product.currentImageUrl != null && product.currentImageUrl!.isNotEmpty
-                                  ? _buildImageWidget(product)
-                                  : Center(
-                                      child: Text(
-                                        product.emotionState,
-                                        style: const TextStyle(fontSize: 24),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              // 商品画像
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: SizedBox(
+                                  width: 48,
+                                  height: 48,
+                                  child: product.currentImageUrl != null
+                                      ? _buildImageWidget(product)
+                                      : Container(
+                                          color: Colors.grey[300],
+                                          child: Icon(
+                                            Icons.image,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // 商品情報
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      product.name,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDeleted ? Colors.grey[600] : null,
+                                        decoration: isDeleted ? TextDecoration.lineThrough : null,
                                       ),
                                     ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product.name,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      product.scannedAt != null
+                                          ? '${product.scannedAt!.year}/${product.scannedAt!.month}/${product.scannedAt!.day} ${product.scannedAt!.hour}:${product.scannedAt!.minute.toString().padLeft(2, '0')}'
+                                          : '登録日不明',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    if (isDeleted) ...[
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red[100],
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          '削除済み',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.red[700],
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  product.scannedAt != null 
-                                      ? '${product.scannedAt!.year}/${product.scannedAt!.month}/${product.scannedAt!.day} ${product.scannedAt!.hour}:${product.scannedAt!.minute.toString().padLeft(2, '0')}'
-                                      : '登録日不明',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
+                              ),
+                              // カテゴリチップ
+                              Chip(
+                                label: Text(
+                                  product.category,
+                                  style: const TextStyle(fontSize: 12),
                                 ),
-                              ],
-                            ),
+                                backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                              ),
+                            ],
                           ),
-                          Chip(
-                            label: Text(
-                              product.category,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
+                    );
+                  },
+                ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(
+        child: Text('エラーが発生しました: $error'),
+      ),
     );
   }
 
@@ -143,7 +191,7 @@ class HistoryScreen extends ConsumerWidget {
           },
         );
       } else {
-        // 通常のURLの場合
+        // ネットワーク画像の場合
         return Image.network(
           product.currentImageUrl!,
           width: 48,
@@ -181,5 +229,30 @@ class HistoryScreen extends ConsumerWidget {
         ),
       );
     }
+  }
+
+  /// 履歴データをリロード
+  void _reloadHistory(WidgetRef ref) {
+    print('🔄 履歴データをリロード中...');
+    // allProductsProviderを無効化して再読み込み
+    ref.invalidate(allProductsProvider);
+    
+    // リロード完了のフィードバック
+    ScaffoldMessenger.of(ref.context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          '履歴をリロードしました',
+          style: TextStyle(fontSize: 14),
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: Theme.of(ref.context).colorScheme.primary,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        elevation: 4,
+      ),
+    );
   }
 }

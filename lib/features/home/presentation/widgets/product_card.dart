@@ -7,10 +7,19 @@ import '../../../../shared/providers/app_state_provider.dart';
 class ProductCard extends ConsumerWidget {
   final Product product;
   final VoidCallback onTap;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onLongPress;
+  final VoidCallback? onSelectionToggle;
+  
   const ProductCard({
     Key? key,
     required this.product,
     required this.onTap,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onLongPress,
+    this.onSelectionToggle,
   }) : super(key: key);
   
   @override
@@ -33,12 +42,15 @@ class ProductCard extends ConsumerWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        onTap: onTap,
+        onTap: isSelectionMode ? onSelectionToggle : onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
               Container(
                 width: 60,
                 height: 60,
@@ -105,8 +117,41 @@ class ProductCard extends ConsumerWidget {
                 Icons.chevron_right,
                 color: Colors.grey[400],
               ),
-            ],
-          ),
+                ],
+              ),
+            ),
+            // 選択モード時のオーバーレイ
+            if (isSelectionMode)
+              Positioned(
+                top: 0,
+                left: 0,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                        ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
+                        : Colors.transparent,
+                    border: Border.all(
+                      color: isSelected 
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.grey[400]!,
+                      width: 2,
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    ),
+                  ),
+                  child: Checkbox(
+                    value: isSelected,
+                    onChanged: (value) => onSelectionToggle?.call(),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
