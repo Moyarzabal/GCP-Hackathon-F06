@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../main.dart';
 import '../../shared/providers/app_state_provider.dart';
 import '../../shared/models/product.dart';
+import 'firebase_storage_service.dart';
 
 class ImageGenerationService {
   static const String _baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
@@ -568,16 +570,29 @@ Character pose: Dynamic and energetic, showing vitality
 
   /// 商品の複数段階画像を更新
   static void _updateProductWithMultiStageImages(
-    String productId,
+    dynamic productId,
     Map<ImageStage, String> imageUrls,
     WidgetRef? ref
   ) {
     try {
+      print('🔄 updateProductMultiStageImages called: productId=$productId (${productId.runtimeType})');
+      final productIdString = productId.toString();
+      
+      // まず、ローカル状態を更新（即座に表示）
       if (ref != null) {
-        _updateProductWithMultiStageImagesRef(ref, productId, imageUrls);
+        _updateProductWithMultiStageImagesRef(ref, productIdString, imageUrls);
       } else {
-        _updateProductWithMultiStageImagesGlobal(productId, imageUrls);
+        _updateProductWithMultiStageImagesGlobal(productIdString, imageUrls);
       }
+      
+      // Firebaseに画像を永続化（非同期で実行）
+      _saveImagesToFirebase(productIdString, imageUrls).then((_) {
+        print('✅ Firebase画像保存完了: $productIdString');
+        // Firebase保存完了後、再度ローカル状態を更新（Firebase StorageのURLで）
+        _refreshProductImagesFromFirebase(productIdString, ref);
+      }).catchError((error) {
+        print('❌ Firebase画像保存でエラーが発生: $error');
+      });
     } catch (e) {
       print('❌ 複数段階画像更新エラー: $e');
     }
@@ -717,6 +732,99 @@ Character pose: Dynamic and energetic, showing vitality
     } catch (e) {
       print('❌ 画像解析エラー: $e');
       return _getCharacterFallbackImageUrl(productName, category);
+    }
+  }
+
+  /// Firebaseに画像を永続化
+  static Future<void> _saveImagesToFirebase(
+    String productId,
+    Map<ImageStage, String> imageUrls,
+  ) async {
+    try {
+      print('💾 Firebaseに画像を保存開始: productId=$productId');
+      
+      final firestore = FirebaseFirestore.instance;
+      final productRef = firestore.collection('products').doc(productId);
+      
+      // まず、ドキュメントが存在するか確認
+      final docSnapshot = await productRef.get();
+      if (!docSnapshot.exists) {
+        print('❌ 商品ドキュメントが存在しません: $productId');
+        return;
+      }
+      
+      // Firebase Storageにアップロード
+      final Map<String, String> base64Images = {};
+      for (final entry in imageUrls.entries) {
+        base64Images[entry.key.name] = entry.value;
+      }
+      
+      print('📤 Firebase Storageにアップロード開始: ${base64Images.length}個の画像');
+      final uploadedUrls = await FirebaseStorageService.uploadMultipleBase64Images(
+        base64Images: base64Images,
+        productId: productId,
+      );
+      
+      if (uploadedUrls.isEmpty) {
+        print('❌ Firebase Storageアップロードに失敗しました');
+        return;
+      }
+      
+      print('✅ Firebase Storageアップロード完了: ${uploadedUrls.length}個の画像');
+      print('🔍 アップロードされたURLs: $uploadedUrls');
+      
+      // 商品ドキュメントを更新
+      await productRef.update({
+        'imageUrls': uploadedUrls,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      
+      print('✅ Firebase画像保存完了: ${uploadedUrls.length}個の画像');
+    } catch (e) {
+      print('❌ Firebase画像保存エラー: $e');
+      print('🔍 エラー詳細: ${e.toString()}');
+    }
+  }
+
+  /// Firebaseから商品の画像情報を再読み込みしてローカル状態を更新
+  static void _refreshProductImagesFromFirebase(String productId, WidgetRef? ref) {
+    try {
+      print('🔄 Firebaseから商品画像を再読み込み: $productId');
+      
+      final firestore = FirebaseFirestore.instance;
+      final productRef = firestore.collection('products').doc(productId);
+      
+      productRef.get().then((docSnapshot) {
+        if (docSnapshot.exists) {
+          final data = docSnapshot.data()!;
+          final imageUrlsData = data['imageUrls'] as Map<String, dynamic>?;
+          
+          if (imageUrlsData != null) {
+            // FirestoreのデータをImageStageのMapに変換
+            final Map<ImageStage, String> imageUrls = {};
+            for (final entry in imageUrlsData.entries) {
+              final stage = ImageStage.values.firstWhere(
+                (e) => e.name == entry.key,
+                orElse: () => ImageStage.veryFresh,
+              );
+              imageUrls[stage] = entry.value as String;
+            }
+            
+            print('🔄 Firebaseから読み込んだ画像URLs: $imageUrls');
+            
+            // ローカル状態を更新
+            if (ref != null) {
+              _updateProductWithMultiStageImagesRef(ref, productId, imageUrls);
+            } else {
+              _updateProductWithMultiStageImagesGlobal(productId, imageUrls);
+            }
+          }
+        }
+      }).catchError((error) {
+        print('❌ Firebase画像再読み込みエラー: $error');
+      });
+    } catch (e) {
+      print('❌ Firebase画像再読み込みエラー: $e');
     }
   }
 }

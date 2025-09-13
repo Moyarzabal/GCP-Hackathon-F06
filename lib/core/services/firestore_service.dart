@@ -59,8 +59,8 @@ class FirestoreService {
     }
   }
 
-  // Product operations
-  Future<String> addProduct({
+  // Legacy product operations (for household items)
+  Future<String> addHouseholdItem({
     required String householdId,
     required String productName,
     required String category,
@@ -106,11 +106,11 @@ class FirestoreService {
     return itemId;
   }
 
-  Future<void> updateProduct(String itemId, Map<String, dynamic> updates) async {
+  Future<void> updateHouseholdItem(String itemId, Map<String, dynamic> updates) async {
     await _firestore.collection('items').doc(itemId).update(updates);
   }
 
-  Future<void> deleteProduct(String itemId) async {
+  Future<void> deleteHouseholdItem(String itemId) async {
     await _firestore.collection('items').doc(itemId).delete();
   }
 
@@ -211,5 +211,92 @@ class FirestoreService {
         .where('expiryDate', isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime.now()))
         .orderBy('expiryDate')
         .snapshots();
+  }
+
+  // ProductDataSource interface implementation
+  Future<List<Product>> getAllProducts() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('products')
+          .orderBy('addedDate', descending: true)
+          .get();
+      
+      return querySnapshot.docs
+          .map((doc) => Product.fromFirestore(doc.id, doc.data()))
+          .toList();
+    } catch (e) {
+      print('Error getting all products: $e');
+      return [];
+    }
+  }
+
+  Future<Product?> getProduct(String id) async {
+    try {
+      final doc = await _firestore.collection('products').doc(id).get();
+      
+      if (!doc.exists || doc.data() == null) {
+        return null;
+      }
+      
+      return Product.fromFirestore(doc.id, doc.data()!);
+    } catch (e) {
+      print('Error getting product $id: $e');
+      return null;
+    }
+  }
+
+  Future<String> addProduct(Product product) async {
+    try {
+      final data = product.toFirestore();
+      data['addedDate'] = FieldValue.serverTimestamp();
+      
+      final docRef = await _firestore.collection('products').add(data);
+      return docRef.id;
+    } catch (e) {
+      print('Error adding product: $e');
+      throw Exception('Failed to add product: $e');
+    }
+  }
+
+  Future<void> updateProduct(Product product) async {
+    if (product.id == null) {
+      throw ArgumentError('Product ID is required for update');
+    }
+    
+    try {
+      await _firestore
+          .collection('products')
+          .doc(product.id)
+          .update(product.toFirestore());
+    } catch (e) {
+      print('Error updating product ${product.id}: $e');
+      throw Exception('Failed to update product: $e');
+    }
+  }
+
+  Future<void> deleteProduct(String id) async {
+    try {
+      await _firestore.collection('products').doc(id).delete();
+    } catch (e) {
+      print('Error deleting product $id: $e');
+      throw Exception('Failed to delete product: $e');
+    }
+  }
+
+  Stream<List<Product>> watchProducts() {
+    try {
+      return _firestore
+          .collection('products')
+          .orderBy('addedDate', descending: true)
+          .snapshots()
+          .map((snapshot) {
+            return snapshot.docs
+                .map((doc) => Product.fromFirestore(doc.id, doc.data()))
+                .toList();
+          });
+    } catch (e) {
+      print('Error watching products: $e');
+      return Stream.value([]);
+    }
   }
 }
