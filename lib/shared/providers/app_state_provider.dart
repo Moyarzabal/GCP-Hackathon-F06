@@ -11,12 +11,14 @@ class AppState {
   final bool isLoading;
   final String? error;
   final int selectedBottomNavIndex;
+  final String? currentHouseholdId;
 
   AppState({
     this.products = const [],
     this.isLoading = false,
     this.error,
     this.selectedBottomNavIndex = 0,
+    this.currentHouseholdId,
   });
 
   AppState copyWith({
@@ -24,12 +26,14 @@ class AppState {
     bool? isLoading,
     String? error,
     int? selectedBottomNavIndex,
+    String? currentHouseholdId,
   }) {
     return AppState(
       products: products ?? this.products,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       selectedBottomNavIndex: selectedBottomNavIndex ?? this.selectedBottomNavIndex,
+      currentHouseholdId: currentHouseholdId ?? this.currentHouseholdId,
     );
   }
 }

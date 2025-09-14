@@ -1261,10 +1261,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       print('🎨 複数段階キャラクター生成開始: ${product.name} (${product.category})');
       print('🔍 商品ID: ${product.id}');
       
-      final imageUrls = await ImageGenerationService.generateMultiStageProductIcons(
+      final imageService = ImageGenerationService();
+      final imageUrls = await imageService.generateMultiStageProductIcons(
         productName: product.name,
         category: product.category,
-        productId: product.id, // 商品IDを渡す
+        productId: product.id,
       );
       
       if (imageUrls != null && imageUrls.isNotEmpty) {

@@ -7,6 +7,7 @@ import 'features/home/presentation/pages/home_screen.dart';
 import 'features/scanner/presentation/pages/scanner_screen.dart';
 import 'features/history/presentation/pages/history_screen.dart';
 import 'features/settings/presentation/pages/settings_screen.dart';
+import 'features/meal_planning/presentation/pages/meal_plan_screen.dart';
 import 'shared/providers/app_state_provider.dart';
 import 'shared/widgets/adaptive/adaptive_navigation.dart';
 import 'shared/widgets/adaptive/adaptive_scaffold.dart';
@@ -45,6 +46,7 @@ class MainScreen extends ConsumerWidget {
     
     final pages = [
       const HomeScreen(),
+      const MealPlanScreen(),
       const ScannerScreen(),
       const HistoryScreen(),
       const SettingsScreen(),
@@ -55,6 +57,11 @@ class MainScreen extends ConsumerWidget {
         icon: Icon(Icons.home_outlined),
         selectedIcon: Icon(Icons.home),
         label: 'ホーム',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.restaurant_menu_outlined),
+        selectedIcon: Icon(Icons.restaurant_menu),
+        label: '献立',
       ),
       NavigationDestination(
         icon: Icon(Icons.qr_code_scanner_outlined),
