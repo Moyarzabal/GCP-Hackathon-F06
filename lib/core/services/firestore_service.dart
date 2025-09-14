@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 import '../../shared/models/product.dart';
+import '../../shared/models/meal_plan.dart';
+import '../../shared/models/shopping_item.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -297,6 +299,156 @@ class FirestoreService {
     } catch (e) {
       print('Error watching products: $e');
       return Stream.value([]);
+    }
+  }
+
+  // Meal Plan operations
+  Future<String> saveMealPlan(MealPlan mealPlan) async {
+    try {
+      final data = mealPlan.toFirestore();
+      final docRef = await _firestore.collection('meal_plans').add(data);
+      return docRef.id;
+    } catch (e) {
+      print('Error saving meal plan: $e');
+      throw Exception('Failed to save meal plan: $e');
+    }
+  }
+
+  Future<void> updateMealPlanStatus(String mealPlanId, MealPlanStatus status) async {
+    try {
+      await _firestore.collection('meal_plans').doc(mealPlanId).update({
+        'status': status.name,
+        if (status == MealPlanStatus.accepted) 'acceptedAt': FieldValue.serverTimestamp(),
+        if (status == MealPlanStatus.completed) 'completedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error updating meal plan status: $e');
+      throw Exception('Failed to update meal plan status: $e');
+    }
+  }
+
+  Future<void> updateMealPlanRating(String mealPlanId, double rating) async {
+    try {
+      // 評価は個別のメニューアイテムに保存されるため、ここでは何もしない
+      // 実際の実装では、各メニューアイテムの評価を更新する
+      print('Rating updated for meal plan $mealPlanId: $rating');
+    } catch (e) {
+      print('Error updating meal plan rating: $e');
+      throw Exception('Failed to update meal plan rating: $e');
+    }
+  }
+
+  Future<List<MealPlan>> getMealPlanHistory(
+    String householdId, {
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 50,
+  }) async {
+    try {
+      Query query = _firestore
+          .collection('meal_plans')
+          .where('householdId', isEqualTo: householdId)
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+
+      if (startDate != null) {
+        query = query.where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate));
+      }
+      if (endDate != null) {
+        query = query.where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate));
+      }
+
+      final snapshot = await query.get();
+      return snapshot.docs
+          .map((doc) => MealPlan.fromFirestore(doc.id, doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Error getting meal plan history: $e');
+      return [];
+    }
+  }
+
+  Future<MealPlan?> getMealPlan(String mealPlanId) async {
+    try {
+      final doc = await _firestore.collection('meal_plans').doc(mealPlanId).get();
+      if (doc.exists) {
+        return MealPlan.fromFirestore(doc.id, doc.data() as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      print('Error getting meal plan: $e');
+      return null;
+    }
+  }
+
+  // Shopping List operations
+  Future<String> saveShoppingList(
+    String householdId,
+    String? mealPlanId,
+    List<ShoppingItem> items,
+  ) async {
+    try {
+      final shoppingListId = _uuid.v4();
+      final data = {
+        'householdId': householdId,
+        'mealPlanId': mealPlanId,
+        'items': items.map((item) => item.toFirestore()).toList(),
+        'status': ShoppingListStatus.active.name,
+        'createdAt': FieldValue.serverTimestamp(),
+        'totalEstimatedPrice': items.fold(0.0, (sum, item) => sum + (item.estimatedPrice ?? 0.0)),
+      };
+
+      await _firestore.collection('shopping_lists').doc(shoppingListId).set(data);
+      return shoppingListId;
+    } catch (e) {
+      print('Error saving shopping list: $e');
+      throw Exception('Failed to save shopping list: $e');
+    }
+  }
+
+  Future<String> addShoppingItem(ShoppingItem item) async {
+    try {
+      final data = item.toFirestore();
+      final docRef = await _firestore.collection('shopping_items').add(data);
+      return docRef.id;
+    } catch (e) {
+      print('Error adding shopping item: $e');
+      throw Exception('Failed to add shopping item: $e');
+    }
+  }
+
+  Future<void> updateShoppingItem(String itemId, Map<String, dynamic> updates) async {
+    try {
+      await _firestore.collection('shopping_items').doc(itemId).update(updates);
+    } catch (e) {
+      print('Error updating shopping item: $e');
+      throw Exception('Failed to update shopping item: $e');
+    }
+  }
+
+  Future<void> deleteShoppingItem(String itemId) async {
+    try {
+      await _firestore.collection('shopping_items').doc(itemId).delete();
+    } catch (e) {
+      print('Error deleting shopping item: $e');
+      throw Exception('Failed to delete shopping item: $e');
+    }
+  }
+
+  Future<List<ShoppingItem>> getShoppingList(String householdId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('shopping_items')
+          .where('householdId', isEqualTo: householdId)
+          .orderBy('addedAt', descending: true)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => ShoppingItem.fromFirestore(doc.id, doc.data()))
+          .toList();
+    } catch (e) {
+      print('Error getting shopping list: $e');
+      return [];
     }
   }
 }

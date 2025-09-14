@@ -32,7 +32,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final appState = ref.watch(appStateProvider);
     final productState = ref.watch(productProvider);
     final productNotifier = ref.watch(productProvider.notifier);
-    final availableCategories = ref.watch(availableCategoriesProvider);
+    final availableCategoriesAsync = ref.watch(availableCategoriesProvider);
     final selectionState = ref.watch(productSelectionProvider);
     final selectionNotifier = ref.watch(productSelectionProvider.notifier);
     
@@ -74,24 +74,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             },
           ),
           // カテゴリ選択アイコン
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.filter_list),
-            onSelected: (category) {
-              productNotifier.filterByCategory(category);
-            },
-            itemBuilder: (context) => availableCategories.map((category) {
-              final isSelected = category == productState.selectedCategory;
-              return PopupMenuItem(
-                value: category,
-                child: Row(
-                  children: [
-                    if (isSelected) const Icon(Icons.check, size: 16),
-                    if (isSelected) const SizedBox(width: 8),
-                    Text(category == 'all' ? 'すべて' : category),
-                  ],
-                ),
-              );
-            }).toList(),
+          availableCategoriesAsync.when(
+            data: (availableCategories) => PopupMenuButton<String>(
+              icon: const Icon(Icons.filter_list),
+              onSelected: (category) {
+                productNotifier.filterByCategory(category);
+              },
+              itemBuilder: (context) => availableCategories.map((category) {
+                final isSelected = category == productState.selectedCategory;
+                return PopupMenuItem(
+                  value: category,
+                  child: Row(
+                    children: [
+                      if (isSelected) const Icon(Icons.check, size: 16),
+                      if (isSelected) const SizedBox(width: 8),
+                      Text(category == 'すべて' ? 'すべて' : category),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+            loading: () => const Icon(Icons.filter_list),
+            error: (error, stack) => const Icon(Icons.error),
           ),
           // Material Design Iconsのソートアイコン
           PopupMenuButton<ProductSortType>(

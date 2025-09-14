@@ -34,14 +34,13 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
       return;
     }
 
-    final userState = ref.read(currentUserProvider);
-    if (userState.value == null) return;
-    final user = userState.value!;
+    // TODO: 実際のユーザー情報を取得
+    const userUid = 'default_user';
 
     try {
       final householdId = await ref
           .read(firestoreServiceProvider)
-          .createHousehold(name, user.uid);
+          .createHousehold(name, userUid);
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -73,14 +72,13 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
       return;
     }
 
-    final userState = ref.read(currentUserProvider);
-    if (userState.value == null) return;
-    final user = userState.value!;
+    // TODO: 実際のユーザー情報を取得
+    const userUid = 'default_user';
 
     try {
       await ref
           .read(firestoreServiceProvider)
-          .joinHousehold(code, user.uid);
+          .joinHousehold(code, userUid);
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

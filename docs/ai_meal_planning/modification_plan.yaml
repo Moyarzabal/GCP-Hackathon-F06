@@ -1,0 +1,220 @@
+# ADK API化による献立提案システム改修計画
+modification_plan:
+  architecture:
+    type: "ADK + API + Flutter"
+    backend: "Python ADK + FastAPI"
+    frontend: "Flutter/Dart"
+    communication: "REST API"
+    
+  implementation_phases:
+    phase_1:
+      name: "ADK Python実装"
+      duration: "1-2週間"
+      components:
+        - "Python環境セットアップ"
+        - "ADKエージェント実装"
+        - "FastAPI サーバー構築"
+        - "エージェント間通信"
+        
+    phase_2:
+      name: "Flutter API クライアント"
+      duration: "1週間"
+      components:
+        - "HTTP クライアント実装"
+        - "API レスポンス処理"
+        - "エラーハンドリング"
+        - "既存サービス統合"
+        
+    phase_3:
+      name: "統合・テスト"
+      duration: "1週間"
+      components:
+        - "エンドツーエンドテスト"
+        - "パフォーマンス最適化"
+        - "セキュリティ強化"
+        - "デプロイメント準備"
+
+  adk_agents:
+    ingredient_analysis_agent:
+      responsibility: "食材分析・優先度付け"
+      input: "冷蔵庫商品リスト"
+      output: "分析済み食材リスト"
+      model: "gemini-1.5-pro"
+      temperature: 0.3
+      
+    nutrition_balance_agent:
+      responsibility: "栄養バランス分析"
+      input: "食材リスト + ユーザー設定"
+      output: "栄養分析結果"
+      model: "gemini-1.5-pro"
+      temperature: 0.2
+      
+    recipe_suggestion_agent:
+      responsibility: "料理メニュー提案"
+      input: "食材分析 + 栄養要件"
+      output: "具体的な料理提案"
+      model: "gemini-1.5-pro"
+      temperature: 0.7
+      
+    cooking_optimization_agent:
+      responsibility: "調理最適化"
+      input: "料理リスト"
+      output: "最適化された調理計画"
+      model: "gemini-1.5-pro"
+      temperature: 0.4
+      
+    meal_theme_agent:
+      responsibility: "献立テーマ考案"
+      input: "料理提案"
+      output: "統一感のある献立テーマ"
+      model: "gemini-1.5-pro"
+      temperature: 0.8
+      
+    menu_image_generation_agent:
+      responsibility: "料理画像生成"
+      input: "料理名・説明"
+      output: "高品質料理画像"
+      model: "dall-e-3"
+      temperature: 0.9
+      
+    user_preference_conversation_agent:
+      responsibility: "ユーザー設定対話"
+      input: "自然言語入力"
+      output: "構造化設定データ"
+      model: "gemini-1.5-pro"
+      temperature: 0.6
+
+  api_design:
+    base_url: "https://adk-meal-planning-api.example.com"
+    endpoints:
+      - path: "/api/v1/meal-planning/suggest"
+        method: "POST"
+        description: "献立提案API"
+        
+      - path: "/api/v1/agents/ingredient-analysis"
+        method: "POST"
+        description: "食材分析エージェント"
+        
+      - path: "/api/v1/agents/nutrition-balance"
+        method: "POST"
+        description: "栄養バランスエージェント"
+        
+      - path: "/api/v1/agents/recipe-suggestion"
+        method: "POST"
+        description: "料理提案エージェント"
+        
+      - path: "/api/v1/agents/cooking-optimization"
+        method: "POST"
+        description: "調理最適化エージェント"
+        
+      - path: "/api/v1/agents/meal-theme"
+        method: "POST"
+        description: "献立テーマエージェント"
+        
+      - path: "/api/v1/agents/image-generation"
+        method: "POST"
+        description: "画像生成エージェント"
+        
+      - path: "/api/v1/agents/user-preferences"
+        method: "POST"
+        description: "ユーザー設定対話エージェント"
+
+  data_flow:
+    step_1:
+      action: "Flutter → ADK API"
+      data: "冷蔵庫商品リスト + ユーザー設定"
+      endpoint: "/api/v1/meal-planning/suggest"
+      
+    step_2:
+      action: "ADK エージェント協調"
+      process:
+        - "食材分析エージェント"
+        - "栄養バランスエージェント"
+        - "料理提案エージェント"
+        - "調理最適化エージェント"
+        - "献立テーマエージェント"
+        - "画像生成エージェント"
+        
+    step_3:
+      action: "ADK API → Flutter"
+      data: "完成した献立提案"
+      format: "JSON形式のMealPlan"
+
+  technical_specifications:
+    backend_requirements:
+      python_version: "3.9+"
+      dependencies:
+        - "google-adk>=0.2.0"
+        - "fastapi>=0.104.0"
+        - "uvicorn>=0.24.0"
+        - "pydantic>=2.0.0"
+        - "httpx>=0.25.0"
+        
+    frontend_changes:
+      new_dependencies:
+        - "dio: ^5.4.0"  # HTTP クライアント
+        - "json_annotation: ^4.8.1"  # JSON シリアライゼーション
+        
+      new_services:
+        - "lib/core/services/adk_api_client.dart"
+        - "lib/core/services/multi_agent_meal_planning_service.dart"
+        
+      modified_services:
+        - "lib/core/services/ai_meal_planning_service.dart"  # ADK API呼び出しに変更
+
+  deployment_strategy:
+    backend_deployment:
+      platform: "Google Cloud Run"
+      container: "Docker"
+      environment: "production"
+      scaling: "auto-scaling"
+      
+    frontend_deployment:
+      platform: "既存のFlutterアプリ"
+      integration: "段階的移行"
+      fallback: "既存Gemini API"
+
+  benefits:
+    accuracy_improvement:
+      - "専門エージェントによる高精度分析"
+      - "段階的処理による品質向上"
+      - "エージェント間の協調による最適化"
+      
+    scalability:
+      - "個別エージェントの独立スケーリング"
+      - "新しいエージェントの容易な追加"
+      - "A/Bテストの実現"
+      
+    maintainability:
+      - "責任分離による保守性向上"
+      - "個別テストの実現"
+      - "問題の特定と修正の容易さ"
+
+  risks_and_mitigations:
+    technical_risks:
+      - risk: "API通信の遅延"
+        mitigation: "非同期処理とキャッシュ実装"
+        
+      - risk: "ADK APIの変更"
+        mitigation: "抽象化レイヤーとバージョン管理"
+        
+      - risk: "ネットワーク障害"
+        mitigation: "フォールバック機能とオフライン対応"
+        
+    operational_risks:
+      - risk: "運用コストの増加"
+        mitigation: "効率的なプロンプト設計とキャッシュ"
+        
+      - risk: "システム複雑化"
+        mitigation: "適切なドキュメントとモニタリング"
+
+  success_metrics:
+    performance:
+      - "献立提案精度の向上"
+      - "レスポンス時間の最適化"
+      - "ユーザー満足度の向上"
+      
+    technical:
+      - "API可用性99.9%以上"
+      - "エラー率1%以下"
+      - "平均レスポンス時間3秒以内"
