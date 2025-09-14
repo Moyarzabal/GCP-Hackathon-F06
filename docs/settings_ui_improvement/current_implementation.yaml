@@ -1,0 +1,40 @@
+settings_screen:
+  location: "lib/features/settings/presentation/pages/settings_screen.dart"
+  current_issues:
+    - "データクリアボタンが危険すぎる - 簡単に誤操作できる位置にある"
+    - "確認ダイアログが不十分 - 一度の確認のみで削除実行"
+    - "視覚的な警告が不足 - 危険な操作であることが分かりにくい"
+    - "段階的な確認プロセスがない - 即座に削除処理が実行される"
+    - "データの種類別削除オプションがない - 全データ一括削除のみ"
+  
+  current_ui_structure:
+    data_clear_button:
+      position: "設定画面の最下部"
+      style: "AdaptiveButtonStyle.outlined"
+      text: "データをクリア"
+      confirmation_dialog:
+        title: "データクリア"
+        content: "すべてのデータを削除しますか？この操作は取り消すことができません。"
+        actions:
+          - "キャンセル"
+          - "削除 (isDestructiveAction: true)"
+    
+    problems_identified:
+      - "ボタンが目立たない位置にあるが、誤操作しやすい"
+      - "確認ダイアログが1回のみで不十分"
+      - "削除されるデータの詳細が不明"
+      - "復元不可能であることの警告が不十分"
+      - "段階的な確認プロセスがない"
+
+  data_clear_flow:
+    current_flow:
+      - "ユーザーが「データをクリア」ボタンをタップ"
+      - "確認ダイアログが表示される"
+      - "「削除」ボタンをタップすると即座に削除実行"
+      - "削除処理の実装は未完成（TODOコメントのみ）"
+    
+    safety_concerns:
+      - "誤操作によるデータ損失のリスクが高い"
+      - "削除前の最終確認が不十分"
+      - "削除されるデータの種類が不明確"
+      - "バックアップの確認がない"

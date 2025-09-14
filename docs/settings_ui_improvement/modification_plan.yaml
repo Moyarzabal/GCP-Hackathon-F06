@@ -1,0 +1,87 @@
+ui_improvement_plan:
+  safety_enhancements:
+    multi_step_confirmation:
+      step_1:
+        title: "データクリアの警告"
+        content: "この操作はすべてのデータを永続的に削除します。本当に実行しますか？"
+        visual_warning: "⚠️ 危険な操作"
+        actions:
+          - "キャンセル (推奨)"
+          - "続行 (危険)"
+      
+      step_2:
+        title: "最終確認"
+        content: "削除されるデータ:\n• 商品データ ({{productCount}}件)\n• 履歴データ ({{historyCount}}件)\n• 設定データ\n• ユーザー設定\n\nこの操作は取り消すことができません。"
+        visual_warning: "🚨 最終警告"
+        actions:
+          - "キャンセル"
+          - "完全に削除する"
+    
+    visual_improvements:
+      button_styling:
+        position: "危険な操作セクションに移動"
+        style: "destructive_style"
+        color: "Colors.red"
+        icon: "Icons.warning"
+        text: "データを完全に削除"
+      
+      section_separation:
+        danger_section:
+          title: "⚠️ 危険な操作"
+          background_color: "Colors.red.shade50"
+          border_color: "Colors.red.shade200"
+          description: "以下の操作は取り消すことができません"
+      
+      confirmation_dialog:
+        style: "destructive_dialog"
+        background_color: "Colors.red.shade50"
+        border_color: "Colors.red.shade300"
+        icon: "Icons.warning_amber"
+        icon_color: "Colors.red"
+
+  data_management_options:
+    selective_clear:
+      options:
+        - "商品データのみ削除"
+        - "履歴データのみ削除"
+        - "設定データのみ削除"
+        - "すべてのデータを削除"
+      
+      implementation:
+        radio_buttons: true
+        default_selection: "すべてのデータを削除"
+        confirmation_required: true
+    
+    data_preview:
+      show_data_counts: true
+      data_types:
+        - "商品データ: {{count}}件"
+        - "履歴データ: {{count}}件"
+        - "設定データ: {{count}}件"
+        - "合計: {{totalCount}}件"
+
+  user_experience_improvements:
+    confirmation_flow:
+      step_1: "操作の種類選択"
+      step_2: "データの確認とプレビュー"
+      step_3: "最終確認と警告"
+      step_4: "削除実行と完了通知"
+    
+    safety_measures:
+      - "削除前にデータのバックアップを推奨"
+      - "削除実行までに最低2回の確認"
+      - "削除されるデータの詳細表示"
+      - "操作の取り消し不可能性を明確に表示"
+      - "削除完了後の確認メッセージ"
+
+  implementation_structure:
+    new_components:
+      - "DangerousActionCard - 危険な操作用のカードコンポーネント"
+      - "DataClearDialog - 改善されたデータクリアダイアログ"
+      - "DataPreviewWidget - 削除対象データのプレビュー"
+      - "ConfirmationStepWidget - 段階的確認ウィジェット"
+    
+    file_changes:
+      - "settings_screen.dart - メインの設定画面"
+      - "data_clear_dialog.dart - 新しいダイアログコンポーネント"
+      - "dangerous_action_card.dart - 危険な操作用カード"

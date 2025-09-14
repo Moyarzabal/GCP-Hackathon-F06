@@ -1,0 +1,77 @@
+{
+  "recipes": [
+    {
+      "name": "オムライス",
+      "category": "main",
+      "description": "美味しいオムライス",
+      "ingredients": [
+        {
+          "name": "卵",
+          "quantity": "2個"
+        },
+        {
+          "name": "ご飯",
+          "quantity": "1杯"
+        },
+        {
+          "name": "ケチャップ",
+          "quantity": "2大さじ"
+        }
+      ],
+      "cooking_time": 15,
+      "difficulty": "easy",
+      "nutrition_info": {
+        "calories": 400,
+        "protein": 15,
+        "carbohydrates": 60,
+        "fat": 10
+      },
+      "recipe": {
+        "steps": [
+          {
+            "step_number": 1,
+            "description": "玉ねぎを炒める",
+            "time": 5
+          },
+          {
+            "step_number": 2,
+            "description": "ご飯を炒める",
+            "time": 5
+          },
+          {
+            "step_number": 3,
+            "description": "卵で包む",
+            "time": 5
+          }
+        ],
+        "tips": ["卵は半熟にすると美味しい"],
+        "cooking_time": 15,
+        "difficulty": "easy",
+        "nutrition_info": {
+          "calories": 400,
+          "protein": 15,
+          "carbohydrates": 60,
+          "fat": 10
+        }
+      }
+    }
+  ],
+  "meal_theme": {
+    "theme_name": "和食",
+    "theme_description": "温かい家庭料理",
+    "unified_meal_plan": {
+      "breakfast": "和食朝食",
+      "lunch": "和食昼食",
+      "dinner": "和食夕食"
+    },
+    "visual_style": {
+      "style": "natural",
+      "color": "warm"
+    }
+  },
+  "image_style": {
+    "style": "natural",
+    "lighting": "warm",
+    "background": "simple"
+  }
+}

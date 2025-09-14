@@ -35,30 +35,53 @@ class HistoryScreen extends ConsumerWidget {
             ],
           ),
           body: sortedProducts.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.history,
-                        size: 80,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '履歴がありません',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
+              ? RefreshIndicator(
+                  onRefresh: () async {
+                    _reloadHistory(ref);
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.history,
+                              size: 80,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              '履歴がありません',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '下にドラッグしてリロード',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: sortedProducts.length,
-                  itemBuilder: (context, index) {
+              : RefreshIndicator(
+                  onRefresh: () async {
+                    _reloadHistory(ref);
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: sortedProducts.length,
+                    itemBuilder: (context, index) {
                     final product = sortedProducts[index];
                     final isDeleted = product.deletedAt != null;
                     
@@ -158,6 +181,7 @@ class HistoryScreen extends ConsumerWidget {
                     );
                   },
                 ),
+              ),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),

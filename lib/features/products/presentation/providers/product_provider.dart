@@ -4,6 +4,8 @@ import '../../../../core/errors/app_exception.dart';
 import '../../../../core/errors/result.dart';
 import '../../../../shared/models/product.dart';
 import '../../../../shared/providers/app_state_provider.dart';
+import '../../../../core/services/category_service.dart';
+import '../../../../shared/models/category.dart';
 
 /// ソート方向
 enum SortDirection {
@@ -335,8 +337,15 @@ final filteredProductsProvider = Provider<List<Product>>((ref) {
   return ref.watch(productProvider).filteredProducts;
 });
 
+
 /// デフォルトカテゴリ一覧（商品追加時と同じ）
 const List<String> _defaultCategories = [
+  '野菜',
+  '果物',
+  '肉類',
+  '魚介類',
+  '乳製品',
+  '穀物',
   '飲料',
   '食品', 
   '調味料',
@@ -345,6 +354,23 @@ const List<String> _defaultCategories = [
 ];
 
 /// 利用可能なカテゴリを取得するプロバイダー
-final availableCategoriesProvider = Provider<List<String>>((ref) {
-  return ['すべて', ..._defaultCategories];
+final availableCategoriesProvider = FutureProvider<List<String>>((ref) async {
+  try {
+    final appState = ref.watch(appStateProvider);
+    final householdId = appState.currentHouseholdId;
+    
+    if (householdId == null) {
+      // 世帯IDが取得できない場合はデフォルトカテゴリを返す
+      return ['すべて', ..._defaultCategories];
+    }
+
+    final categoryService = CategoryService();
+    final categories = await categoryService.getCategories(householdId);
+    
+    return ['すべて', ...categories.map((c) => c.name).toList()];
+  } catch (e) {
+    print('Error getting categories: $e');
+    // エラーの場合はデフォルトカテゴリを返す
+    return ['すべて', ..._defaultCategories];
+  }
 });
