@@ -11,7 +11,8 @@ import '../../../fridge/presentation/providers/fridge_view_provider.dart';
 // import '../../../fridge/presentation/widgets/fridge_overview_widget.dart';
 import '../../../fridge/presentation/pages/fridge_section_view.dart';
 // import '../../../fridge/presentation/widgets/realistic_fridge_widget.dart';
-import '../../../fridge/presentation/widgets/tesla_style_fridge_widget.dart';
+// import '../../../fridge/presentation/widgets/tesla_style_fridge_widget.dart';
+import '../../../fridge/presentation/widgets/layered_3d_fridge_widget.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -151,7 +152,7 @@ class HomeScreen extends ConsumerWidget {
       children: [
         if (state.selectedSection == null)
           Expanded(
-            child: TeslaStyleFridgeWidget(
+            child: Layered3DFridgeWidget(
               onSectionTap: (compartment, level) {
                 notifier.selectSection(SelectedFridgeSection(compartment: compartment, level: level));
               },
