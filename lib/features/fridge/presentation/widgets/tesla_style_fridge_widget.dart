@@ -171,12 +171,15 @@ class _TeslaStyleFridgeWidgetState extends ConsumerState<TeslaStyleFridgeWidget>
       builder: (context, constraints) {
         return Stack(
           children: [
-            // 左扉（サイズ拡大に合わせて調整）
+            // 冷蔵室棚（最下層に配置、IgnorePointerで扉が閉じている時はタップを無視）
+            ...List.generate(3, (i) => _buildShelfZone(i, counts, constraints)),
+
+            // 左扉（棚の上に配置、常にタップ可能）
             _buildTouchZone(
               constraints: constraints,
               alignment: Alignment.topLeft,
-              widthFactor: 0.4,  // 扉の幅に合わせて調整
-              heightFactor: 0.55,  // 扉の高さに合わせて拡大
+              widthFactor: 0.45,  // 扉の幅
+              heightFactor: 0.58,  // 扉の高さ（0.05 + 0.58 = 0.63）
               topOffset: 0.05,
               onTap: () => _toggleLeftDoor(),
               onDoubleTap: () =>
@@ -186,12 +189,12 @@ class _TeslaStyleFridgeWidgetState extends ConsumerState<TeslaStyleFridgeWidget>
               badge: _buildTeslaBadge(counts, FridgeCompartment.doorLeft, 0),
             ),
 
-            // 右扉（サイズ拡大に合わせて調整）
+            // 右扉（棚の上に配置、常にタップ可能）
             _buildTouchZone(
               constraints: constraints,
               alignment: Alignment.topRight,
-              widthFactor: 0.4,  // 扉の幅に合わせて調整
-              heightFactor: 0.55,  // 扉の高さに合わせて拡大
+              widthFactor: 0.45,  // 扉の幅
+              heightFactor: 0.58,  // 扉の高さ（0.05 + 0.58 = 0.63）
               topOffset: 0.05,
               onTap: () => _toggleRightDoor(),
               onDoubleTap: () =>
@@ -200,9 +203,6 @@ class _TeslaStyleFridgeWidgetState extends ConsumerState<TeslaStyleFridgeWidget>
               semanticsValue: _rightDoorOpen ? '開' : '閉',
               badge: _buildTeslaBadge(counts, FridgeCompartment.doorRight, 0),
             ),
-
-            // 冷蔵室棚
-            ...List.generate(3, (i) => _buildShelfZone(i, counts, constraints)),
 
             // 野菜室
             _buildTouchZone(
@@ -298,45 +298,33 @@ class _TeslaStyleFridgeWidgetState extends ConsumerState<TeslaStyleFridgeWidget>
   Widget _buildShelfZone(
       int level, Map<String, int> counts, BoxConstraints constraints) {
     final height = constraints.maxHeight;
-    final top = height * (0.28 + level * 0.12);
-    final shelfHeight = height * 0.1;
+    // 扉の範囲（0.05～0.63）を完全に活用するよう棚を配置
+    // 扉の上端0.05から開始し、下端0.63まで使う（高さ0.58）
+    // 3つの棚を隙間なく配置
+    final double shelfSpacing = 0.58 / 3;  // 約0.193333
+    final top = height * (0.05 + level * shelfSpacing);  // 0.05, 0.243333, 0.436666
+    final shelfHeight = height * shelfSpacing;  // 各棚の高さ
 
     return Positioned(
-      left: constraints.maxWidth * 0.15,
-      right: constraints.maxWidth * 0.15,
+      left: constraints.maxWidth * 0.10,  // 扉の幅に合わせて棚の幅も拡大
+      right: constraints.maxWidth * 0.10,
       top: top,
       height: shelfHeight,
-      child: GestureDetector(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          widget.onSectionTap(FridgeCompartment.refrigerator, level);
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '冷蔵室 棚${level + 1}',
-                    style: TextStyle(
-                      color: TeslaStyleColors.textSecondary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: _buildTeslaBadge(
-                    counts, FridgeCompartment.refrigerator, level),
-              ),
-            ],
+      child: IgnorePointer(
+        // 両方の扉が開いていない時はタップを無効化
+        ignoring: !(_leftDoorOpen && _rightDoorOpen),
+        child: GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            widget.onSectionTap(FridgeCompartment.refrigerator, level);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: _buildTeslaBadge(
+                counts, FridgeCompartment.refrigerator, level),
           ),
         ),
       ),
@@ -459,8 +447,8 @@ class TeslaStyleFridgePainter extends CustomPainter {
     // メイン冷蔵庫本体
     _draw3DFridgeBody(canvas, size);
 
-    // 内部照明（棚を含む）を先に描画
-    _drawInteriorLighting(canvas, size);
+    // リアルな冷蔵庫の棚を描画
+    _drawRealisticInterior(canvas, size);
 
     // 引き出し（3Dスライド）
     _draw3DDrawers(canvas, size);
@@ -512,9 +500,7 @@ class TeslaStyleFridgePainter extends CustomPainter {
 
     canvas.drawRRect(mainBody, bodyPaint);
 
-    // サイドパネル（3D効果）
-    _drawSidePanel(canvas, centerX - fridgeWidth / 2, topY, fridgeHeight);
-    _drawSidePanel(canvas, centerX + fridgeWidth / 2, topY, fridgeHeight);
+    // サイドパネルは削除（シンプルなフラット冷蔵庫）
 
     // 微細なエッジハイライト
     final Paint edgePaint = Paint()
@@ -524,32 +510,12 @@ class TeslaStyleFridgePainter extends CustomPainter {
     canvas.drawRRect(mainBody, edgePaint);
   }
 
-  void _drawSidePanel(Canvas canvas, double x, double y, double h) {
-    final double depth = 40;
-    final Path sidePath = Path()
-      ..moveTo(x, y)
-      ..lineTo(x + depth * 0.4, y - depth * 0.2)
-      ..lineTo(x + depth * 0.4, y + h - depth * 0.2)
-      ..lineTo(x, y + h)
-      ..close();
-
-    final Paint sidePaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          TeslaStyleColors.shadow.withOpacity(0.3),
-          TeslaStyleColors.shadow.withOpacity(0.1),
-        ],
-      ).createShader(sidePath.getBounds());
-
-    canvas.drawPath(sidePath, sidePaint);
-  }
+  // _drawSidePanelは削除（シンプルなフラット冷蔵庫）
 
   void _draw3DDoors(Canvas canvas, Size size) {
     final double centerX = size.width / 2;
-    final double doorWidth = size.width * 0.4;  // 扉の幅を拡大
-    final double doorHeight = size.height * 0.55;  // 扉の高さを大幅に拡大して棚全体を覆う
+    final double doorWidth = size.width * 0.45;  // タッチゾーンと同じ幅に統一
+    final double doorHeight = size.height * 0.58;  // 扉の高さ（0.05から0.63まで）
     final double topY = size.height * 0.05;
 
     // 左扉（左側に配置、左端が軸）
@@ -584,87 +550,66 @@ class TeslaStyleFridgePainter extends CustomPainter {
       const Radius.circular(16),
     );
 
-    // 扉のグラデーション
-    final Paint doorPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          TeslaStyleColors.fridgeDoor,
-          TeslaStyleColors.surface,
-          TeslaStyleColors.backgroundSecondary,
-        ],
-      ).createShader(Rect.fromLTWH(x, y, w, h));
-
-    canvas.drawRRect(doorRect, doorPaint);
-
-    // エッジライン
-    final Paint edgePaint = Paint()
-      ..color = TeslaStyleColors.primary.withOpacity(0.4 + angle.abs() * 0.3)
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawRRect(doorRect, edgePaint);
-
-    // 扉の厚み（3D奥行き表現）
+    // 扉が開いているかどうかで描画を変える
     if (angle.abs() > 0.1) {
-      _drawDoorDepth(canvas, x, y, w, h, angle, isLeft);
+      // 扉が開いている場合、裏側（内側）をシンプルな単色で描画
+      final Paint backPaint = Paint()
+        ..color = const Color(0xFFF5F5F5); // シンプルな白系の色
+
+      canvas.drawRRect(doorRect, backPaint);
+    } else {
+      // 扉が閉じている場合、表側のグラデーション
+      final Paint doorPaint = Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            TeslaStyleColors.fridgeDoor,
+            TeslaStyleColors.surface,
+            TeslaStyleColors.backgroundSecondary,
+          ],
+        ).createShader(Rect.fromLTWH(x, y, w, h));
+
+      canvas.drawRRect(doorRect, doorPaint);
+
+      // エッジライン（表面のみ）
+      final Paint edgePaint = Paint()
+        ..color = TeslaStyleColors.primary.withOpacity(0.4)
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke;
+
+      canvas.drawRRect(doorRect, edgePaint);
     }
 
-    // ハンドル（中央寄りに配置）
-    _drawMinimalistHandle(canvas, isLeft ? x + w - 20 : x + 20, y + h / 2);
+    // 扉の厚み効果は削除（シンプルなフラット扉）
+
+    // ハンドル（扉が閉じている場合のみ表示）
+    if (angle.abs() <= 0.1) {
+      _drawMinimalistHandle(canvas, isLeft ? x + w - 20 : x + 20, y + h / 2);
+    }
 
     canvas.restore();
   }
 
-  void _drawDoorDepth(Canvas canvas, double x, double y, double w, double h, double angle, bool isLeft) {
-    // 扉の厚み（手前に開く扉の側面）
-    final double thickness = 12;
-    final double offsetX = math.sin(angle) * thickness;
-    final double offsetZ = math.cos(angle) * thickness - thickness;
-    
-    final Path depthPath = Path();
-    if (isLeft) {
-      // 左扉の側面
-      depthPath.moveTo(x, y);
-      depthPath.lineTo(x + offsetX, y + offsetZ);
-      depthPath.lineTo(x + offsetX, y + h + offsetZ);
-      depthPath.lineTo(x, y + h);
-      depthPath.close();
-    } else {
-      // 右扉の側面
-      depthPath.moveTo(x + w, y);
-      depthPath.lineTo(x + w + offsetX, y + offsetZ);
-      depthPath.lineTo(x + w + offsetX, y + h + offsetZ);
-      depthPath.lineTo(x + w, y + h);
-      depthPath.close();
-    }
-    
-    final Paint depthPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          TeslaStyleColors.shadow.withOpacity(0.4),
-          TeslaStyleColors.shadow.withOpacity(0.2),
-        ],
-      ).createShader(depthPath.getBounds());
-    
-    canvas.drawPath(depthPath, depthPaint);
-  }
+  // _drawDoorDepthは削除（シンプルなフラット扉）
 
   void _drawMinimalistHandle(Canvas canvas, double x, double y) {
+    // 安全性チェック
+    if (!x.isFinite || !y.isFinite) return;
+
     final Paint handlePaint = Paint()
-      ..color = TeslaStyleColors.fridgeHandle
+      ..color = const Color(0xFFCBD5E1) // 直接色を指定
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round;
 
     final double handleLength = 28;
-    canvas.drawLine(
-      Offset(x, y - handleLength / 2),
-      Offset(x, y + handleLength / 2),
-      handlePaint,
-    );
+    final Offset start = Offset(x, y - handleLength / 2);
+    final Offset end = Offset(x, y + handleLength / 2);
+
+    // Offsetの値をチェック
+    if (!start.isFinite || !end.isFinite) return;
+
+    canvas.drawLine(start, end, handlePaint);
   }
 
   void _draw3DDrawers(Canvas canvas, Size size) {
@@ -707,7 +652,7 @@ class TeslaStyleFridgePainter extends CustomPainter {
     // 取っ手
     final double handleY = y + h / 2;
     final Paint handlePaint = Paint()
-      ..color = accentColor.withOpacity(math.min(0.8 + offset.abs() * 0.01, 1.0))
+      ..color = accentColor.withOpacity(math.min(0.8 + offset.abs() * 0.001, 1.0))
       ..strokeWidth = 3.0
       ..strokeCap = StrokeCap.round;
 
@@ -740,87 +685,101 @@ class TeslaStyleFridgePainter extends CustomPainter {
       ..lineTo(x + w, y)
       ..close();
 
-    final Paint depthPaint = Paint()
-      ..color = TeslaStyleColors.shadow.withOpacity(0.3);
-
-    canvas.drawPath(depthPath, depthPaint);
+    // 引き出しの奥行きエフェクトは削除（シンプルなフラット引き出し）
   }
 
-  void _drawInteriorLighting(Canvas canvas, Size size) {
-    final double centerX = size.width / 2;
-    final double topY = size.height * 0.25;
-    final double interiorWidth = size.width * 0.7;
-    final double interiorHeight = size.height * 0.4;
+  void _drawRealisticInterior(Canvas canvas, Size size) {
+    if (leftDoorAngle == 0.0 && rightDoorAngle == 0.0) return;
 
-    // 内部の柔らかい光
+    final double centerX = size.width / 2;
+    final double topY = size.height * 0.05;
+    final double interiorWidth = size.width * 0.8;
+    final double interiorHeight = size.height * 0.58;
+
+    // 内部背景（白い内壁）
     final Rect interiorRect = Rect.fromCenter(
       center: Offset(centerX, topY + interiorHeight / 2),
       width: interiorWidth,
       height: interiorHeight,
     );
 
-    final Paint interiorGlow = Paint()
-      ..shader = RadialGradient(
-        center: Alignment.center,
-        radius: 0.9,
-        colors: [
-          TeslaStyleColors.fridgeInterior,
-          TeslaStyleColors.primary.withOpacity(0.1),
-          Colors.transparent,
-        ],
-      ).createShader(interiorRect);
+    final Paint interiorPaint = Paint()
+      ..color = const Color(0xFFF8F9FA);
 
     canvas.drawRRect(
-      RRect.fromRectAndRadius(interiorRect, const Radius.circular(12)),
-      interiorGlow,
+      RRect.fromRectAndRadius(interiorRect, const Radius.circular(8)),
+      interiorPaint,
     );
 
-    // 棚のライン（微細）
-    for (int i = 0; i < 3; i++) {
-      final double shelfY = topY + (i + 1) * (interiorHeight / 4);
-      _drawShelfLine(canvas, centerX - interiorWidth / 2 + 15, shelfY,
-          centerX + interiorWidth / 2 - 15, shelfY);
+    // 棚板を描画（3つの棚）
+    _drawShelves(canvas, centerX, topY, interiorWidth, interiorHeight);
+
+    // ドアポケットは削除（シンプルな扉のみ）
+  }
+
+  void _drawShelves(Canvas canvas, double centerX, double topY, double width, double height) {
+    final double shelfSpacing = height / 3;
+    final double shelfLeft = centerX - width / 2 + 8;
+    final double shelfRight = centerX + width / 2 - 8;
+    final double shelfDepth = 6; // 棚板の厚み
+
+    for (int i = 1; i < 3; i++) {
+      final double shelfY = topY + i * shelfSpacing;
+
+      // 棚板の影は削除（シンプルなフラット棚）
+
+      // 棚板本体（シンプルなガラス棚）
+      final Paint shelfPaint = Paint()
+        ..color = const Color(0xFFE8F4F8).withOpacity(0.8);
+
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTRB(shelfLeft, shelfY, shelfRight, shelfY + shelfDepth),
+          const Radius.circular(3),
+        ),
+        shelfPaint,
+      );
+
+      // 反射エフェクトは削除（シンプルな棚板）
+
+      // 棚板の前面エッジ（強調）
+      final Paint frontEdgePaint = Paint()
+        ..color = const Color(0xFF90CAF9).withOpacity(0.6)
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke;
+
+      canvas.drawLine(
+        Offset(shelfLeft, shelfY + shelfDepth),
+        Offset(shelfRight, shelfY + shelfDepth),
+        frontEdgePaint,
+      );
+
+      // 棚の支持具（左右に小さな支柱）
+      _drawShelfSupport(canvas, shelfLeft - 3, shelfY, shelfDepth);
+      _drawShelfSupport(canvas, shelfRight + 3, shelfY, shelfDepth);
     }
   }
 
-  void _drawShelfLine(Canvas canvas, double x1, double y1, double x2, double y2) {
-    final Paint shelfPaint = Paint()
-      ..color = TeslaStyleColors.primary.withOpacity(0.2)
-      ..strokeWidth = 1.0
-      ..strokeCap = StrokeCap.round;
+  void _drawShelfSupport(Canvas canvas, double x, double y, double depth) {
+    final Paint supportPaint = Paint()
+      ..color = const Color(0xFFCFD8DC).withOpacity(0.8);
 
-    canvas.drawLine(Offset(x1, y1), Offset(x2, y2), shelfPaint);
+    // 小さな支持具
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(x - 1, y - 2, 2, depth + 4),
+        const Radius.circular(1),
+      ),
+      supportPaint,
+    );
   }
 
+  // _drawDoorPocketsは削除（シンプルな扉のみ）
+
+  // _drawDoorPocket, _drawBottleHolders, _drawPocketLabelは削除（シンプルな扉のみ）
+
   void _drawSubtleShadows(Canvas canvas, Size size) {
-    final double centerX = size.width / 2;
-    final double fridgeWidth = size.width * 0.8;
-    final double fridgeHeight = size.height * 0.9;
-    final double topY = size.height * 0.05;
-
-    // 底面の影
-    final Paint shadowPaint = Paint()
-      ..shader = RadialGradient(
-        center: Alignment.center,
-        radius: 0.8,
-        colors: [
-          TeslaStyleColors.shadow.withOpacity(0.2),
-          Colors.transparent,
-        ],
-      ).createShader(Rect.fromCenter(
-        center: Offset(centerX, topY + fridgeHeight + 20),
-        width: fridgeWidth * 0.9,
-        height: 40,
-      ));
-
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(centerX, topY + fridgeHeight + 20),
-        width: fridgeWidth * 0.9,
-        height: 40,
-      ),
-      shadowPaint,
-    );
+    // 全ての影は削除（シンプルなフラットデザイン）
   }
 
   @override
