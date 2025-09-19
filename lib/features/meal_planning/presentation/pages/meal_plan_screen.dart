@@ -518,25 +518,25 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.restaurant_menu,
-                color: _textColor,
-                size: 28,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                '今日の献立',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: _textColor,
-                ),
-              ),
-            ],
-          ),
+          // Row(
+          //   children: [
+          //     Icon(
+          //       Icons.restaurant_menu,
+          //       color: _textColor,
+          //       size: 28,
+          //     ),
+          //     const SizedBox(width: 12),
+          //     Text(
+          //       '今日の献立',
+          //       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          //         fontWeight: FontWeight.bold,
+          //         color: _textColor,
+          //       ),
+          //     ),
+          //   ],
+          // ),
           
-          const SizedBox(height: 16),
+          // const SizedBox(height: 16),
           
           
           Row(
@@ -563,37 +563,8 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
 
           const SizedBox(height: 12),
 
-          // 新しいフィールドの表示
-          if (mealPlan.popularityScore != null || mealPlan.cookingFrequency != null)
-            Row(
-              children: [
-                if (mealPlan.popularityScore != null) ...[
-                  _buildInfoChip(
-                    icon: Icons.trending_up,
-                    label: mealPlan.popularityDisplayName,
-                    opacity: 0.6,
-                  ),
-                  const SizedBox(width: 12),
-                ],
-                if (mealPlan.cookingFrequency != null) ...[
-                  _buildInfoChip(
-                    icon: Icons.schedule,
-                    label: mealPlan.cookingFrequencyDisplayName,
-                    opacity: 0.5,
-                  ),
-                  const SizedBox(width: 12),
-                ],
-                if (mealPlan.seasonalRelevance != null && mealPlan.seasonalRelevance != 'all') ...[
-                  _buildInfoChip(
-                    icon: Icons.wb_sunny,
-                    label: mealPlan.seasonalRelevanceDisplayName,
-                    opacity: 0.4,
-                  ),
-                ],
-            ],
-          ),
           
-          const SizedBox(height: 12),
+          // const SizedBox(height: 12),
           
           // 信頼度表示
           Row(
@@ -871,26 +842,6 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
           // 買い物リストアイテム
           ...mealPlan.shoppingList!.map((item) => _buildShoppingListItem(item)),
 
-          const SizedBox(height: 16),
-
-          // 買い物リストをFirestoreに保存するボタン
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _saveShoppingList(mealPlan),
-              icon: const Icon(Icons.save),
-              label: const Text('買い物リストを保存'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 1,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -1896,50 +1847,4 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
     }
   }
 
-  void _saveShoppingList(MealPlan mealPlan) async {
-    if (mealPlan.shoppingList == null || mealPlan.shoppingList!.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('買い物リストがありません'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    try {
-      // 買い物リストプロバイダーを使用して保存
-      await ref.read(shoppingListProvider.notifier).generateShoppingList(mealPlan);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('買い物リストを保存しました（${mealPlan.shoppingList!.length}品目）'),
-            backgroundColor: Colors.green,
-            action: SnackBarAction(
-              label: '確認',
-              textColor: Colors.white,
-              onPressed: () {
-                // 買い物リスト画面に遷移（実装予定）
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('買い物リスト画面は準備中です'),
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('買い物リストの保存に失敗しました: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
 }
