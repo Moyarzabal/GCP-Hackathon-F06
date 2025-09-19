@@ -219,6 +219,8 @@ class AIMealPlanningService {
 
 冷蔵庫の食材を活用した具体的な料理名で献立を提案してください。調理法や調味料を含む料理名にしてください。
 
+冷蔵庫にない食材は必ずshoppingListに含めてください。
+
 JSON形式で回答（簡潔に）：
 
 {
@@ -297,9 +299,11 @@ JSON形式で回答（簡潔に）：
   },
   "shoppingList": {
     "requiredIngredients": [
-      {"name": "鶏むね肉", "quantity": 200, "unit": "g", "category": "肉", "estimatedCost": 300}
+      {"name": "鶏むね肉", "quantity": 200, "unit": "g", "category": "肉", "estimatedCost": 300},
+      {"name": "醤油", "quantity": 1, "unit": "本", "category": "調味料", "estimatedCost": 150},
+      {"name": "みりん", "quantity": 1, "unit": "本", "category": "調味料", "estimatedCost": 200}
     ],
-    "totalEstimatedCost": 300
+    "totalEstimatedCost": 650
   },
   "totalCookingTime": 45,
   "difficulty": "easy",
@@ -307,7 +311,11 @@ JSON形式で回答（簡潔に）：
   "confidence": 0.9
 }
 
-重要：有効なJSON形式のみを返し、具体的な料理名を提案してください。
+重要：
+- 有効なJSON形式のみを返してください
+- 具体的な料理名を提案してください
+- 必ずshoppingListフィールドを含めてください
+- 冷蔵庫にない食材は全てshoppingListに含めてください
 ''';
   }
 
@@ -1180,6 +1188,30 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
     final rice = _createRiceFromMainMenu({'name': mainDishName});
     final alternativeRice = _createRiceFromMainMenu({'name': '代替主食'});
 
+    // 基本的な買い物リストを作成
+    final shoppingList = <ShoppingItem>[
+      ShoppingItem(
+        name: '醤油',
+        quantity: '1',
+        unit: '本',
+        category: '調味料',
+        isCustom: false,
+        addedBy: 'fallback_system',
+        addedAt: DateTime.now(),
+        notes: '概算費用: 150円',
+      ),
+      ShoppingItem(
+        name: '塩',
+        quantity: '1',
+        unit: 'パック',
+        category: '調味料',
+        isCustom: false,
+        addedBy: 'fallback_system',
+        addedAt: DateTime.now(),
+        notes: '概算費用: 100円',
+      ),
+    ];
+
     return MealPlan(
       householdId: householdId,
       date: DateTime.now(),
@@ -1198,6 +1230,7 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       confidence: 0.6,
       createdAt: DateTime.now(),
       createdBy: 'fallback_system',
+      shoppingList: shoppingList,
     );
   }
 
