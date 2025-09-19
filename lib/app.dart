@@ -43,7 +43,7 @@ class MainScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final appState = ref.watch(appStateProvider);
     final appNotifier = ref.watch(appStateProvider.notifier);
-    
+
     final pages = [
       const HomeScreen(),
       const MealPlanScreen(),

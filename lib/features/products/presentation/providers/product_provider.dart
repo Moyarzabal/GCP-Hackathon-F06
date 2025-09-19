@@ -77,7 +77,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _applyFilters();
     });
-    
+
     // appStateProviderの変更を監視してフィルタリングを再実行
     _ref.listen(appStateProvider, (previous, next) {
       if (previous?.products != next.products) {
@@ -194,7 +194,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
         details: e.toString(),
         stackTrace: stackTrace,
       );
-      
+
       state = state.copyWith(error: exception.message);
     }
   }
@@ -203,13 +203,13 @@ class ProductNotifier extends StateNotifier<ProductState> {
   Future<Result<void>> editProduct(String productId, Product updatedProduct) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      
+
       // Firebaseで商品を更新
       await _ref.read(appStateProvider.notifier).updateProductInFirebase(updatedProduct);
-      
+
       // フィルターを再適用
       _applyFilters();
-      
+
       state = state.copyWith(isLoading: false);
       return Result.success(null);
     } catch (e, stackTrace) {
@@ -218,12 +218,12 @@ class ProductNotifier extends StateNotifier<ProductState> {
         details: e.toString(),
         stackTrace: stackTrace,
       );
-      
+
       state = state.copyWith(
         isLoading: false,
         error: exception.message,
       );
-      
+
       return Result.failure(exception);
     }
   }
@@ -232,13 +232,13 @@ class ProductNotifier extends StateNotifier<ProductState> {
   Future<Result<void>> deleteProduct(String productId) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      
+
       // Firebaseから商品を削除
       await _ref.read(appStateProvider.notifier).deleteProductFromFirebase(productId);
-      
+
       // フィルターを再適用
       _applyFilters();
-      
+
       state = state.copyWith(isLoading: false);
       return Result.success(null);
     } catch (e, stackTrace) {
@@ -247,12 +247,12 @@ class ProductNotifier extends StateNotifier<ProductState> {
         details: e.toString(),
         stackTrace: stackTrace,
       );
-      
+
       state = state.copyWith(
         isLoading: false,
         error: exception.message,
       );
-      
+
       return Result.failure(exception);
     }
   }
@@ -262,7 +262,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
     print('🗑️ ProductProvider.deleteSelectedProducts: 開始');
     print('   削除対象商品数: ${productIds.length}');
     print('   削除対象商品ID: $productIds');
-    
+
     if (productIds.isEmpty) {
       print('❌ 削除対象商品がありません');
       return Result.success(null);
@@ -270,17 +270,17 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
     try {
       state = state.copyWith(isLoading: true, error: null);
-      
+
       // Firebaseから選択された商品を一括削除
       print('🔄 AppStateProvider.deleteProductsFromFirebaseを呼び出し');
       await _ref.read(appStateProvider.notifier).deleteProductsFromFirebase(productIds);
       print('✅ AppStateProvider.deleteProductsFromFirebase完了');
-      
+
       // フィルターを再適用
       print('🔄 フィルターを再適用');
       _applyFilters();
       print('✅ フィルター再適用完了');
-      
+
       state = state.copyWith(isLoading: false);
       return Result.success(null);
     } catch (e, stackTrace) {
@@ -289,12 +289,12 @@ class ProductNotifier extends StateNotifier<ProductState> {
         details: e.toString(),
         stackTrace: stackTrace,
       );
-      
+
       state = state.copyWith(
         isLoading: false,
         error: exception.message,
       );
-      
+
       return Result.failure(exception);
     }
   }
@@ -319,7 +319,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
 /// 商品管理プロバイダー
 final productProvider = StateNotifierProvider<ProductNotifier, ProductState>((ref) {
   final notifier = ProductNotifier(ref);
-  
+
   // 商品リストが変更されたらフィルターを再適用（遅延実行）
   ref.listen(appStateProvider, (previous, next) {
     if (previous?.products != next.products) {
@@ -328,7 +328,7 @@ final productProvider = StateNotifierProvider<ProductNotifier, ProductState>((re
       });
     }
   });
-  
+
   return notifier;
 });
 
@@ -347,7 +347,7 @@ const List<String> _defaultCategories = [
   '乳製品',
   '穀物',
   '飲料',
-  '食品', 
+  '食品',
   '調味料',
   '冷凍食品',
   'その他'
@@ -358,7 +358,7 @@ final availableCategoriesProvider = FutureProvider<List<String>>((ref) async {
   try {
     final appState = ref.watch(appStateProvider);
     final householdId = appState.currentHouseholdId;
-    
+
     if (householdId == null) {
       // 世帯IDが取得できない場合はデフォルトカテゴリを返す
       return ['すべて', ..._defaultCategories];
@@ -366,7 +366,7 @@ final availableCategoriesProvider = FutureProvider<List<String>>((ref) async {
 
     final categoryService = CategoryService();
     final categories = await categoryService.getCategories(householdId);
-    
+
     return ['すべて', ...categories.map((c) => c.name).toList()];
   } catch (e) {
     print('Error getting categories: $e');

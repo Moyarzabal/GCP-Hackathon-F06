@@ -11,11 +11,12 @@ import '../../../../shared/widgets/adaptive/adaptive_loading.dart';
 import '../../../../shared/widgets/common/error_widget.dart';
 import '../../../products/presentation/providers/product_provider.dart';
 import '../../../../core/services/image_generation_service.dart';
+import '../../../../core/services/product_image_generation_service.dart';
 
 // 共通のカテゴリリスト
 const List<String> _defaultCategories = [
   '飲料',
-  '食品', 
+  '食品',
   '調味料',
   '冷凍食品',
   'その他'
@@ -45,7 +46,7 @@ const Map<String, IconData> _categoryIcons = {
 
 class ScannerScreen extends ConsumerStatefulWidget {
   const ScannerScreen({Key? key}) : super(key: key);
-  
+
   @override
   ConsumerState<ScannerScreen> createState() => _ScannerScreenState();
 }
@@ -66,7 +67,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     DateTime? selectedDate = product.expiryDate; // AI予測日付をデフォルト値に設定
     String selectedCategory = _defaultCategories.contains(product.category) ? product.category : _defaultCategories.first;
     final aiPredictedDate = product.expiryDate; // AI予測日付を保存
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -245,10 +246,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     expiryDate: selectedDate,
                     category: selectedCategory,
                   );
-                  
+
                   // 画像生成を非同期で実行
                   _generateAndAddProduct(updatedProduct, ref, context);
-                  
+
                   Navigator.pop(context);
                   ref.read(scannerProvider.notifier).clearLastScannedCode();
                 },
@@ -262,7 +263,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       ),
     );
   }
-  
+
   void _showManualInput() {
     // 手動登録時はスキャンを停止
     ref.read(scannerProvider.notifier).stopScanning();
@@ -270,7 +271,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     final manufacturerController = TextEditingController();
     String selectedCategory = '食品';
     DateTime? selectedDate;
-    
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -351,7 +352,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // カテゴリセクション
                   _buildInfoSection(
                     context: context,
@@ -405,7 +406,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                   ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // 賞味期限セクション
                   _buildInfoSection(
                     context: context,
@@ -497,11 +498,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                         addedDate: DateTime.now(),
                         expiryDate: selectedDate,
                       );
-                      
+
                       // 画像生成を非同期で実行
                       print('🔍 手動入力商品追加: ${product.name} (${product.category})');
                       await _generateAndAddProduct(product, ref, context);
-                      
+
                       Navigator.pop(context);
                       // 手動登録完了時はスキャンを再開
                       ref.read(scannerProvider.notifier).startScanning();
@@ -561,7 +562,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               message: scannerState.error!,
               onDismiss: () => scannerNotifier.clearError(),
             ),
-          
+
           Expanded(
             child: (scannerState.isCameraActive && scannerState.isScanning)
                 ? Stack(
@@ -752,7 +753,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     ? _buildProcessingState(context, scannerState)
                 : _buildIdleState(context),
           ),
-          
+
           // スキャンボタン
           Container(
             padding: const EdgeInsets.all(16),
@@ -847,7 +848,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       );
     }
   }
-  
+
   Widget _buildIdleState(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -924,7 +925,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              
+
               // メインタイトル
           Text(
                 'バーコードをスキャン',
@@ -937,7 +938,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // サブタイトル
               Text(
                 '商品を冷蔵庫に追加しましょう',
@@ -950,7 +951,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
             ),
           ),
           const SizedBox(height: 48),
-              
+
               // 機能説明カード
               Container(
                 padding: const EdgeInsets.all(20),
@@ -1028,14 +1029,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       ),
     );
   }
-  
+
   void _handleBarcodeDetection(BarcodeCapture capture, ScannerNotifier notifier) async {
     final barcodes = capture.barcodes;
     for (final barcode in barcodes) {
       if (barcode.rawValue != null) {
         // バーコードスキャン処理を実行
         final result = await notifier.onBarcodeScanned(capture);
-        
+
         if (result.isSuccess) {
           final product = result.data!;
           _showProductDialog(product);
@@ -1048,7 +1049,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       }
     }
   }
-  
+
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -1067,7 +1068,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       ),
     );
   }
-  
+
   void _showUnknownProductDialog(String janCode) {
     showDialog(
       context: context,
@@ -1204,40 +1205,86 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     );
   }
 
-  /// 画像生成と商品追加を実行
+  /// 画像生成完了後に商品追加を実行
   Future<void> _generateAndAddProduct(Product product, WidgetRef ref, BuildContext context) async {
     try {
       print('🔄 _generateAndAddProduct開始: ${product.name} (${product.category})');
-      
-      // Firebaseに商品を追加
-      await ref.read(appStateProvider.notifier).addProductToFirebase(product);
-      
-      print('✅ Firebase商品追加完了: ${product.name}');
-      
-      // 商品追加完了の通知を表示（contextが有効な場合のみ）
+
+      // 画像生成ローディングダイアログを表示
       if (context.mounted) {
-        _showProductAddedSnackBar(context, product.name);
+        _showImageGenerationDialog(context, product.name);
       }
-      
-      // 最新の商品情報を取得（IDが設定された状態）
-      final appState = ref.read(appStateProvider);
-      final updatedProduct = appState.products.firstWhere(
-        (p) => p.name == product.name && p.category == product.category,
-        orElse: () => product,
-      );
-      
-      print('🔍 更新された商品情報: ID=${updatedProduct.id}, 名前=${updatedProduct.name}');
-      
-      // 画像生成を非同期で実行（更新された商品情報を使用）
-      print('🎨 画像生成開始: ${updatedProduct.name}');
+
+      print('🎨 画像生成開始: ${product.name}');
+
       try {
-        await _generateImageAsync(updatedProduct);
-        print('✅ 画像生成完了: ${updatedProduct.name}');
-      } catch (e) {
-        print('❌ 画像生成エラー: $e');
+        // 画像生成を先に実行
+        final imageUrls = await ProductImageGenerationService.generateMultiStageProductIcons(
+          productName: product.name,
+          category: product.category,
+          productId: null, // まだFirestoreに保存していないのでnull
+          ref: null,
+        );
+
+        print('✅ 画像生成完了: ${product.name}');
+
+        // 画像生成完了後にFirebaseに商品を追加
+        print('💾 商品をFirestoreに保存中...');
+        await ref.read(appStateProvider.notifier).addProductToFirebase(product);
+        print('✅ Firebase商品追加完了: ${product.name}');
+
+        // 最新の商品情報を取得（IDが設定された状態）
+        final appState = ref.read(appStateProvider);
+        final updatedProduct = appState.products.firstWhere(
+          (p) => p.name == product.name && p.category == product.category,
+          orElse: () => product,
+        );
+
+        // 生成された画像を商品に関連付け
+        if (imageUrls != null && imageUrls.isNotEmpty && updatedProduct.id != null) {
+          ref.read(appStateProvider.notifier).updateProductImages(
+            updatedProduct.id!,
+            imageUrls,
+          );
+        }
+
+        // ローディングダイアログを閉じる
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+
+        // 成功ポップアップを表示
+        if (context.mounted) {
+          _showProductAddedSuccessPopup(context, product.name);
+        }
+
+      } catch (imageError) {
+        print('❌ 画像生成エラー: $imageError');
+
+        // 画像生成に失敗しても商品は追加
+        print('💾 商品をFirestoreに保存中（画像なし）...');
+        await ref.read(appStateProvider.notifier).addProductToFirebase(product);
+        print('✅ Firebase商品追加完了（画像なし）: ${product.name}');
+
+        // ローディングダイアログを閉じる
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+
+        // 成功ポップアップを表示（画像生成失敗の旨を含む）
+        if (context.mounted) {
+          _showProductAddedSuccessPopup(context, product.name, imageGenerationFailed: true);
+        }
       }
+
     } catch (e) {
       print('❌ 商品追加エラー: $e');
+
+      // ローディングダイアログを閉じる
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
       // エラー通知を表示
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1253,32 +1300,117 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   /// 画像生成を非同期で実行（refを使用しない）
   Future<void> _generateImageAsync(Product product) async {
     try {
-      // 賞味期限までの日数を計算
-      final daysUntilExpiry = product.expiryDate != null 
-          ? product.expiryDate!.difference(DateTime.now()).inDays
-          : 7; // デフォルト値
-      
+      // 賞味期限までの日数を計算（現在は使用していないが、将来の拡張のため保持）
+      // final daysUntilExpiry = product.expiryDate != null
+      //     ? product.expiryDate!.difference(DateTime.now()).inDays
+      //     : 7; // デフォルト値
+
       print('🎨 複数段階キャラクター生成開始: ${product.name} (${product.category})');
       print('🔍 商品ID: ${product.id}');
-      
-      final imageService = ImageGenerationService();
-      final imageUrls = await imageService.generateMultiStageProductIcons(
+
+      // refを使用せずに画像生成を実行
+      final imageUrls = await ProductImageGenerationService.generateMultiStageProductIcons(
         productName: product.name,
         category: product.category,
         productId: product.id,
+        ref: null, // refをnullに設定
       );
-      
+
       if (imageUrls != null && imageUrls.isNotEmpty) {
-        // 画像生成完了のログ（商品更新はImageGenerationServiceで実行）
+        final successCount = imageUrls.values.where((url) => url != null).length;
         print('✅ 複数段階キャラクター生成完了: ${product.name}');
-        print('🖼️ 生成された画像数: ${imageUrls.length}');
-        print('ℹ️ 商品更新はImageGenerationServiceで実行されました');
+        print('🖼️ 生成された画像数: $successCount/${imageUrls.length}');
+
+        if (successCount == 0) {
+          print('⚠️ 画像生成に失敗しました。デフォルト画像を使用します。');
+        } else if (successCount < imageUrls.length) {
+          print('⚠️ 一部の画像生成に失敗しました ($successCount/${imageUrls.length})');
+        }
       } else {
         print('⚠️ 複数段階キャラクター生成失敗: ${product.name}');
       }
     } catch (e) {
       print('❌ キャラクター生成エラー: $e');
+      // エラーの詳細をログに記録
+      if (e.toString().contains('Authentication')) {
+        print('🔑 認証エラーが発生しました。APIキーの設定を確認してください。');
+      } else if (e.toString().contains('network')) {
+        print('🌐 ネットワークエラーが発生しました。インターネット接続を確認してください。');
+      }
     }
+  }
+
+  /// 画像生成中のローディングダイアログを表示
+  void _showImageGenerationDialog(BuildContext context, String productName) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(
+                color: Color(0xFF4A90C2),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '$productNameの画像を生成中...',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF2C5F8A),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '少々お待ちください',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// 商品追加完了の成功ポップアップを表示
+  void _showProductAddedSuccessPopup(BuildContext context, String productName, {bool imageGenerationFailed = false}) {
+    final message = imageGenerationFailed
+        ? '$productNameを冷蔵庫に追加しました\n（画像生成は失敗しました）'
+        : '$productNameを冷蔵庫に追加しました';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              imageGenerationFailed ? Icons.warning : Icons.check_circle,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: imageGenerationFailed ? Colors.orange : Colors.green,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
   }
 
   /// 商品追加完了の通知を表示（SnackBarの代わりにダイアログを使用）
@@ -1318,7 +1450,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
         );
       },
     );
-    
+
     // 2秒後に自動で閉じる
     Future.delayed(const Duration(seconds: 2), () {
       if (context.mounted) {
@@ -1701,7 +1833,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final expiry = DateTime(expiryDate.year, expiryDate.month, expiryDate.day);
     final difference = expiry.difference(today).inDays;
-    
+
     if (difference == 0) {
       return '今日';
     } else if (difference == 1) {
@@ -1721,7 +1853,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final expiry = DateTime(expiryDate.year, expiryDate.month, expiryDate.day);
     final difference = expiry.difference(today).inDays;
-    
+
     if (difference < 0) {
       // 過去の日付は赤字
       return Colors.red;

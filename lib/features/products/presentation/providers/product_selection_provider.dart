@@ -66,7 +66,7 @@ class ProductSelectionNotifier extends StateNotifier<ProductSelectionState> {
     print('🗑️ ProductSelectionNotifier.deleteSelectedProducts: 開始');
     print('   選択された商品数: ${state.selectedProductIds.length}');
     print('   選択された商品ID: ${state.selectedProductIds}');
-    
+
     if (state.selectedProductIds.isEmpty) {
       print('❌ 削除する商品が選択されていません');
       return Result.failure(
@@ -83,7 +83,7 @@ class ProductSelectionNotifier extends StateNotifier<ProductSelectionState> {
       final result = await productNotifier.deleteSelectedProducts(
         state.selectedProductIds.toList(),
       );
-      
+
       print('✅ ProductProvider.deleteSelectedProducts完了: ${result.isSuccess}');
 
       if (result.isSuccess) {

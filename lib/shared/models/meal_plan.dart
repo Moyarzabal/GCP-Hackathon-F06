@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'shopping_item.dart';
 
 /// 献立の状態を表す列挙型
 enum MealPlanStatus {
@@ -46,6 +47,13 @@ class MealPlan {
   final MealItem sideDish;
   final MealItem soup;
   final MealItem rice;
+  // もう一品提案機能のための代替メニュー
+  final MealItem? alternativeMainDish;
+  final MealItem? alternativeSideDish;
+  final MealItem? alternativeSoup;
+  final MealItem? alternativeRice;
+  // 追加一品（もう一品ボタンで追加される）
+  final MealItem? additionalDish;
   final int totalCookingTime;
   final DifficultyLevel difficulty;
   final double nutritionScore;
@@ -56,6 +64,13 @@ class MealPlan {
   final DateTime? acceptedAt;
   final DateTime? completedAt;
 
+  // 新しいフィールド（Phase 2で追加）
+  final List<ShoppingItem>? shoppingList;
+  final int? popularityScore;
+  final String? cookingFrequency;
+  final String? seasonalRelevance;
+  final Map<String, dynamic>? refrigeratorUsage;
+
   MealPlan({
     this.id,
     required this.householdId,
@@ -65,6 +80,11 @@ class MealPlan {
     required this.sideDish,
     required this.soup,
     required this.rice,
+    this.alternativeMainDish,
+    this.alternativeSideDish,
+    this.alternativeSoup,
+    this.alternativeRice,
+    this.additionalDish,
     required this.totalCookingTime,
     required this.difficulty,
     required this.nutritionScore,
@@ -74,6 +94,12 @@ class MealPlan {
     required this.createdBy,
     this.acceptedAt,
     this.completedAt,
+    // 新しいフィールド
+    this.shoppingList,
+    this.popularityScore,
+    this.cookingFrequency,
+    this.seasonalRelevance,
+    this.refrigeratorUsage,
   });
 
   /// 献立が完了しているかどうか
@@ -110,14 +136,87 @@ class MealPlan {
 
   /// 賞味期限が近い材料のリスト
   List<Ingredient> get expiringIngredients {
-    return allIngredients.where((ingredient) => 
+    return allIngredients.where((ingredient) =>
       ingredient.available && ingredient.priority == ExpiryPriority.urgent
     ).toList();
   }
 
   /// 献立の表示名
   String get displayName {
-    return '${mainDish.name}、${sideDish.name}、${soup.name}、${rice.name}';
+    return mainDish.name;
+  }
+
+  /// 人気度の表示名
+  String get popularityDisplayName {
+    if (popularityScore == null) return '未評価';
+    switch (popularityScore!) {
+      case 10:
+      case 9:
+        return 'とても人気';
+      case 8:
+      case 7:
+        return '人気';
+      case 6:
+      case 5:
+        return '普通';
+      case 4:
+      case 3:
+        return 'やや人気';
+      case 2:
+      case 1:
+        return 'マイナー';
+      default:
+        return '未評価';
+    }
+  }
+
+  /// 調理頻度の表示名
+  String get cookingFrequencyDisplayName {
+    switch (cookingFrequency) {
+      case 'weekly':
+        return '週1回以上';
+      case 'monthly':
+        return '月1-3回';
+      case 'seasonal':
+        return '季節限定';
+      default:
+        return '未設定';
+    }
+  }
+
+  /// 季節性の表示名
+  String get seasonalRelevanceDisplayName {
+    switch (seasonalRelevance) {
+      case 'spring':
+        return '春';
+      case 'summer':
+        return '夏';
+      case 'autumn':
+        return '秋';
+      case 'winter':
+        return '冬';
+      case 'all':
+        return '通年';
+      default:
+        return '通年';
+    }
+  }
+
+  /// 買い物リストがあるかどうか
+  bool get hasShoppingList => shoppingList != null && shoppingList!.isNotEmpty;
+
+  /// 概算費用を計算
+  double get estimatedTotalCost {
+    if (shoppingList == null) return 0.0;
+    return shoppingList!.fold(0.0, (sum, item) {
+      // ノートから概算費用を抽出
+      final notes = item.notes;
+      final costMatch = RegExp(r'概算費用: (\d+)円').firstMatch(notes);
+      if (costMatch != null) {
+        return sum + double.parse(costMatch.group(1)!);
+      }
+      return sum;
+    });
   }
 
   /// 難易度の表示名
@@ -176,6 +275,11 @@ class MealPlan {
       'sideDish': sideDish.toFirestore(),
       'soup': soup.toFirestore(),
       'rice': rice.toFirestore(),
+      'alternativeMainDish': alternativeMainDish?.toFirestore(),
+      'alternativeSideDish': alternativeSideDish?.toFirestore(),
+      'alternativeSoup': alternativeSoup?.toFirestore(),
+      'alternativeRice': alternativeRice?.toFirestore(),
+      'additionalDish': additionalDish?.toFirestore(),
       'totalCookingTime': totalCookingTime,
       'difficulty': difficulty.name,
       'nutritionScore': nutritionScore,
@@ -185,6 +289,12 @@ class MealPlan {
       'createdBy': createdBy,
       'acceptedAt': acceptedAt != null ? Timestamp.fromDate(acceptedAt!) : null,
       'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
+      // 新しいフィールド
+      'shoppingList': shoppingList?.map((item) => item.toFirestore()).toList(),
+      'popularityScore': popularityScore,
+      'cookingFrequency': cookingFrequency,
+      'seasonalRelevance': seasonalRelevance,
+      'refrigeratorUsage': refrigeratorUsage,
     };
   }
 
@@ -201,6 +311,21 @@ class MealPlan {
       sideDish: MealItem.fromFirestore(data['sideDish'] as Map<String, dynamic>),
       soup: MealItem.fromFirestore(data['soup'] as Map<String, dynamic>),
       rice: MealItem.fromFirestore(data['rice'] as Map<String, dynamic>),
+      alternativeMainDish: data['alternativeMainDish'] != null
+          ? MealItem.fromFirestore(data['alternativeMainDish'] as Map<String, dynamic>)
+          : null,
+      alternativeSideDish: data['alternativeSideDish'] != null
+          ? MealItem.fromFirestore(data['alternativeSideDish'] as Map<String, dynamic>)
+          : null,
+      alternativeSoup: data['alternativeSoup'] != null
+          ? MealItem.fromFirestore(data['alternativeSoup'] as Map<String, dynamic>)
+          : null,
+      alternativeRice: data['alternativeRice'] != null 
+          ? MealItem.fromFirestore(data['alternativeRice'] as Map<String, dynamic>)
+          : null,
+      additionalDish: data['additionalDish'] != null 
+          ? MealItem.fromFirestore(data['additionalDish'] as Map<String, dynamic>)
+          : null,
       totalCookingTime: data['totalCookingTime'] as int,
       difficulty: DifficultyLevel.values.firstWhere(
         (e) => e.name == data['difficulty'],
@@ -213,12 +338,20 @@ class MealPlan {
           .toList() ?? [],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       createdBy: data['createdBy'] as String,
-      acceptedAt: data['acceptedAt'] != null 
-          ? (data['acceptedAt'] as Timestamp).toDate() 
+      acceptedAt: data['acceptedAt'] != null
+          ? (data['acceptedAt'] as Timestamp).toDate()
           : null,
-      completedAt: data['completedAt'] != null 
-          ? (data['completedAt'] as Timestamp).toDate() 
+      completedAt: data['completedAt'] != null
+          ? (data['completedAt'] as Timestamp).toDate()
           : null,
+      // 新しいフィールド
+      shoppingList: (data['shoppingList'] as List<dynamic>?)
+          ?.map((item) => ShoppingItem.fromFirestore('', item as Map<String, dynamic>))
+          .toList(),
+      popularityScore: data['popularityScore'] as int?,
+      cookingFrequency: data['cookingFrequency'] as String?,
+      seasonalRelevance: data['seasonalRelevance'] as String?,
+      refrigeratorUsage: data['refrigeratorUsage'] as Map<String, dynamic>?,
     );
   }
 
@@ -231,6 +364,11 @@ class MealPlan {
     MealItem? sideDish,
     MealItem? soup,
     MealItem? rice,
+    MealItem? alternativeMainDish,
+    MealItem? alternativeSideDish,
+    MealItem? alternativeSoup,
+    MealItem? alternativeRice,
+    MealItem? additionalDish,
     int? totalCookingTime,
     DifficultyLevel? difficulty,
     double? nutritionScore,
@@ -240,6 +378,12 @@ class MealPlan {
     String? createdBy,
     DateTime? acceptedAt,
     DateTime? completedAt,
+    // 新しいフィールド
+    List<ShoppingItem>? shoppingList,
+    int? popularityScore,
+    String? cookingFrequency,
+    String? seasonalRelevance,
+    Map<String, dynamic>? refrigeratorUsage,
   }) {
     return MealPlan(
       id: id ?? this.id,
@@ -250,6 +394,11 @@ class MealPlan {
       sideDish: sideDish ?? this.sideDish,
       soup: soup ?? this.soup,
       rice: rice ?? this.rice,
+      alternativeMainDish: alternativeMainDish ?? this.alternativeMainDish,
+      alternativeSideDish: alternativeSideDish ?? this.alternativeSideDish,
+      alternativeSoup: alternativeSoup ?? this.alternativeSoup,
+      alternativeRice: alternativeRice ?? this.alternativeRice,
+      additionalDish: additionalDish ?? this.additionalDish,
       totalCookingTime: totalCookingTime ?? this.totalCookingTime,
       difficulty: difficulty ?? this.difficulty,
       nutritionScore: nutritionScore ?? this.nutritionScore,
@@ -259,6 +408,12 @@ class MealPlan {
       createdBy: createdBy ?? this.createdBy,
       acceptedAt: acceptedAt ?? this.acceptedAt,
       completedAt: completedAt ?? this.completedAt,
+      // 新しいフィールド
+      shoppingList: shoppingList ?? this.shoppingList,
+      popularityScore: popularityScore ?? this.popularityScore,
+      cookingFrequency: cookingFrequency ?? this.cookingFrequency,
+      seasonalRelevance: seasonalRelevance ?? this.seasonalRelevance,
+      refrigeratorUsage: refrigeratorUsage ?? this.refrigeratorUsage,
     );
   }
 }
@@ -307,7 +462,7 @@ class MealItem {
 
   /// 賞味期限が近い材料のリスト
   List<Ingredient> get expiringIngredients {
-    return ingredients.where((ingredient) => 
+    return ingredients.where((ingredient) =>
       ingredient.available && ingredient.priority == ExpiryPriority.urgent
     ).toList();
   }
@@ -534,7 +689,7 @@ class Ingredient {
       quantity: data['quantity'] as String,
       unit: data['unit'] as String,
       available: data['available'] as bool,
-      expiryDate: data['expiryDate'] != null 
+      expiryDate: data['expiryDate'] != null
           ? DateTime.fromMillisecondsSinceEpoch(data['expiryDate'] as int)
           : null,
       shoppingRequired: data['shoppingRequired'] as bool,
@@ -625,7 +780,7 @@ class Recipe {
 
   /// ベジタリアン対応かどうか
   bool get isVegetarian {
-    return !steps.any((step) => 
+    return !steps.any((step) =>
       step.description.toLowerCase().contains('肉') ||
       step.description.toLowerCase().contains('魚') ||
       step.description.toLowerCase().contains('鶏')
@@ -634,7 +789,7 @@ class Recipe {
 
   /// ビーガン対応かどうか
   bool get isVegan {
-    return isVegetarian && !steps.any((step) => 
+    return isVegetarian && !steps.any((step) =>
       step.description.toLowerCase().contains('卵') ||
       step.description.toLowerCase().contains('乳') ||
       step.description.toLowerCase().contains('バター')
@@ -828,6 +983,19 @@ class NutritionInfo {
       fiber: fiber ?? this.fiber,
       sugar: sugar ?? this.sugar,
       sodium: sodium ?? this.sodium,
+    );
+  }
+
+  /// 空の栄養情報を作成
+  factory NutritionInfo.empty() {
+    return NutritionInfo(
+      calories: 0.0,
+      protein: 0.0,
+      carbohydrates: 0.0,
+      fat: 0.0,
+      fiber: 0.0,
+      sugar: 0.0,
+      sodium: 0.0,
     );
   }
 }

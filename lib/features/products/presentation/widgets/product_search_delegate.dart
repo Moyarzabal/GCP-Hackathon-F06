@@ -5,9 +5,9 @@ import '../pages/product_detail_screen.dart';
 
 class ProductSearchDelegate extends SearchDelegate<Product?> {
   final List<Product> products;
-  
+
   ProductSearchDelegate(this.products);
-  
+
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
@@ -19,7 +19,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
       ),
     ];
   }
-  
+
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
@@ -29,13 +29,13 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
       },
     );
   }
-  
+
   @override
   Widget buildResults(BuildContext context) {
     final results = products
         .where((p) => p.name.toLowerCase().contains(query.toLowerCase()))
         .toList();
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: results.length,
@@ -112,14 +112,14 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
       },
     );
   }
-  
+
   @override
   Widget buildSuggestions(BuildContext context) {
     // 検索前は全商品を表示
     final suggestions = query.isEmpty ? products : products
         .where((p) => p.name.toLowerCase().contains(query.toLowerCase()))
         .toList();
-    
+
     if (query.isEmpty && suggestions.isEmpty) {
       return Center(
         child: Column(

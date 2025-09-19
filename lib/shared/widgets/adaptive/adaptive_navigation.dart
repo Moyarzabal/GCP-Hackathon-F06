@@ -21,7 +21,7 @@ class AdaptiveNavigation extends StatelessWidget {
     if (destinations.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     if (PlatformInfo.isIOS) {
       return _buildCupertinoTabBar(context);
     } else {
@@ -55,7 +55,7 @@ class AdaptiveNavigation extends StatelessWidget {
         ),
       );
     }
-    
+
     return NavigationBar(
       selectedIndex: selectedIndex,
       onDestinationSelected: onDestinationSelected,

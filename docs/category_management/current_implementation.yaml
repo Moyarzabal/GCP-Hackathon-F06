@@ -84,3 +84,4 @@ category_system_analysis:
         - "isActive: bool"
         - "createdAt: Timestamp"
         - "updatedAt: Timestamp"
+

@@ -96,7 +96,7 @@ class Category {
     if (colorHex == null || colorHex.isEmpty) {
       return Colors.grey;
     }
-    
+
     try {
       // #を除去して16進数として解析
       final hex = colorHex.replaceFirst('#', '');
@@ -242,3 +242,4 @@ class DefaultCategories {
     },
   ];
 }
+

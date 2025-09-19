@@ -10,26 +10,26 @@ import '../../shared/models/shopping_item.dart';
 /// ADK API クライアント
 class ADKApiClient {
   static final Logger _logger = Logger('ADKApiClient');
-  
+
   late final Dio _dio;
   final String baseUrl;
 
-  ADKApiClient({String? baseUrl}) 
+  ADKApiClient({String? baseUrl})
       : baseUrl = baseUrl ?? dotenv.env['ADK_API_BASE_URL'] ?? 'http://localhost:8000' {
     _initializeDio();
   }
-  
+
   /// シンプルな画像生成API用のクライアント
   static ADKApiClient forSimpleImageApi() {
-    return ADKApiClient(baseUrl: 'http://172.16.81.23:8002');
+    return ADKApiClient(baseUrl: 'http://localhost:8003');
   }
 
   void _initializeDio() {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 600),  // 接続タイムアウトを10分に延長
-      receiveTimeout: const Duration(seconds: 900), // 受信タイムアウトを15分に延長
-      sendTimeout: const Duration(seconds: 600),     // 送信タイムアウトを10分に延長
+      connectTimeout: const Duration(seconds: 1200),  // 接続タイムアウトを20分に延長
+      receiveTimeout: const Duration(seconds: 1800), // 受信タイムアウトを30分に延長
+      sendTimeout: const Duration(seconds: 1200),     // 送信タイムアウトを20分に延長
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -62,7 +62,7 @@ class ADKApiClient {
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         final responseData = error.response?.data;
-        
+
         if (statusCode == 400) {
           throw ADKApiException(
             responseData?['message'] ?? 'リクエストが無効です',
@@ -291,8 +291,8 @@ class ADKApiClient {
       quantity: data['quantity'] as String,
       unit: data['unit'] as String,
       available: data['available'] as bool? ?? true,
-      expiryDate: data['expiry_date'] != null 
-          ? DateTime.parse(data['expiry_date'] as String) 
+      expiryDate: data['expiry_date'] != null
+          ? DateTime.parse(data['expiry_date'] as String)
           : null,
       shoppingRequired: data['shopping_required'] as bool? ?? false,
       productId: data['product_id'] as String?,
@@ -437,86 +437,138 @@ extension ImageGeneration on ADKApiClient {
     required String prompt,
     String style = 'photorealistic',
     String size = '1024x1024',
+    int maxRetries = 3,
   }) async {
     final startTime = DateTime.now();
-    try {
-      print('🖼️ シンプル画像生成API呼び出し開始');
-      print('   開始時刻: ${startTime.toIso8601String()}');
-      print('   プロンプト: $prompt');
-      print('   スタイル: $style');
-      print('   サイズ: $size');
-      print('   ベースURL: ${_dio.options.baseUrl}');
-      print('   接続タイムアウト: ${_dio.options.connectTimeout}');
-      print('   受信タイムアウト: ${_dio.options.receiveTimeout}');
-      
-      // シンプルな画像生成APIを呼び出し
-      final response = await _dio.post(
-        '/generate-image',
-        data: {
-          'prompt': prompt,
-          'style': style,
-          'size': size,
-        },
-      );
-      
-      if (response.statusCode == 200) {
-        final endTime = DateTime.now();
-        final duration = endTime.difference(startTime);
-        print('✅ シンプル画像生成API成功');
-        print('   終了時刻: ${endTime.toIso8601String()}');
-        print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
-        print('   レスポンスヘッダー: ${response.headers}');
-        print('   レスポンスデータ型: ${response.data.runtimeType}');
-        print('   レスポンスデータ: ${response.data}');
-        
-        // レスポンスから画像URLを取得
-        if (response.data is Map<String, dynamic>) {
-          final data = response.data as Map<String, dynamic>;
-          print('   レスポンスキー: ${data.keys.toList()}');
-          
-          final imageUrl = data['image_url'] as String?;
-          if (imageUrl != null && imageUrl.isNotEmpty) {
-            print('🎯 生成された画像URL: $imageUrl');
-            return {'image_url': imageUrl};
-          } else {
-            print('❌ 画像URLが空またはnullです');
-            print('   image_url値: $imageUrl');
+
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        print('🖼️ シンプル画像生成API呼び出し開始 (試行 $attempt/$maxRetries)');
+        print('   開始時刻: ${startTime.toIso8601String()}');
+        print('   プロンプト: $prompt');
+        print('   スタイル: $style');
+        print('   サイズ: $size');
+        print('   ベースURL: ${_dio.options.baseUrl}');
+        print('   接続タイムアウト: ${_dio.options.connectTimeout}');
+        print('   受信タイムアウト: ${_dio.options.receiveTimeout}');
+
+        // 事前にヘルスチェックを実行
+        print('🔍 サーバーヘルスチェック中...');
+        final isHealthy = await healthCheck();
+        if (!isHealthy) {
+          print('⚠️ サーバーが正常に応答しません。フォールバック処理に移行します。');
+          if (attempt < maxRetries) {
+            print('🔄 リトライします... (${attempt + 1}/$maxRetries)');
+            await Future.delayed(Duration(seconds: 5 * attempt)); // 指数バックオフ
+            continue;
           }
-        } else {
-          print('❌ レスポンスがMap形式ではありません: ${response.data}');
+          return null;
         }
-        return null;
-      } else {
+        print('✅ サーバーは正常に応答しています');
+
+        // シンプルな画像生成APIを呼び出し
+        final response = await _dio.post(
+          '/generate-image',
+          data: {
+            'prompt': prompt,
+            'style': style,
+            'size': size,
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final endTime = DateTime.now();
+          final duration = endTime.difference(startTime);
+          print('✅ シンプル画像生成API成功');
+          print('   終了時刻: ${endTime.toIso8601String()}');
+          print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
+          print('   レスポンスヘッダー: ${response.headers}');
+          print('   レスポンスデータ型: ${response.data.runtimeType}');
+          print('   レスポンスデータ: ${response.data}');
+
+          // レスポンスから画像URLを取得
+          if (response.data is Map<String, dynamic>) {
+            final data = response.data as Map<String, dynamic>;
+            print('   レスポンスキー: ${data.keys.toList()}');
+
+            final imageUrl = data['image_url'] as String?;
+            if (imageUrl != null && imageUrl.isNotEmpty) {
+              print('🎯 生成された画像URL: $imageUrl');
+              return {'image_url': imageUrl};
+            } else {
+              print('❌ 画像URLが空またはnullです');
+              print('   image_url値: $imageUrl');
+            }
+          } else {
+            print('❌ レスポンスがMap形式ではありません: ${response.data}');
+          }
+
+          // レスポンスが無効な場合、リトライ
+          if (attempt < maxRetries) {
+            print('🔄 無効なレスポンスのためリトライします... (${attempt + 1}/$maxRetries)');
+            await Future.delayed(Duration(seconds: 5 * attempt));
+            continue;
+          }
+          return null;
+        } else {
+          final endTime = DateTime.now();
+          final duration = endTime.difference(startTime);
+          print('❌ シンプル画像生成API失敗: ${response.statusCode}');
+          print('   終了時刻: ${endTime.toIso8601String()}');
+          print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
+
+          // ステータスコードエラーの場合、リトライ
+          if (attempt < maxRetries) {
+            print('🔄 ステータスコードエラーのためリトライします... (${attempt + 1}/$maxRetries)');
+            await Future.delayed(Duration(seconds: 5 * attempt));
+            continue;
+          }
+          return null;
+        }
+      } catch (e) {
         final endTime = DateTime.now();
         final duration = endTime.difference(startTime);
-        print('❌ シンプル画像生成API失敗: ${response.statusCode}');
+        print('❌ シンプル画像生成APIエラー (試行 $attempt/$maxRetries): $e');
         print('   終了時刻: ${endTime.toIso8601String()}');
         print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
-        return null;
+        print('   エラー詳細: ${e.toString()}');
+
+        // エラーの種類を判定
+        String errorType = 'その他のエラー';
+        String errorMessage = '画像生成に失敗しました';
+
+        if (e.toString().contains('Connection refused')) {
+          errorType = '接続拒否';
+          errorMessage = 'APIサーバーが起動していない可能性があります。サーバーの起動を確認してください。';
+        } else if (e.toString().contains('timeout')) {
+          errorType = 'タイムアウト';
+          errorMessage = 'ネットワーク接続に時間がかかっています。しばらく待ってから再試行してください。';
+        } else if (e.toString().contains('Failed host lookup')) {
+          errorType = 'ホスト名解決失敗';
+          errorMessage = 'DNSの問題でサーバーに接続できません。ネットワーク設定を確認してください。';
+        } else if (e.toString().contains('SocketException')) {
+          errorType = 'ソケットエラー';
+          errorMessage = 'ネットワーク接続に問題があります。インターネット接続を確認してください。';
+        }
+
+        print('🔍 エラー種別: $errorType');
+        print('📝 エラーメッセージ: $errorMessage');
+
+        // リトライ可能なエラーの場合、リトライ
+        if (attempt < maxRetries && (e.toString().contains('timeout') || e.toString().contains('Connection refused'))) {
+          print('🔄 リトライ可能なエラーのためリトライします... (${attempt + 1}/$maxRetries)');
+          await Future.delayed(Duration(seconds: 5 * attempt));
+          continue;
+        }
+
+        // 最後の試行で失敗した場合、フォールバック
+        if (attempt == maxRetries) {
+          print('🔄 フォールバック: ローカルプレースホルダー画像を使用');
+          return null;
+        }
       }
-    } catch (e) {
-      final endTime = DateTime.now();
-      final duration = endTime.difference(startTime);
-      print('❌ シンプル画像生成APIエラー: $e');
-      print('   終了時刻: ${endTime.toIso8601String()}');
-      print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
-      print('   エラー詳細: ${e.toString()}');
-      
-      // エラーの種類を判定
-      if (e.toString().contains('Connection refused')) {
-        print('🔍 エラー種別: 接続拒否 - APIサーバーが起動していない可能性');
-      } else if (e.toString().contains('timeout')) {
-        print('🔍 エラー種別: タイムアウト - ネットワーク接続の問題');
-      } else if (e.toString().contains('Failed host lookup')) {
-        print('🔍 エラー種別: ホスト名解決失敗 - DNSの問題');
-      } else {
-        print('🔍 エラー種別: その他のエラー');
-      }
-      
-      // フォールバック: ローカルプレースホルダー画像を使用
-      print('🔄 フォールバック: ローカルプレースホルダー画像を使用');
-      // nullを返すことで、UIでローカルプレースホルダーを表示
-      return null;
     }
+
+    return null;
   }
 }

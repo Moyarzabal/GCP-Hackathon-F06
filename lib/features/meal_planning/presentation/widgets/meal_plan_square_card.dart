@@ -8,37 +8,51 @@ class MealPlanSquareCard extends StatelessWidget {
   final bool isSelected;
   final String? imageUrl;
   final bool isAddButton;
+  // 温かみのあるカラーパレット
+  static const Color _baseColor = Color(0xFFF6EACB); // クリーム色
+  static const Color _primaryColor = Color(0xFFD4A574); // 温かいベージュ
+  static const Color _secondaryColor = Color(0xFFB8956A); // 深いベージュ
+  static const Color _accentColor = Color(0xFF8B7355); // ブラウン
+  static const Color _textColor = Color(0xFF5D4E37); // ダークブラウン
 
   const MealPlanSquareCard({
-    Key? key,
+    super.key,
     this.mealItem,
     required this.title,
     this.onTap,
     this.isSelected = false,
     this.imageUrl,
     this.isAddButton = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    print('🔍 MealPlanSquareCard: $title - imageUrl: $imageUrl');
     if (isAddButton) {
       return _buildAddButton(context);
     }
-    
+
     return Container(
       decoration: BoxDecoration(
+        color: _baseColor.withOpacity(0.8),
+        border: Border.all(
+          color: _primaryColor.withOpacity(0.4),
+          width: 2,
+        ),
         borderRadius: BorderRadius.circular(12),
-        border: isSelected
-            ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
-            : null,
+        boxShadow: [
+          BoxShadow(
+            color: _primaryColor.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Material(
-          color: Colors.white,
-          child: InkWell(
-            onTap: onTap,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            color: _baseColor.withOpacity(0.3),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -46,7 +60,7 @@ class MealPlanSquareCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getCategoryColor().withOpacity(0.9),
+                    color: _getCategoryColor(context),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(12),
                       topRight: Radius.circular(12),
@@ -72,19 +86,19 @@ class MealPlanSquareCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 // 画像エリア
                 Expanded(
                   child: Container(
                     width: double.infinity,
                     height: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: _baseColor.withOpacity(0.5),
                     ),
-                    child: _buildImageWidget(),
+                    child: _buildImageWidget(context),
                   ),
                 ),
-                
+
                 // 料理名
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -93,13 +107,14 @@ class MealPlanSquareCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
+                      color: _textColor,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                   ),
                 ),
-                
+
                 // 変更ボタン
                 if (onTap != null)
                   Padding(
@@ -111,14 +126,14 @@ class MealPlanSquareCard extends StatelessWidget {
                         Icon(
                           Icons.refresh,
                           size: 14,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: _accentColor,
                         ),
                         const SizedBox(width: 2),
                         Flexible(
                           child: Text(
                             '変更',
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
+                              color: _accentColor,
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
                             ),
@@ -139,80 +154,83 @@ class MealPlanSquareCard extends StatelessWidget {
   Widget _buildAddButton(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        color: _baseColor.withOpacity(0.8),
         border: Border.all(
-          color: Colors.grey[300]!,
-          style: BorderStyle.solid,
+          color: _primaryColor.withOpacity(0.4),
+          width: 2,
         ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: _primaryColor.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Material(
-        color: Colors.white,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: double.infinity,
-            height: double.infinity,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.add,
-                  size: 48,
-                  color: Colors.grey[400],
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            color: _baseColor.withOpacity(0.4),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add,
+                size: 48,
+                color: _accentColor.withOpacity(0.8),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'もう一品追加',
+                style: TextStyle(
+                  color: _textColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'もう一品追加',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildImageWidget() {
-    print('🖼️ _buildImageWidget: imageUrl = $imageUrl');
-    
+  Widget _buildImageWidget(BuildContext context) {
     if (imageUrl != null) {
-      print('🌐 ネットワーク画像を表示: $imageUrl');
       return Image.network(
         imageUrl!,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          print('❌ 画像読み込みエラー: $imageUrl - $error');
-          return _buildPlaceholderImage();
+          return _buildFallbackNetworkImage(context, mealItem?.name ?? title);
         },
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) {
-            print('✅ 画像読み込み完了: $imageUrl');
             return child;
           }
-          return const Center(
-            child: CircularProgressIndicator(),
+          return Center(
+            child: CircularProgressIndicator(
+              color: _accentColor,
+              strokeWidth: 2,
+            ),
           );
         },
       );
     } else {
-      print('🎨 プレースホルダー画像を表示（imageUrl is null）');
-      return _buildPlaceholderImage();
+      return _buildPlaceholderImage(context);
     }
   }
 
-  Widget _buildPlaceholderImage() {
-    print('🎨 プレースホルダー画像を構築中: $title');
-    
+  Widget _buildPlaceholderImage(BuildContext context) {
     // 料理の種類に応じたアイコンを選択
     IconData iconData;
     String displayText;
-    
+
     switch (title) {
       case '主菜':
         iconData = Icons.restaurant_menu;
@@ -234,9 +252,7 @@ class MealPlanSquareCard extends StatelessWidget {
         iconData = Icons.restaurant;
         displayText = '料理';
     }
-    
-    print('🎨 プレースホルダー画像: $displayText, アイコン: $iconData');
-    
+
     return Container(
       width: double.infinity,
       height: double.infinity,
@@ -249,42 +265,25 @@ class MealPlanSquareCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.green[100]!,
-            Colors.green[50]!,
+            _baseColor.withOpacity(0.8),
+            _baseColor.withOpacity(0.6),
           ],
-        ),
-        border: Border.all(
-          color: Colors.red,
-          width: 2,
         ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            color: Colors.blue[200],
-            child: Icon(
-              iconData,
-              size: 48,
-              color: Colors.green[600],
-            ),
+          Icon(
+            iconData,
+            size: 48,
+            color: _accentColor.withOpacity(0.8),
           ),
           const SizedBox(height: 8),
           Text(
             displayText,
             style: TextStyle(
-              color: Colors.green[700],
+              color: _textColor,
               fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            'DEBUG',
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 8,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -293,18 +292,60 @@ class MealPlanSquareCard extends StatelessWidget {
     );
   }
 
-  Color _getCategoryColor() {
+  /// フォールバック用のネットワーク画像を構築
+  Widget _buildFallbackNetworkImage(BuildContext context, String dishName) {
+    final dishLower = dishName.toLowerCase();
+    String fallbackUrl;
+
+    // 料理タイプに応じたフォールバック画像
+    if (dishLower.contains('炒め') || dishLower.contains('焼き')) {
+      fallbackUrl = 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('煮') || dishLower.contains('煮物')) {
+      fallbackUrl = 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('サラダ') || dishLower.contains('野菜') || dishLower.contains('キャベツ')) {
+      fallbackUrl = 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('汁物') || dishLower.contains('スープ') || dishLower.contains('味噌汁')) {
+      fallbackUrl = 'https://images.unsplash.com/photo-1547592180-85f173990554?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('肉') || dishLower.contains('豚') || dishLower.contains('鶏')) {
+      fallbackUrl = 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('魚') || dishLower.contains('鮭') || dishLower.contains('鯖')) {
+      fallbackUrl = 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=512&h=512&fit=crop';
+    } else {
+      // デフォルトの料理画像
+      fallbackUrl = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=512&h=512&fit=crop';
+    }
+
+    return Image.network(
+      fallbackUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        // フォールバック画像も失敗した場合はプレースホルダーを表示
+        return _buildPlaceholderImage(context);
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            color: _accentColor,
+            strokeWidth: 2,
+          ),
+        );
+      },
+    );
+  }
+
+  Color _getCategoryColor(BuildContext context) {
     switch (title) {
       case '主菜':
-        return Colors.red;
+        return _primaryColor.withOpacity(0.9);
       case '副菜':
-        return Colors.green;
+        return _primaryColor.withOpacity(0.8);
       case '汁物':
-        return Colors.blue;
-      case '主食':
-        return Colors.orange;
+        return _primaryColor.withOpacity(0.7);
+      case 'もう一品':
+        return _accentColor.withOpacity(0.8);
       default:
-        return Colors.grey;
+        return _secondaryColor.withOpacity(0.7);
     }
   }
 }

@@ -18,11 +18,11 @@ class FirestoreProductDataSource implements ProductDataSource {
           .where('deletedAt', isNull: true) // 論理削除されていない商品のみ取得
           .orderBy('addedDate', descending: true)
           .get();
-      
+
       final products = querySnapshot.docs
           .map((doc) => Product.fromFirestore(doc.id, doc.data()))
           .toList();
-      
+
       Logger.debug('Successfully fetched ${products.length} products');
       return products;
     } on FirebaseException catch (e) {
@@ -42,11 +42,11 @@ class FirestoreProductDataSource implements ProductDataSource {
           .collection(_collection)
           .orderBy('addedDate', descending: true)
           .get();
-      
+
       final products = querySnapshot.docs
           .map((doc) => Product.fromFirestore(doc.id, doc.data()))
           .toList();
-      
+
       Logger.debug('Successfully fetched ${products.length} products (including deleted)');
       return products;
     } on FirebaseException catch (e) {
@@ -63,12 +63,12 @@ class FirestoreProductDataSource implements ProductDataSource {
     try {
       Logger.debug('Fetching product with id: $id');
       final doc = await _firestore.collection(_collection).doc(id).get();
-      
+
       if (!doc.exists || doc.data() == null) {
         Logger.debug('Product with id $id not found');
         return null;
       }
-      
+
       final product = Product.fromFirestore(doc.id, doc.data()!);
       Logger.debug('Successfully fetched product: ${product.name}');
       return product;
@@ -87,7 +87,7 @@ class FirestoreProductDataSource implements ProductDataSource {
       Logger.debug('Adding product: ${product.name}');
       final data = product.toFirestore();
       data['addedDate'] = FieldValue.serverTimestamp();
-      
+
       final docRef = await _firestore.collection(_collection).add(data);
       Logger.debug('Successfully added product with id: ${docRef.id}');
       return docRef.id;
@@ -105,7 +105,7 @@ class FirestoreProductDataSource implements ProductDataSource {
     if (product.id == null) {
       throw ArgumentError('Product ID is required for update');
     }
-    
+
     try {
       Logger.debug('Updating product: ${product.name} (${product.id})');
       await _firestore
@@ -145,7 +145,7 @@ class FirestoreProductDataSource implements ProductDataSource {
     print('🗑️ FirestoreProductDataSource.deleteProducts: 開始');
     print('   削除対象商品数: ${productIds.length}');
     print('   削除対象商品ID: $productIds');
-    
+
     if (productIds.isEmpty) {
       print('❌ 削除対象商品がありません');
       Logger.debug('No products to delete');
@@ -155,7 +155,7 @@ class FirestoreProductDataSource implements ProductDataSource {
     try {
       Logger.debug('Soft deleting ${productIds.length} products: $productIds');
       print('🔄 Firestore batch操作で一括論理削除を実行');
-      
+
       // Firestore batch操作を使用して一括論理削除
       final batch = _firestore.batch();
       final now = DateTime.now();
@@ -166,7 +166,7 @@ class FirestoreProductDataSource implements ProductDataSource {
           {'deletedAt': now.millisecondsSinceEpoch}
         );
       }
-      
+
       print('🔄 Firestore batch操作をコミット');
       await batch.commit();
       print('✅ Firestore batch操作完了');

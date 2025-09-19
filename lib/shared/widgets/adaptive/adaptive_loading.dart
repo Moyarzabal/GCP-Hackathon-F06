@@ -6,7 +6,7 @@ import '../../../core/platform/platform_info.dart';
 class AdaptiveLoading extends StatelessWidget {
   final Color? color;
   final double? size;
-  
+
   const AdaptiveLoading({
     Key? key,
     this.color,
@@ -21,7 +21,7 @@ class AdaptiveLoading extends StatelessWidget {
         radius: (size ?? 20.0) / 2,
       );
     }
-    
+
     return SizedBox(
       width: size,
       height: size,

@@ -27,15 +27,15 @@ class AlternativeMealPlansDialog extends StatelessWidget {
           children: [
             // ヘッダー
             _buildHeader(context),
-            
+
             // 現在の献立
             _buildCurrentMealPlan(context),
-            
+
             // 代替案リスト
             Expanded(
               child: _buildAlternativesList(context),
             ),
-            
+
             // フッター
             _buildFooter(context),
           ],
@@ -158,7 +158,7 @@ class AlternativeMealPlansDialog extends StatelessWidget {
   Widget _buildAlternativesList(BuildContext context) {
     // モックデータ - 実際の実装では、AIから代替案を取得
     final alternatives = _generateMockAlternatives();
-    
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: alternatives.length,
@@ -226,14 +226,14 @@ class AlternativeMealPlansDialog extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 // メニューアイテムのプレビュー
                 _buildMenuItemsPreview(alternative),
-                
+
                 const SizedBox(height: 12),
-                
+
                 // 情報バー
                 Row(
                   children: [

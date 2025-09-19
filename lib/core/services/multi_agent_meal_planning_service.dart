@@ -9,7 +9,7 @@ import 'adk_api_client.dart';
 /// ADK APIを使用して複数の専門エージェントによる献立提案を提供
 class MultiAgentMealPlanningService {
   static final Logger _logger = Logger('MultiAgentMealPlanningService');
-  
+
   final ADKApiClient _apiClient;
 
   MultiAgentMealPlanningService({ADKApiClient? apiClient})

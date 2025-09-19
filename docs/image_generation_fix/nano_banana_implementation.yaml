@@ -1,0 +1,113 @@
+nano_banana_image_generation:
+  overview: "商品追加時の画像生成をnano bananaに変更した実装"
+  
+  changes_made:
+    image_generation_service:
+      file: "lib/core/services/image_generation_service.dart"
+      modifications:
+        - "generateMultiStageProductIconsメソッドをnano banana使用に変更"
+        - "_generateProductImageWithNanoBananaメソッドを追加"
+        - "_buildNanoBananaPromptメソッドを追加"
+        - "ADKApiClient.forSimpleImageApi()を使用"
+        - "旧メソッドは互換性のため保持"
+  
+  nano_banana_integration:
+    client: "ADKApiClient.forSimpleImageApi()"
+    endpoint: "http://172.16.81.23:8002/generate-image"
+    api_type: "シンプル画像生成API"
+    
+    request_format:
+      prompt: "商品名: 感情説明 絵文字 kawaii character, カテゴリ food item, chibi style, simple design, white background, 512x512"
+      style: "kawaii"
+      size: "512x512"
+    
+    response_format:
+      image_url: "生成された画像のURL"
+      prompt: "使用されたプロンプト"
+      generation_time: "生成にかかった時間"
+  
+  emotion_states:
+    fresh:
+      emoji: "😊"
+      description: "happy and fresh, bright colors, smiling face, sparkles around"
+      prompt_example: "りんご: happy and fresh, bright colors, smiling face, sparkles around 😊 kawaii character, 果物 food item, chibi style, simple design, white background, 512x512"
+    
+    warning:
+      emoji: "😐"
+      description: "neutral expression, slightly concerned, pastel colors"
+      prompt_example: "りんご: neutral expression, slightly concerned, pastel colors 😐 kawaii character, 果物 food item, chibi style, simple design, white background, 512x512"
+    
+    urgent:
+      emoji: "😟"
+      description: "worried expression, sweat drops, muted colors, looking anxious"
+      prompt_example: "りんご: worried expression, sweat drops, muted colors, looking anxious 😟 kawaii character, 果物 food item, chibi style, simple design, white background, 512x512"
+    
+    veryFresh:
+      emoji: "😊"
+      description: "very happy and energetic, bright vibrant colors, excited expression"
+      prompt_example: "りんご: very happy and energetic, bright vibrant colors, excited expression 😊 kawaii character, 果物 food item, chibi style, simple design, white background, 512x512"
+    
+    expired:
+      emoji: "💀"
+      description: "zombie-like appearance, expired and spooky, dark colors, ghost-like"
+      prompt_example: "りんご: zombie-like appearance, expired and spooky, dark colors, ghost-like 💀 kawaii character, 果物 food item, chibi style, simple design, white background, 512x512"
+  
+  implementation_flow:
+    1: "商品追加時に_generateImageAsyncが呼び出される"
+    2: "ImageGenerationService.generateMultiStageProductIconsが実行される"
+    3: "5つの感情状態の画像を並列で生成"
+    4: "_generateProductImageWithNanoBananaが各画像を生成"
+    5: "ADKApiClient.forSimpleImageApi()でnano banana APIを呼び出し"
+    6: "生成された画像URLを返す"
+    7: "エラー時はフォールバック画像を使用"
+  
+  error_handling:
+    connection_errors:
+      - "接続拒否: APIサーバーが起動していない"
+      - "タイムアウト: ネットワーク接続の問題"
+      - "ホスト名解決失敗: DNSの問題"
+    
+    api_errors:
+      - "レスポンスがnull: フォールバック画像を使用"
+      - "画像URLが空: フォールバック画像を使用"
+      - "生成失敗: フォールバック画像を使用"
+    
+    logging:
+      - "🎨 nano banana商品画像生成開始"
+      - "✅ nano banana画像生成成功"
+      - "⚠️ nano banana画像生成失敗"
+      - "❌ nano banana個別画像生成エラー"
+  
+  advantages:
+    - "シンプルなAPI設計で安定性が高い"
+    - "専用の画像生成サーバーで高速処理"
+    - "エラーハンドリングが充実"
+    - "詳細なログ出力でデバッグが容易"
+  
+  testing_recommendations:
+    unit_tests:
+      - "_generateProductImageWithNanoBananaのテスト"
+      - "_buildNanoBananaPromptのテスト"
+      - "エラーハンドリングのテスト"
+    
+    integration_tests:
+      - "nano banana APIとの統合テスト"
+      - "並列画像生成のテスト"
+      - "フォールバック機能のテスト"
+    
+    manual_tests:
+      - "商品追加での画像生成確認"
+      - "各感情状態の画像生成確認"
+      - "エラー時の適切な処理確認"
+  
+  monitoring:
+    success_metrics:
+      - "nano banana API呼び出し成功率"
+      - "画像生成成功率"
+      - "平均生成時間"
+    
+    error_metrics:
+      - "接続エラー発生率"
+      - "APIエラー発生率"
+      - "フォールバック使用率"
+

@@ -242,3 +242,4 @@ MealItem _createMockMealItem(String name) {
     createdAt: DateTime.now(),
   );
 }
+

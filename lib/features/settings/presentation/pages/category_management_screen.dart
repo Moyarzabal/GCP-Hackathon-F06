@@ -34,14 +34,14 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
 
       final appState = ref.read(appStateProvider);
       final householdId = appState.currentHouseholdId;
-      
+
       if (householdId == null) {
         throw Exception('世帯IDが取得できません');
       }
 
       // カテゴリ一覧を取得
       final categories = await _categoryService.getCategories(householdId);
-      
+
       // カテゴリの使用状況を取得
       final usage = await _categoryService.getCategoryUsage(householdId);
 
@@ -156,7 +156,7 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
       itemBuilder: (context, index) {
         final category = _categories[index];
         final usageCount = _categoryUsage[category.name] ?? 0;
-        
+
         return _buildCategoryCard(category, usageCount, index);
       },
     );
@@ -257,7 +257,7 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
     try {
       final appState = ref.read(appStateProvider);
       final householdId = appState.currentHouseholdId;
-      
+
       if (householdId != null) {
         await _categoryService.updateCategoryOrder(_categories);
       }
@@ -296,7 +296,7 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
     try {
       final appState = ref.read(appStateProvider);
       final householdId = appState.currentHouseholdId;
-      
+
       if (householdId == null) {
         throw Exception('世帯IDが取得できません');
       }
@@ -340,15 +340,15 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
     try {
       final appState = ref.read(appStateProvider);
       final householdId = appState.currentHouseholdId;
-      
+
       if (householdId == null) {
         throw Exception('世帯IDが取得できません');
       }
 
       // カテゴリ名の重複チェック（自分自身は除外）
       final isUnique = await _categoryService.isCategoryNameUnique(
-        householdId, 
-        name, 
+        householdId,
+        name,
         excludeId: _categories.firstWhere((c) => c.name == name).id,
       );
       if (!isUnique) {
@@ -386,7 +386,7 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
 
   void _showDeleteCategoryDialog(Category category) {
     final usageCount = _categoryUsage[category.name] ?? 0;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

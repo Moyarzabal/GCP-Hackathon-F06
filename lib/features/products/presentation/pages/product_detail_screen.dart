@@ -11,7 +11,7 @@ import '../providers/product_provider.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final Product product;
-  
+
   const ProductDetailScreen({
     Key? key,
     required this.product,
@@ -22,7 +22,7 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
-  
+
   @override
   Widget build(BuildContext context) {
     // 商品の状態を監視して最新の商品情報を取得
@@ -425,7 +425,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     final manufacturerController = TextEditingController(text: currentProduct.manufacturer ?? '');
     String selectedCategory = currentProduct.category;
     DateTime? selectedDate = currentProduct.expiryDate;
-    
+
     // 商品追加時と同じ色定数を使用（白ベース）
     const _dialogBackgroundColor = Colors.white; // 背景色（白）
     const _blockBackgroundColor = Color(0xFFE8F4FD); // ブロック背景色（薄い青系）
@@ -433,7 +433,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     const _textColor = Color(0xFF2C5F8A); // テキスト色（最も濃い青系）
     const _innerUIBackgroundColor = Color(0xFFF0F8FF); // UI内のUI背景色（薄い青系）
     const _innerUIBorderColor = Color(0xFFB8D8F0); // UI内のUIボーダー色（中間の青系）
-    
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -514,7 +514,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // カテゴリセクション
                     _buildInfoSection(
                       context: context,
@@ -559,7 +559,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // 賞味期限セクション
                     _buildInfoSection(
                       context: context,
@@ -641,7 +641,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       category: selectedCategory,
                       expiryDate: selectedDate,
                     );
-                    
+
                     // Firebaseで商品を更新
                     ref.read(productProvider.notifier).editProduct(
                       currentProduct.id!,
@@ -650,7 +650,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       if (result.isSuccess) {
                         // ダイアログを閉じる
                         Navigator.pop(context);
-                        
+
                         // 編集完了の通知
                         _showProductUpdatedSnackBar(context, nameController.text);
                       } else {
@@ -1020,7 +1020,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   String _formatExpiryDate(DateTime date) {
     final now = DateTime.now();
     final difference = date.difference(now).inDays;
-    
+
     if (difference < 0) {
       return '期限切れ';
     } else if (difference == 0) {
@@ -1036,7 +1036,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   Color _getExpiryDateColor(DateTime date) {
     final now = DateTime.now();
     final difference = date.difference(now).inDays;
-    
+
     if (difference < 0) {
       return Colors.red;
     } else if (difference <= 3) {
@@ -1082,7 +1082,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         );
       },
     );
-    
+
     // 2秒後に自動で閉じる
     Future.delayed(const Duration(seconds: 2), () {
       if (context.mounted) {
@@ -1098,14 +1098,14 @@ class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
   final Color? valueColor;
-  
+
   const _DetailRow({
     required this.icon,
     required this.label,
     required this.value,
     this.valueColor,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return Padding(

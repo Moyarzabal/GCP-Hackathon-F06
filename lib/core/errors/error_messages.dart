@@ -96,7 +96,7 @@ class ErrorCodes {
         return 'ネットワークに接続できません';
       case networkSlowConnection:
         return 'ネットワーク接続が遅くなっています';
-      
+
       // 認証関連
       case authInvalidCredentials:
         return 'ログイン情報が正しくありません';
@@ -106,7 +106,7 @@ class ErrorCodes {
         return 'アクセス権限がありません';
       case authBiometricNotAvailable:
         return '生体認証が利用できません';
-      
+
       // データベース関連
       case databaseConnectionFailed:
         return 'データベースに接続できません';
@@ -116,7 +116,7 @@ class ErrorCodes {
         return 'データベースが破損しています';
       case databaseMigrationFailed:
         return 'データベースの更新に失敗しました';
-      
+
       // バリデーション関連
       case validationRequiredField:
         return '必須項目が入力されていません';
@@ -126,7 +126,7 @@ class ErrorCodes {
         return '値が範囲外です';
       case validationDuplicateValue:
         return '重複する値が入力されています';
-      
+
       // スキャナー関連
       case scannerPermissionDenied:
         return 'カメラの使用権限がありません';
@@ -136,7 +136,7 @@ class ErrorCodes {
         return 'バーコードが検出されませんでした';
       case scannerImageProcessingFailed:
         return '画像の処理に失敗しました';
-      
+
       // API関連
       case apiServerError:
         return 'サーバーエラーが発生しました';
@@ -146,7 +146,7 @@ class ErrorCodes {
         return 'サーバーからの応答が無効です';
       case apiServiceUnavailable:
         return 'サービスが一時的に利用できません';
-      
+
       default:
         return '未知のエラーが発生しました';
     }

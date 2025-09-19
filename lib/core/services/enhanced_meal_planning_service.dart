@@ -11,10 +11,10 @@ import 'ai_meal_planning_service.dart';
 /// ADK APIと従来のGemini APIの両方をサポートし、フォールバック機能を提供
 class EnhancedMealPlanningService {
   static final Logger _logger = Logger('EnhancedMealPlanningService');
-  
+
   final MultiAgentMealPlanningService _adkService;
   final AIMealPlanningService _fallbackService;
-  
+
   bool _isADKAvailable = false;
 
   EnhancedMealPlanningService({
@@ -88,12 +88,12 @@ class EnhancedMealPlanningService {
       }
     } catch (e) {
       _logger.severe('献立提案エラー', e);
-      
+
       // ADK APIでエラーが発生した場合は従来のサービスにフォールバック
       if (_isADKAvailable) {
         _logger.info('ADK APIエラーのため従来のサービスにフォールバック');
         _isADKAvailable = false; // 一時的に無効化
-        
+
         try {
           return await _fallbackService.suggestMealPlan(
             refrigeratorItems: refrigeratorItems,
@@ -157,12 +157,12 @@ class EnhancedMealPlanningService {
       }
     } catch (e) {
       _logger.severe('代替献立提案エラー', e);
-      
+
       // フォールバック処理
       if (_isADKAvailable) {
         _logger.info('ADK APIエラーのため従来のサービスにフォールバック');
         _isADKAvailable = false;
-        
+
         try {
           return await _fallbackService.suggestAlternatives(
             originalMealPlan: originalMealPlan,

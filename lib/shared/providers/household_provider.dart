@@ -6,14 +6,14 @@ import '../../features/auth/presentation/providers/auth_provider.dart';
 final userHouseholdProvider = StreamProvider<Map<String, dynamic>?>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return Stream.value(null);
-  
+
   return FirebaseFirestore.instance
       .collection('households')
       .where('members', arrayContains: user.id)
       .snapshots()
       .map((snapshot) {
     if (snapshot.docs.isEmpty) return null;
-    
+
     final doc = snapshot.docs.first;
     return {
       'id': doc.id,
@@ -52,7 +52,7 @@ class FirestoreService {
   Future<Map<String, dynamic>?> getHousehold(String householdId) async {
     final doc = await _firestore.collection('households').doc(householdId).get();
     if (!doc.exists) return null;
-    
+
     return {
       'id': doc.id,
       ...doc.data()!,
@@ -66,9 +66,9 @@ class FirestoreService {
         .where('inviteCode', isEqualTo: code)
         .limit(1)
         .get();
-    
+
     if (query.docs.isEmpty) return null;
-    
+
     final doc = query.docs.first;
     return {
       'id': doc.id,

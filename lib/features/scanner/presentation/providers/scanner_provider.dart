@@ -10,7 +10,7 @@ import '../../../../core/services/gemini_service.dart';
 // 共通のカテゴリリスト
 const List<String> _defaultCategories = [
   '飲料',
-  '食品', 
+  '食品',
   '調味料',
   '冷凍食品',
   'その他'
@@ -82,7 +82,7 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
   Future<Result<void>> initializeCamera() async {
     try {
       state = state.copyWith(isScanning: true, error: null);
-      
+
       _controller = MobileScannerController(
         detectionSpeed: DetectionSpeed.normal,
         facing: CameraFacing.back,
@@ -101,7 +101,7 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
         details: e.toString(),
         stackTrace: stackTrace,
       );
-      
+
       state = state.copyWith(
         error: exception.message,
         isScanning: false,
@@ -117,22 +117,22 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
     try {
       final barcode = capture.barcodes.first;
       final code = barcode.rawValue;
-      
+
       if (code == null || code.isEmpty) {
         throw const ScannerException('バーコードが読み取れませんでした');
       }
 
       // 重複スキャンを防ぐ（3秒以内の同じバーコードは無視）
       final now = DateTime.now();
-      if (state.lastScannedCode == code && 
-          state.lastScannedTime != null && 
+      if (state.lastScannedCode == code &&
+          state.lastScannedTime != null &&
           now.difference(state.lastScannedTime!).inSeconds < 3) {
         return Result.failure(const ScannerException('同じバーコードが検出されました'));
       }
 
       print('🔍 バーコード検出: $code');
       print('📊 状態更新: isScanning=false, isProcessingProduct=true');
-      
+
       state = state.copyWith(
         lastScannedCode: code,
         lastScannedTime: now,
@@ -140,14 +140,14 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
         isProcessingProduct: true, // 商品情報処理中
         error: null,
       );
-      
+
       print('✅ 状態更新完了: ${state.isScanning}, ${state.isProcessingProduct}');
 
       // JAN Code APIから商品情報を取得
       print('🔍 商品情報取得開始...');
       final productInfo = await _janCodeService.getProductWithFallback(code);
       print('📦 商品情報取得完了: ${productInfo != null ? '成功' : '失敗'}');
-      
+
       if (productInfo == null) {
         throw const ScannerException('商品情報が見つかりませんでした');
       }
@@ -187,8 +187,8 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
 
       return Result.success(product);
     } catch (e, stackTrace) {
-      final exception = e is ScannerException 
-          ? e 
+      final exception = e is ScannerException
+          ? e
           : ScannerException(
               'バーコードスキャンに失敗しました',
               details: e.toString(),
@@ -246,10 +246,10 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
   String? _extractJson(String text) {
     final jsonStart = text.indexOf('{');
     if (jsonStart == -1) return null;
-    
+
     final jsonEnd = text.lastIndexOf('}');
     if (jsonEnd == -1) return null;
-    
+
     return text.substring(jsonStart, jsonEnd + 1);
   }
 
