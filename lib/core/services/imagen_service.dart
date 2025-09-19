@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -6,7 +7,7 @@ class ImagenService {
   static const String _projectId = 'gcp-f06-barcode';
   static const String _location = 'asia-northeast1';
   static const String _apiEndpoint = 'https://asia-northeast1-aiplatform.googleapis.com';
-  
+
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   Future<String?> generateCharacterImage({
@@ -17,10 +18,10 @@ class ImagenService {
     try {
       // Get access token (in production, use proper authentication)
       final accessToken = await _getAccessToken();
-      
+
       // Create prompt based on emotion state
       final prompt = _createPrompt(productName, emotionState, category);
-      
+
       // Call Vertex AI Imagen API
       final response = await http.post(
         Uri.parse('$_apiEndpoint/v1/projects/$_projectId/locations/$_location/publishers/google/models/imagen-3.0-generate-001:predict'),
@@ -48,23 +49,28 @@ class ImagenService {
         final data = json.decode(response.body);
         if (data['predictions'] != null && data['predictions'].isNotEmpty) {
           final imageBase64 = data['predictions'][0]['bytesBase64Encoded'];
-          
+
           // Upload to Firebase Storage
           final imageUrl = await _uploadToStorage(imageBase64, productName, emotionState);
           return imageUrl;
         }
       }
-      
-      return null;
+
+      print('⚠️ Vertex AI API呼び出し失敗: ${response.statusCode}');
+      return _getFallbackImage(emotionState);
     } catch (e) {
-      print('Error generating character image: $e');
+      print('❌ キャラクター画像生成エラー: $e');
+      // 認証エラーの場合はフォールバック画像を返す
+      if (e.toString().contains('Authentication') || e.toString().contains('access token')) {
+        print('🔑 認証エラーのため、フォールバック画像を使用します');
+      }
       return _getFallbackImage(emotionState);
     }
   }
 
   String _createPrompt(String productName, String emotionState, String category) {
     final basePrompt = 'Cute kawaii Japanese mascot character representing $productName ($category food item), ';
-    
+
     switch (emotionState) {
       case '😊':
         return basePrompt + 'happy and fresh, bright colors, smiling face, sparkles around, chibi style, simple design';
@@ -86,15 +92,15 @@ class ImagenService {
       final bytes = base64Decode(base64Image);
       final fileName = '${productName}_${emotionState}_${DateTime.now().millisecondsSinceEpoch}.png';
       final ref = _storage.ref().child('character_images/$fileName');
-      
+
       final uploadTask = ref.putData(
         bytes,
         SettableMetadata(contentType: 'image/png'),
       );
-      
+
       final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
-      
+
       return downloadUrl;
     } catch (e) {
       print('Error uploading image to storage: $e');
@@ -103,10 +109,28 @@ class ImagenService {
   }
 
   Future<String> _getAccessToken() async {
-    // In production, implement proper authentication
-    // For now, this is a placeholder
-    // You should use Application Default Credentials or Service Account
-    return 'YOUR_ACCESS_TOKEN';
+    try {
+      // Application Default Credentialsを使用してアクセストークンを取得
+      // 本番環境では、Google Cloud認証が設定されている必要があります
+
+      // まず、環境変数からサービスアカウントキーを確認
+      final serviceAccountKey = Platform.environment['GOOGLE_APPLICATION_CREDENTIALS'];
+      if (serviceAccountKey != null) {
+        print('🔑 サービスアカウントキーが見つかりました: $serviceAccountKey');
+        // 実際の実装では、サービスアカウントキーを使用してトークンを取得
+        // ここでは簡易的な実装として、エラーを投げてフォールバックに移行
+        throw Exception('Service account authentication not implemented');
+      }
+
+      // 開発環境では、gcloud auth application-default login で設定された認証を使用
+      // 実際の実装では、Google Auth Libraryを使用してトークンを取得
+      print('⚠️ 認証が設定されていません。フォールバック画像を使用します。');
+      throw Exception('Authentication not configured');
+    } catch (e) {
+      print('❌ 認証エラー: $e');
+      // 認証に失敗した場合は例外を投げて、呼び出し元でフォールバック処理を実行
+      throw Exception('Failed to get access token: $e');
+    }
   }
 
   String _getFallbackImage(String emotionState) {
@@ -136,21 +160,21 @@ class ImagenService {
     required String category,
   }) async {
     final cacheKey = '${productName}_$emotionState';
-    
+
     if (_imageCache.containsKey(cacheKey)) {
       return _imageCache[cacheKey];
     }
-    
+
     final imageUrl = await generateCharacterImage(
       productName: productName,
       emotionState: emotionState,
       category: category,
     );
-    
+
     if (imageUrl != null) {
       _imageCache[cacheKey] = imageUrl;
     }
-    
+
     return imageUrl;
   }
 

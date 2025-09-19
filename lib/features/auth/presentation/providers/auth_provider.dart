@@ -59,9 +59,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> _checkAuthStatus() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      
+
       final result = await _authRepository.getCurrentUser();
-      
+
       result.fold(
         (failure) {
           state = state.copyWith(
@@ -101,12 +101,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// メールアドレスとパスワードでログイン
   Future<Result<User>> signInWithEmail(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     final result = await _signIn.execute(SignInParams(
       email: email,
       password: password,
     ));
-    
+
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -129,9 +129,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Googleサインイン
   Future<Result<User>> signInWithGoogle() async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     final result = await _signIn.executeGoogleSignIn();
-    
+
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -154,13 +154,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// メールアドレスとパスワードでアカウント作成
   Future<Result<User>> createAccount(String email, String password, String displayName) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     final result = await _createAccount.execute(CreateAccountParams(
       email: email,
       password: password,
       displayName: displayName,
     ));
-    
+
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -183,9 +183,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// ログアウト
   Future<Result<void>> signOut() async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     final result = await _signOut.execute();
-    
+
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -208,9 +208,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// パスワードリセット
   Future<Result<void>> resetPassword(String email) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     final result = await _authRepository.resetPassword(email);
-    
+
     return result.fold(
       (failure) {
         state = state.copyWith(

@@ -1,0 +1,512 @@
+name: "もう一品機能強化 - 更新後実装"
+version: "1.0"
+date: "2025-01-19"
+author: "Claude AI Assistant"
+
+# 「もう一品」機能強化後の完成形
+
+## 実装概要
+
+### 機能強化内容
+- 献立生成時に追加料理（主菜・副菜・汁物・おつまみ）も同時生成
+- MealPlanモデルに追加料理フィールド追加
+- 事前生成された料理の即座表示
+- 冷蔵庫食材に基づく最適化
+
+### アーキテクチャ変更
+- AIサービスの拡張プロンプト実装
+- データモデルの拡張
+- UI表示ロジックの改善
+
+## 詳細実装仕様
+
+### 1. データモデル拡張
+
+#### MealPlan クラスの拡張
+**ファイル**: `lib/shared/models/meal_plan.dart`
+
+```yaml
+new_fields:
+  additionalDishes:
+    type: "Map<String, MealItem>?"
+    description: "ジャンル別追加料理マップ"
+    keys: ["主菜", "副菜", "汁物", "おつまみ"]
+  
+  additionalDishesGenerated:
+    type: "bool"
+    description: "追加料理生成済みフラグ"
+    default: false
+  
+  additionalDishesGeneratedAt:
+    type: "DateTime?"
+    description: "追加料理生成日時"
+
+new_methods:
+  getAdditionalDish:
+    signature: "MealItem? getAdditionalDish(String dishType)"
+    description: "指定ジャンルの追加料理を取得"
+  
+  hasAdditionalDish:
+    signature: "bool hasAdditionalDish(String dishType)"
+    description: "追加料理の存在確認"
+  
+  availableAdditionalDishTypes:
+    signature: "List<String> get availableAdditionalDishTypes"
+    description: "利用可能なジャンルリスト"
+  
+  additionalDishCount:
+    signature: "int get additionalDishCount"
+    description: "追加料理の総数"
+
+firestore_integration:
+  toFirestore:
+    additional_fields:
+      - "additionalDishes: Map<String, dynamic>?"
+      - "additionalDishesGenerated: bool"
+      - "additionalDishesGeneratedAt: Timestamp?"
+  
+  fromFirestore:
+    parsing_logic: "Map<String, dynamic>からMealItemに変換"
+    error_handling: "不正データの適切な処理"
+```
+
+#### データ構造例
+```json
+{
+  "additionalDishes": {
+    "主菜": {
+      "name": "豚の生姜焼き",
+      "description": "メイン料理とは異なるアプローチの主菜",
+      "cookingTime": 25,
+      "difficulty": "easy",
+      "ingredients": [
+        {"name": "豚ロース", "quantity": "200", "unit": "g", "available": false},
+        {"name": "玉ねぎ", "quantity": "1", "unit": "個", "available": true}
+      ],
+      "recipe": {
+        "steps": ["豚肉を切る", "玉ねぎを切る", "炒める", "調味料で味付け"]
+      }
+    },
+    "副菜": {
+      "name": "ほうれん草のお浸し",
+      "description": "栄養豊富な緑黄色野菜の一品"
+    },
+    "汁物": {
+      "name": "コーンスープ",
+      "description": "優しい味わいの洋風スープ"
+    },
+    "おつまみ": {
+      "name": "きゅうりの浅漬け",
+      "description": "さっぱりとした箸休め"
+    }
+  },
+  "additionalDishesGenerated": true,
+  "additionalDishesGeneratedAt": "2025-01-19T10:00:00Z"
+}
+```
+
+### 2. AI サービス拡張
+
+#### AIMealPlanningService の強化
+**ファイル**: `lib/core/services/ai_meal_planning_service.dart`
+
+```yaml
+enhanced_prompt_structure:
+  basic_meals_section:
+    - mainDish: "基本主菜"
+    - sideDish: "基本副菜"
+    - soup: "基本汁物"
+    - rice: "主食"
+  
+  additional_dishes_section:
+    - additionalMainDish: "追加主菜（メインのバリエーション）"
+    - additionalSideDish: "追加副菜（野菜中心）"
+    - additionalSoup: "追加汁物（スープ系バリエーション）"
+    - snack: "おつまみ（簡単一品）"
+
+prompt_optimization:
+  refrigerator_analysis:
+    - ingredient_categorization: "食材のカテゴリ分析"
+    - expiry_prioritization: "賞味期限による優先度付け"
+    - quantity_consideration: "必要量と在庫量の考慮"
+  
+  dish_generation_strategy:
+    - variety_assurance: "基本料理との重複回避"
+    - ingredient_efficiency: "食材の効率的活用"
+    - difficulty_balance: "調理難易度のバランス"
+    - nutrition_complementarity: "栄養補完性"
+
+response_parsing_enhancement:
+  json_structure_validation:
+    - required_sections: "basicMeals, additionalDishes"
+    - optional_sections: "shoppingList, mealPlanSummary"
+    - error_recovery: "部分的データでも処理継続"
+  
+  meal_item_construction:
+    - ingredient_mapping: "冷蔵庫食材との照合"
+    - availability_marking: "材料の利用可能性マーク"
+    - recipe_step_parsing: "手順の構造化"
+```
+
+#### 拡張プロンプト例
+```yaml
+prompt_template: |
+  あなたは日本の家庭料理のエキスパートです。冷蔵庫の食材を活用した献立を提案してください。
+
+  【基本方針】
+  1. 基本4品構成（主菜・副菜・汁物・主食）の献立を提案
+  2. さらに追加料理として以下も提案：
+     - 追加主菜（メイン料理のバリエーション）
+     - 追加副菜（野菜中心の一品）
+     - 追加汁物（スープ系のバリエーション）
+     - おつまみ（簡単な一品料理）
+  3. 冷蔵庫の食材を最大限活用
+  4. 基本料理と追加料理の重複を避ける
+  5. 栄養バランスと調理時間を考慮
+
+  【冷蔵庫の食材】
+  {ingredients_list}
+
+  【出力形式】
+  JSON形式で基本献立と追加料理を含む完全な提案
+
+expected_output_structure:
+  basicMeals:
+    mainDish: "基本主菜の詳細"
+    sideDish: "基本副菜の詳細"
+    soup: "基本汁物の詳細"
+    rice: "主食の詳細"
+  
+  additionalDishes:
+    additionalMainDish: "追加主菜の詳細"
+    additionalSideDish: "追加副菜の詳細"
+    additionalSoup: "追加汁物の詳細"
+    snack: "おつまみの詳細"
+  
+  shoppingList:
+    requiredIngredients: "必要な買い物リスト"
+    totalEstimatedCost: "概算費用"
+  
+  mealPlanSummary:
+    totalCookingTime: "総調理時間"
+    difficulty: "難易度"
+    nutritionScore: "栄養スコア"
+    confidence: "信頼度"
+```
+
+### 3. UI実装強化
+
+#### 追加料理表示ダイアログ
+**ファイル**: `lib/features/meal_planning/presentation/widgets/additional_dish_display_dialog.dart`
+
+```yaml
+dialog_structure:
+  header_section:
+    - dish_type_badge: "ジャンル表示"
+    - dish_name: "料理名"
+    - close_button: "閉じるボタン"
+  
+  content_section:
+    - description: "料理の説明"
+    - cooking_info: "調理時間・難易度・カロリー"
+    - ingredients_list: "材料リスト（利用可能性表示）"
+    - recipe_steps: "調理手順"
+  
+  action_section:
+    - close_button: "閉じる"
+    - add_to_meal_button: "献立に追加"
+
+visual_design:
+  color_scheme: "既存のクリーム色基調"
+  layout: "スクロール可能なダイアログ"
+  ingredient_indicators:
+    - available: "緑のドット"
+    - unavailable: "オレンジのドット + カートアイコン"
+  
+  step_indicators:
+    - numbered_circles: "手順番号の円形表示"
+    - clear_typography: "読みやすいフォント"
+
+interaction_design:
+  tap_behaviors:
+    - header_close: "ダイアログを閉じる"
+    - ingredient_tap: "将来的に詳細表示"
+    - add_button: "献立への追加処理"
+  
+  feedback:
+    - success_snackbar: "追加成功メッセージ"
+    - error_handling: "適切なエラー表示"
+```
+
+#### 既存UIの強化
+**ファイル**: `lib/features/meal_planning/presentation/pages/meal_plan_screen.dart`
+
+```yaml
+enhanced_selection_dialog:
+  dynamic_options:
+    - availability_check: "生成済み追加料理の確認"
+    - dish_preview: "料理名と簡単な説明表示"
+    - cooking_time_display: "調理時間の表示"
+  
+  improved_layout:
+    - enhanced_dish_option: "料理詳細プレビュー"
+    - visual_indicators: "利用可能性の視覚表示"
+    - consistent_styling: "既存UIとの統一"
+
+error_handling_enhancement:
+  generation_check:
+    - no_additional_dishes: "追加料理未生成時の適切な案内"
+    - partial_generation: "一部生成失敗時の処理"
+    - network_errors: "通信エラー時の適切な表示"
+  
+  user_guidance:
+    - regeneration_suggestion: "再生成の提案"
+    - alternative_options: "代替手段の提示"
+    - clear_error_messages: "分かりやすいエラーメッセージ"
+
+performance_optimization:
+  lazy_loading:
+    - on_demand_display: "選択時に詳細読み込み"
+    - cache_management: "適切なキャッシュ管理"
+  
+  memory_efficiency:
+    - image_optimization: "画像の遅延読み込み"
+    - data_cleanup: "不要データの適切な解放"
+```
+
+### 4. 統合とテスト
+
+#### 統合テストシナリオ
+```yaml
+complete_flow_test:
+  scenario_1_successful_generation:
+    steps:
+      1. "献立提案ボタンタップ"
+      2. "AI生成完了まで待機"
+      3. "もう一品ボタンタップ"
+      4. "追加料理選択肢表示確認"
+      5. "特定ジャンル選択"
+      6. "詳細ダイアログ表示確認"
+      7. "料理詳細内容確認"
+      8. "献立追加ボタンタップ"
+      9. "成功メッセージ確認"
+    
+    expected_results:
+      - "4種類の追加料理が生成される"
+      - "選択したジャンルの詳細が正確に表示される"
+      - "材料の利用可能性が正しく表示される"
+      - "レシピ手順が分かりやすく表示される"
+
+  scenario_2_partial_generation:
+    steps:
+      1. "献立提案（一部生成失敗）"
+      2. "もう一品ボタンタップ"
+      3. "利用可能なオプションのみ表示確認"
+      4. "エラー状況の適切な案内確認"
+    
+    expected_results:
+      - "生成成功した料理のみ表示される"
+      - "適切なエラーメッセージが表示される"
+      - "再生成の提案が表示される"
+
+  scenario_3_no_generation:
+    steps:
+      1. "追加料理未生成状態"
+      2. "もう一品ボタンタップ"
+      3. "適切なエラーメッセージ確認"
+    
+    expected_results:
+      - "明確なエラーメッセージ"
+      - "再生成の案内"
+      - "アプリクラッシュなし"
+
+unit_test_coverage:
+  model_tests:
+    - "MealPlan.getAdditionalDish()"
+    - "MealPlan.hasAdditionalDish()"
+    - "MealPlan.availableAdditionalDishTypes"
+    - "Firestore変換メソッド"
+  
+  service_tests:
+    - "拡張プロンプト生成"
+    - "レスポンス解析"
+    - "エラーハンドリング"
+  
+  ui_tests:
+    - "AdditionalDishDisplayDialog"
+    - "強化された選択ダイアログ"
+    - "エラー状態の表示"
+
+performance_tests:
+  generation_time:
+    - baseline: "基本献立のみ: 3-5秒"
+    - enhanced: "追加料理含む: 4-7秒"
+    - target: "増加率50%以下"
+  
+  memory_usage:
+    - additional_data: "追加料理データ: ~20KB"
+    - ui_components: "新規UIコンポーネント: ~10MB"
+    - target: "総増加30MB以下"
+  
+  response_time:
+    - selection_to_display: "< 500ms"
+    - dialog_rendering: "< 300ms"
+    - user_interaction: "< 100ms"
+```
+
+### 5. エラーハンドリング戦略
+
+#### エラーケースと対応
+```yaml
+generation_errors:
+  ai_service_timeout:
+    error: "AI生成タイムアウト"
+    handling: "基本献立のみで続行、追加料理は後で再生成可能"
+    user_message: "追加料理の生成に時間がかかっています。基本献立をご確認ください。"
+  
+  partial_generation_failure:
+    error: "一部の追加料理生成失敗"
+    handling: "成功した料理のみ保存・表示"
+    user_message: "一部の追加料理が生成できませんでした。利用可能な料理をご確認ください。"
+  
+  complete_generation_failure:
+    error: "全ての追加料理生成失敗"
+    handling: "基本献立のみで続行"
+    user_message: "追加料理の生成に失敗しました。献立を再生成するか、基本献立をご利用ください。"
+
+data_errors:
+  invalid_json_response:
+    error: "不正なJSONレスポンス"
+    handling: "部分的なデータでも処理継続"
+    fallback: "デフォルト値での補完"
+  
+  missing_required_fields:
+    error: "必須フィールドの不足"
+    handling: "エラーログ記録、代替値設定"
+    user_impact: "最小限に抑制"
+  
+  firestore_save_failure:
+    error: "Firestore保存失敗"
+    handling: "ローカルキャッシュに保存、後で再試行"
+    user_message: "データの保存に失敗しました。再試行してください。"
+
+ui_errors:
+  dialog_display_failure:
+    error: "ダイアログ表示エラー"
+    handling: "フォールバック表示またはスナックバー"
+    user_message: "表示に問題が発生しました。もう一度お試しください。"
+  
+  image_loading_failure:
+    error: "画像読み込み失敗"
+    handling: "プレースホルダー画像表示"
+    user_impact: "機能継続可能"
+  
+  navigation_errors:
+    error: "画面遷移エラー"
+    handling: "前の画面に戻る、エラー報告"
+    user_message: "画面の表示に問題が発生しました。"
+```
+
+### 6. パフォーマンス最適化
+
+#### 最適化戦略
+```yaml
+generation_optimization:
+  parallel_processing:
+    - basic_meals: "基本献立の並列生成"
+    - additional_dishes: "追加料理の並列生成"
+    - implementation: "Future.wait()による並列実行"
+  
+  caching_strategy:
+    - prompt_cache: "プロンプトテンプレートのキャッシュ"
+    - ingredient_analysis: "食材分析結果のキャッシュ"
+    - response_cache: "一時的なレスポンスキャッシュ"
+  
+  timeout_management:
+    - progressive_timeout: "段階的タイムアウト"
+    - graceful_degradation: "部分的成功での継続"
+
+ui_optimization:
+  lazy_rendering:
+    - on_demand_detail: "詳細情報の遅延読み込み"
+    - image_lazy_load: "画像の遅延読み込み"
+    - widget_recycling: "ウィジェットの再利用"
+  
+  memory_management:
+    - dispose_patterns: "適切なリソース解放"
+    - weak_references: "弱参照の活用"
+    - cache_limits: "キャッシュサイズ制限"
+
+data_optimization:
+  compression:
+    - json_minification: "JSON圧縮"
+    - image_compression: "画像圧縮"
+    - text_optimization: "テキストデータ最適化"
+  
+  storage_efficiency:
+    - selective_storage: "必要なデータのみ保存"
+    - cleanup_schedule: "定期的なデータクリーンアップ"
+    - size_monitoring: "データサイズ監視"
+```
+
+## 実装完了基準
+
+### 機能完了基準
+- ✅ 献立生成時に4種類の追加料理が生成される
+- ✅ 生成された料理がFirestoreに適切に保存される
+- ✅ 選択したジャンルの料理詳細が即座に表示される
+- ✅ 材料の利用可能性が正確に表示される
+- ✅ エラー時の適切なハンドリングが実装される
+
+### 品質基準
+- ✅ 単体テストカバレッジ80%以上
+- ✅ 統合テスト全シナリオ通過
+- ✅ パフォーマンス要件達成
+- ✅ メモリリーク検査通過
+- ✅ ユーザビリティテスト合格
+
+### 運用基準
+- ✅ エラー監視設定完了
+- ✅ ログ出力適切に設定
+- ✅ デバッグ情報十分
+- ✅ ドキュメント整備完了
+- ✅ 運用手順書作成完了
+
+## 今後の拡張可能性
+
+### 短期的な改善
+```yaml
+immediate_enhancements:
+  - image_generation: "追加料理の画像生成"
+  - nutrition_calculation: "栄養情報の詳細計算"
+  - user_preferences: "ユーザー好み学習"
+  - seasonal_optimization: "季節性の考慮強化"
+
+medium_term_features:
+  - meal_plan_templates: "献立テンプレート機能"
+  - cooking_schedule: "調理スケジュール最適化"
+  - ingredient_substitution: "材料代替提案"
+  - cost_optimization: "コスト最適化"
+```
+
+### 長期的な発展
+```yaml
+advanced_features:
+  - ai_learning: "ユーザー行動学習"
+  - community_sharing: "コミュニティ共有"
+  - professional_recipes: "プロレシピ連携"
+  - health_integration: "健康管理連携"
+
+scalability_considerations:
+  - multi_household: "複数世帯対応"
+  - enterprise_features: "企業向け機能"
+  - api_monetization: "API収益化"
+  - international_expansion: "国際展開"
+```
+
+---
+
+**実装担当者**: Claude AI Assistant  
+**作成日**: 2025-01-19  
+**バージョン**: 1.0  
+**完成予定日**: 2025-01-22

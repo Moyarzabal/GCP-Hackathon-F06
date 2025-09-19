@@ -17,20 +17,20 @@ class FirebaseStorageService {
   }) async {
     try {
       print('📤 Firebase Storageに画像をアップロード開始: productId=$productId, stage=$stage');
-      
+
       // Base64データをデコード
       final base64String = base64Data.split(',').last; // data:image/png;base64, の部分を除去
       final bytes = base64Decode(base64String);
-      
+
       // ファイル名を生成（安全な文字のみ使用）
       final safeProductId = productId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
       final fileName = '${safeProductId}_${stage}_${_uuid.v4()}.png';
-      
+
       // Firebase Storageの参照を作成
       final ref = _storage.ref('$_imagesPath/$fileName');
-      
+
       print('🔍 アップロードパス: $_imagesPath/$fileName');
-      
+
       // メタデータを設定
       final metadata = SettableMetadata(
         contentType: 'image/png',
@@ -40,14 +40,14 @@ class FirebaseStorageService {
           'uploadedAt': DateTime.now().toIso8601String(),
         },
       );
-      
+
       // アップロード実行
       final uploadTask = ref.putData(bytes, metadata);
       final snapshot = await uploadTask;
-      
+
       // ダウンロードURLを取得
       final downloadUrl = await snapshot.ref.getDownloadURL();
-      
+
       print('✅ Firebase Storageアップロード完了: $downloadUrl');
       return downloadUrl;
     } catch (e) {
@@ -63,22 +63,22 @@ class FirebaseStorageService {
     required String productId,
   }) async {
     final Map<String, String> uploadedUrls = {};
-    
+
     for (final entry in base64Images.entries) {
       final stage = entry.key;
       final base64Data = entry.value;
-      
+
       final url = await uploadBase64Image(
         base64Data: base64Data,
         productId: productId,
         stage: stage,
       );
-      
+
       if (url != null) {
         uploadedUrls[stage] = url;
       }
     }
-    
+
     return uploadedUrls;
   }
 
@@ -98,7 +98,7 @@ class FirebaseStorageService {
     try {
       final ref = _storage.ref().child(_imagesPath);
       final listResult = await ref.listAll();
-      
+
       for (final item in listResult.items) {
         if (item.name.startsWith(productId)) {
           await item.delete();

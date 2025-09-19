@@ -81,7 +81,7 @@ class _DataClearDialogState extends State<DataClearDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // データの種類選択
             Text(
               '削除するデータを選択してください:',
@@ -91,7 +91,7 @@ class _DataClearDialogState extends State<DataClearDialog> {
               ),
             ),
             const SizedBox(height: 8),
-            
+
             _buildDataOption(
               value: 'all',
               title: 'すべてのデータを削除',
@@ -116,9 +116,9 @@ class _DataClearDialogState extends State<DataClearDialog> {
               description: 'アプリの設定データを削除',
               count: widget.settingsCount,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // 最終確認チェックボックス
             Container(
               padding: const EdgeInsets.all(12),
@@ -188,7 +188,7 @@ class _DataClearDialogState extends State<DataClearDialog> {
     required int count,
   }) {
     final isSelected = _selectedOption == value;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(

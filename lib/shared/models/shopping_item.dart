@@ -141,8 +141,8 @@ class ShoppingItem {
       isCustom: data['isCustom'] as bool? ?? false,
       addedBy: data['addedBy'] as String,
       addedAt: (data['addedAt'] as Timestamp).toDate(),
-      completedAt: data['completedAt'] != null 
-          ? (data['completedAt'] as Timestamp).toDate() 
+      completedAt: data['completedAt'] != null
+          ? (data['completedAt'] as Timestamp).toDate()
           : null,
       notes: data['notes'] as String? ?? '',
       estimatedPrice: data['estimatedPrice'] as double?,
@@ -297,8 +297,8 @@ class ShoppingList {
         orElse: () => ShoppingListStatus.active,
       ),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
-      completedAt: data['completedAt'] != null 
-          ? (data['completedAt'] as Timestamp).toDate() 
+      completedAt: data['completedAt'] != null
+          ? (data['completedAt'] as Timestamp).toDate()
           : null,
       totalEstimatedPrice: data['totalEstimatedPrice'] as double?,
     );
@@ -333,3 +333,4 @@ enum ShoppingListStatus {
   completed,   // 完了
   cancelled,   // キャンセル
 }
+

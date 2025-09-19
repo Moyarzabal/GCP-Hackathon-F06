@@ -222,7 +222,7 @@ class FirestoreService {
           .collection('products')
           .orderBy('addedDate', descending: true)
           .get();
-      
+
       return querySnapshot.docs
           .map((doc) => Product.fromFirestore(doc.id, doc.data()))
           .toList();
@@ -232,14 +232,15 @@ class FirestoreService {
     }
   }
 
+
   Future<Product?> getProduct(String id) async {
     try {
       final doc = await _firestore.collection('products').doc(id).get();
-      
+
       if (!doc.exists || doc.data() == null) {
         return null;
       }
-      
+
       return Product.fromFirestore(doc.id, doc.data()!);
     } catch (e) {
       print('Error getting product $id: $e');
@@ -251,7 +252,7 @@ class FirestoreService {
     try {
       final data = product.toFirestore();
       data['addedDate'] = FieldValue.serverTimestamp();
-      
+
       final docRef = await _firestore.collection('products').add(data);
       return docRef.id;
     } catch (e) {
@@ -264,7 +265,7 @@ class FirestoreService {
     if (product.id == null) {
       throw ArgumentError('Product ID is required for update');
     }
-    
+
     try {
       await _firestore
           .collection('products')

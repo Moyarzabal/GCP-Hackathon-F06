@@ -32,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final authService = ref.read(authServiceProvider);
-      
+
       if (_isSignUp) {
         print('Attempting sign up for: ${_emailController.text.trim()}');
         await authService.signUpWithEmail(

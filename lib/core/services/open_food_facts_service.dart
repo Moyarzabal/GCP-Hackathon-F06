@@ -30,10 +30,10 @@ class OpenFoodFactsService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['status'] == 1 && data['product'] != null) {
           final product = data['product'];
-          
+
           final productInfo = {
             'janCode': barcode,
             'productName': _getProductName(product),
@@ -69,7 +69,7 @@ class OpenFoodFactsService {
       } else {
         print('Open Food Facts API error: ${response.statusCode}');
       }
-      
+
       return null;
     } catch (e) {
       print('Error fetching product from Open Food Facts: $e');
@@ -82,7 +82,7 @@ class OpenFoodFactsService {
     if (product['product_name_ja'] != null && product['product_name_ja'].toString().isNotEmpty) {
       return product['product_name_ja'];
     }
-    
+
     // 日本語の商品名（product_name）を次に優先
     if (product['product_name'] != null && product['product_name'].toString().isNotEmpty) {
       final name = product['product_name'].toString();
@@ -91,15 +91,15 @@ class OpenFoodFactsService {
         return name;
       }
     }
-    
+
     // 英語名を最後に使用
-    return product['product_name_en'] ?? 
-           product['product_name'] ?? 
+    return product['product_name_en'] ??
+           product['product_name'] ??
            'Unknown Product';
   }
 
   String? _getCategory(Map<String, dynamic> product) {
-    if (product['categories_hierarchy'] != null && 
+    if (product['categories_hierarchy'] != null &&
         product['categories_hierarchy'] is List &&
         (product['categories_hierarchy'] as List).isNotEmpty) {
       final categories = product['categories_hierarchy'] as List;
@@ -109,14 +109,14 @@ class OpenFoodFactsService {
   }
 
   String? _getImageUrl(Map<String, dynamic> product) {
-    return product['image_url'] ?? 
-           product['image_front_url'] ?? 
+    return product['image_url'] ??
+           product['image_front_url'] ??
            product['image_small_url'];
   }
 
   Map<String, dynamic>? _getNutritionInfo(Map<String, dynamic> product) {
     if (product['nutriments'] == null) return null;
-    
+
     final nutriments = product['nutriments'] as Map<String, dynamic>;
     return {
       'energy_kcal': nutriments['energy-kcal_100g'],
@@ -195,14 +195,14 @@ class OpenFoodFactsService {
   Future<Map<String, dynamic>?> getProductWithFallback(String barcode) async {
     // Try Open Food Facts first
     var product = await getProductByBarcode(barcode);
-    
+
     // If not found, check Japanese products database
     if (product == null && japaneseProducts.containsKey(barcode)) {
       product = {
         'janCode': barcode,
         ...japaneseProducts[barcode]!,
       };
-      
+
       // Cache the product
       await _firestoreService.cacheProductInfo(
         janCode: barcode,
@@ -212,7 +212,7 @@ class OpenFoodFactsService {
         imageUrl: product['imageUrl'] as String?,
       );
     }
-    
+
     return product;
   }
 }

@@ -73,9 +73,9 @@ class MealPlanCard extends StatelessWidget {
                     ),
                 ],
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // メニュー名
               Text(
                 mealItem.name,
@@ -85,7 +85,7 @@ class MealPlanCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              
+
               if (mealItem.description.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
@@ -97,9 +97,9 @@ class MealPlanCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              
+
               const SizedBox(height: 12),
-              
+
               // 情報バー
               Row(
                 children: [
@@ -122,9 +122,9 @@ class MealPlanCard extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // 材料情報
               _buildIngredientsInfo(),
             ],
@@ -168,7 +168,7 @@ class MealPlanCard extends StatelessWidget {
     final availableCount = mealItem.ingredients.where((ingredient) => ingredient.available).length;
     final totalCount = mealItem.ingredients.length;
     final missingCount = totalCount - availableCount;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -208,7 +208,7 @@ class MealPlanCard extends StatelessWidget {
               ),
           ],
         ),
-        
+
         if (mealItem.ingredients.isNotEmpty) ...[
           const SizedBox(height: 8),
           Wrap(
@@ -218,12 +218,12 @@ class MealPlanCard extends StatelessWidget {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: ingredient.available 
+                  color: ingredient.available
                       ? Colors.green.withOpacity(0.1)
                       : Colors.orange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: ingredient.available 
+                    color: ingredient.available
                         ? Colors.green.withOpacity(0.3)
                         : Colors.orange.withOpacity(0.3),
                   ),
@@ -250,7 +250,7 @@ class MealPlanCard extends StatelessWidget {
               );
             }).toList(),
           ),
-          
+
           if (mealItem.ingredients.length > 3) ...[
             const SizedBox(height: 4),
             Text(

@@ -8,7 +8,7 @@ class JanCodeService {
   static const String _baseUrl = 'https://api.jancodelookup.com/v1';
   final FirestoreService _firestoreService = FirestoreService();
   final GeminiService _geminiService = GeminiService();
-  
+
   String? get _apiKey {
     try {
       final apiKey = dotenv.env['JANCODE_LOOKUP_API_KEY'];
@@ -27,11 +27,11 @@ class JanCodeService {
     try {
       print('=== JAN Code Search Started ===');
       print('Searching for JAN code: $janCode');
-      
+
       // Clear cache first to force API call
       await _firestoreService.clearProductCache(janCode);
       print('Cache cleared for JAN code: $janCode');
-      
+
       // Check cache in Firestore (should be empty now)
       final cachedProduct = await _firestoreService.getProductByJAN(janCode);
       if (cachedProduct != null) {
@@ -52,9 +52,9 @@ class JanCodeService {
       // Try JANCODE LOOKUP API
       final query = Uri.encodeComponent(janCode);
       final uri = Uri.parse('$_baseUrl/search?appId=$apiKey&query=$query&type=code&hits=1&page=1');
-      
+
       print('API URL: $uri');
-      
+
       final response = await http.get(
         uri,
         headers: {
@@ -68,12 +68,12 @@ class JanCodeService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print('API response data: $data');
-        
+
         // Check if product array exists and has items
         if (data['product'] != null && data['product'] is List && (data['product'] as List).isNotEmpty) {
           final products = data['product'] as List;
           final product = products.first; // Get first result
-          
+
           final productInfo = {
             'janCode': janCode,
             'productName': _getProductNameFromAPI(product),
@@ -110,7 +110,7 @@ class JanCodeService {
         print('JAN Code API error: ${response.statusCode}');
         print('Response body: ${response.body}');
       }
-      
+
       // Fallback to local database
       return _getFromLocalDatabase(janCode);
     } catch (e) {
@@ -125,17 +125,17 @@ class JanCodeService {
       print('Product found in local database: $janCode');
       final rawData = japaneseProducts[janCode]!;
       print('Raw product data: $rawData');
-      
+
       final product = {
         'janCode': janCode,
         ...rawData,
       };
-      
+
       print('Final product data: $product');
       print('Product name: ${product['productName']}');
       print('Manufacturer: ${product['manufacturer']}');
       print('Category: ${product['category']}');
-      
+
       // Cache the product info
       await _firestoreService.cacheProductInfo(
         janCode: janCode,
@@ -144,7 +144,7 @@ class JanCodeService {
         category: product['category'] as String?,
         imageUrl: product['imageUrl'] as String?,
       );
-      
+
       return product;
     }
 
@@ -198,10 +198,10 @@ class JanCodeService {
       final brandName = product['brandName']?.toString() ?? '';
       final makerName = product['makerName']?.toString() ?? '';
       final productDetails = product['ProductDetails']?.toString() ?? '';
-      
+
       // ユーザー定義のカテゴリリスト
       final availableCategories = ['飲料', '食品', '調味料', '冷凍食品', 'その他'];
-      
+
       final prompt = '''
 商品のカテゴリを判定してください。
 
@@ -224,17 +224,17 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
 
       print('Geminiにカテゴリ判定を依頼中...');
       final response = await _geminiService.generateContent(prompt);
-      
+
       if (response.text != null) {
         print('Gemini response: ${response.text}');
-        
+
         // JSONを抽出して解析
         final jsonStr = _extractJson(response.text!);
         if (jsonStr != null) {
           final json = _parseJson(jsonStr);
           if (json is Map && json['category'] != null) {
             final category = json['category'].toString();
-            
+
             // 利用可能なカテゴリに含まれているかチェック
             if (availableCategories.contains(category)) {
               print('Gemini判定結果: $category');
@@ -245,10 +245,10 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
           }
         }
       }
-      
+
       print('Gemini判定に失敗、フォールバック判定を使用');
       return _fallbackCategoryDetermination(product);
-      
+
     } catch (e) {
       print('Gemini判定でエラー: $e');
       return _fallbackCategoryDetermination(product);
@@ -259,8 +259,8 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
   String _fallbackCategoryDetermination(Map<String, dynamic> product) {
     final itemName = product['itemName']?.toString().toLowerCase() ?? '';
     final brandName = product['brandName']?.toString().toLowerCase() ?? '';
-    
-    if (itemName.contains('茶') || itemName.contains('コーヒー') || itemName.contains('ジュース') || 
+
+    if (itemName.contains('茶') || itemName.contains('コーヒー') || itemName.contains('ジュース') ||
         itemName.contains('水') || itemName.contains('飲料')) {
       return '飲料';
     } else if (itemName.contains('麺') || itemName.contains('ラーメン') || itemName.contains('うどん')) {
@@ -272,7 +272,7 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
     } else if (itemName.contains('調味料') || itemName.contains('醤油') || itemName.contains('味噌')) {
       return '調味料';
     }
-    
+
     return 'その他';
   }
 
@@ -318,13 +318,13 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
       // アレルゲン情報の抽出ロジック（簡易版）
       final allergens = <String>[];
       final allergenKeywords = ['小麦', '乳', '卵', '大豆', 'ナッツ', '魚', '甲殻類'];
-      
+
       for (final keyword in allergenKeywords) {
         if (details.contains(keyword)) {
           allergens.add(keyword);
         }
       }
-      
+
       return allergens.isNotEmpty ? allergens : null;
     }
     return null;
@@ -336,7 +336,7 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
     if (product['name_ja'] != null && product['name_ja'].toString().isNotEmpty) {
       return product['name_ja'];
     }
-    
+
     if (product['name'] != null && product['name'].toString().isNotEmpty) {
       final name = product['name'].toString();
       // 日本語文字が含まれているかチェック
@@ -344,13 +344,13 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
         return name;
       }
     }
-    
+
     return product['name'] ?? 'Unknown Product';
   }
 
   String? _getManufacturer(Map<String, dynamic> product) {
-    return product['manufacturer'] ?? 
-           product['brand'] ?? 
+    return product['manufacturer'] ??
+           product['brand'] ??
            product['maker'];
   }
 
@@ -358,7 +358,7 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
     // カテゴリを日本語にマッピング
     final category = product['category'] ?? product['genre'];
     if (category == null) return null;
-    
+
     return _mapCategoryToJapanese(category.toString());
   }
 
@@ -376,19 +376,19 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
       'household': '日用品',
       'other': 'その他',
     };
-    
+
     return categoryMap[category.toLowerCase()] ?? category;
   }
 
   String? _getImageUrl(Map<String, dynamic> product) {
-    return product['image_url'] ?? 
-           product['image'] ?? 
+    return product['image_url'] ??
+           product['image'] ??
            product['thumbnail'];
   }
 
   Map<String, dynamic>? _getNutritionInfo(Map<String, dynamic> product) {
     if (product['nutrition'] == null) return null;
-    
+
     final nutrition = product['nutrition'] as Map<String, dynamic>;
     return {
       'energy_kcal': nutrition['energy_kcal'],
@@ -495,14 +495,14 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
   Future<Map<String, dynamic>?> getProductWithFallback(String janCode) async {
     // Try JAN Code API first
     var product = await getProductByJAN(janCode);
-    
+
     // If not found, check Japanese products database
     if (product == null && japaneseProducts.containsKey(janCode)) {
       product = {
         'janCode': janCode,
         ...japaneseProducts[janCode]!,
       };
-      
+
       // Cache the product
       await _firestoreService.cacheProductInfo(
         janCode: janCode,
@@ -512,7 +512,7 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
         imageUrl: product['imageUrl'] as String?,
       );
     }
-    
+
     return product;
   }
 }

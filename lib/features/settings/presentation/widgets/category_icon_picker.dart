@@ -75,17 +75,17 @@ class CategoryIconPicker extends StatelessWidget {
         itemBuilder: (context, index) {
           final icon = _icons[index];
           final isSelected = icon.codePoint == selectedIcon.codePoint;
-          
+
           return GestureDetector(
             onTap: () => onIconChanged(icon),
             child: Container(
               decoration: BoxDecoration(
-                color: isSelected 
+                color: isSelected
                     ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
                     : Colors.grey[100],
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isSelected 
+                  color: isSelected
                       ? Theme.of(context).colorScheme.primary
                       : Colors.grey[300]!,
                   width: isSelected ? 2 : 1,
@@ -93,7 +93,7 @@ class CategoryIconPicker extends StatelessWidget {
               ),
               child: Icon(
                 icon,
-                color: isSelected 
+                color: isSelected
                     ? Theme.of(context).colorScheme.primary
                     : Colors.grey[600],
                 size: 20,
@@ -105,3 +105,4 @@ class CategoryIconPicker extends StatelessWidget {
     );
   }
 }
+

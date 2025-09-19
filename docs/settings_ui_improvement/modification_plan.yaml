@@ -85,3 +85,4 @@ ui_improvement_plan:
       - "settings_screen.dart - メインの設定画面"
       - "data_clear_dialog.dart - 新しいダイアログコンポーネント"
       - "dangerous_action_card.dart - 危険な操作用カード"
+

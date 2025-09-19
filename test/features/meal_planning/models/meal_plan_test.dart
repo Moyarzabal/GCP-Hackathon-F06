@@ -311,3 +311,4 @@ NutritionInfo _createMockNutritionInfo() {
     sodium: 500.0,
   );
 }
+

@@ -355,3 +355,4 @@ class MealPlanScreen extends ConsumerWidget {
 - **GDPR**: 欧州一般データ保護規則準拠
 - **CCPA**: カリフォルニア消費者プライバシー法準拠
 - **個人情報保護法**: 日本の個人情報保護法準拠
+

@@ -12,7 +12,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
-  
+
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
@@ -26,7 +26,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ref.read(appStateProvider.notifier).watchProductsFromFirebase();
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
@@ -35,10 +35,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final availableCategoriesAsync = ref.watch(availableCategoriesProvider);
     final selectionState = ref.watch(productSelectionProvider);
     final selectionNotifier = ref.watch(productSelectionProvider.notifier);
-    
+
     // ソート済みの商品リストを使用
     final products = productState.filteredProducts;
-    
+
     // デバッグログ: 商品リストの状態を確認
     print('🏠 HomeScreen: 商品リストの状態');
     print('   全商品数: ${appState.products.length}');
@@ -48,7 +48,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     for (var product in products) {
       print('   商品ID: ${product.id}, 名前: ${product.name}, 賞味期限: ${product.expiryDate}');
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -158,7 +158,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               message: productState.error!,
               onDismiss: () => productNotifier.clearError(),
             ),
-          
+
           // 商品リスト
           Expanded(
             child: products.isEmpty
@@ -191,7 +191,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           : null,
     );
   }
-  
+
   Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
@@ -223,7 +223,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-  
+
   void _showProductDetail(BuildContext context, Product product) {
     Navigator.push(
       context,
@@ -237,7 +237,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _reloadProducts() {
     print('🔄 商品データをリロード中...');
     ref.read(appStateProvider.notifier).watchProductsFromFirebase();
-    
+
     // リロード完了のフィードバック
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -260,13 +260,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// 削除確認ダイアログを表示
   Future<void> _showDeleteConfirmation(BuildContext context, ProductSelectionNotifier selectionNotifier) async {
     final selectionState = ref.read(productSelectionProvider);
-    
+
     // デバッグログ: 選択状態を確認
     print('🗑️ 削除確認ダイアログ: 選択状態');
     print('   選択モード: ${selectionState.isSelectionMode}');
     print('   選択数: ${selectionState.selectedCount}');
     print('   選択された商品ID: ${selectionState.selectedProductIds}');
-    
+
     if (selectionState.selectedCount == 0) {
       // 選択された商品がない場合
       if (context.mounted) {
@@ -289,7 +289,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
       return;
     }
-    
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -402,7 +402,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (confirmed == true) {
       // 削除実行
       final result = await selectionNotifier.deleteSelectedProducts();
-      
+
       if (result.isSuccess) {
         // 成功時のスナックバー表示
         if (context.mounted) {
