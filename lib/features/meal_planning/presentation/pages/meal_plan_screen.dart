@@ -735,7 +735,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: _isGeneratingImages ? null : () => _suggestMealPlan(),
+            onPressed: _isGeneratingImages ? null : _showReSuggestConfirmation,
             style: OutlinedButton.styleFrom(
               foregroundColor: _textColor,
               side: BorderSide(color: _secondaryColor.withOpacity(0.6)),
@@ -793,7 +793,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _baseColor.withOpacity(0.6),
+        color: _secondaryColor.withOpacity(0.6),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: _primaryColor.withOpacity(0.4),
@@ -828,7 +828,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
                   child: Text(
                     '概算: ${mealPlan.estimatedTotalCost.toInt()}円',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -896,7 +896,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
             child: Text(
               '${item.quantity}${item.unit}',
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontWeight: FontWeight.w500,
                 fontSize: 12,
               ),
@@ -1593,7 +1593,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
             ),
             action: SnackBarAction(
               label: '買い物リスト',
-              textColor: Colors.white,
+              textColor: Colors.black,
               backgroundColor: _accentColor.withOpacity(0.2),
               onPressed: () => _generateShoppingList(mealPlan),
             ),
