@@ -26,7 +26,7 @@ class _CategoryEditDialogState extends State<CategoryEditDialog> {
   @override
   void initState() {
     super.initState();
-    
+
     if (widget.category != null) {
       _nameController = TextEditingController(text: widget.category!.name);
       _selectedColor = widget.category!.color;
@@ -63,7 +63,7 @@ class _CategoryEditDialogState extends State<CategoryEditDialog> {
               maxLength: 20,
             ),
             const SizedBox(height: 16),
-            
+
             // 色選択
             Text(
               '色を選択',
@@ -79,7 +79,7 @@ class _CategoryEditDialogState extends State<CategoryEditDialog> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             // アイコン選択
             Text(
               'アイコンを選択',
@@ -95,7 +95,7 @@ class _CategoryEditDialogState extends State<CategoryEditDialog> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             // プレビュー
             Container(
               padding: const EdgeInsets.all(16),
@@ -150,7 +150,7 @@ class _CategoryEditDialogState extends State<CategoryEditDialog> {
 
   Future<void> _saveCategory() async {
     final name = _nameController.text.trim();
-    
+
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -167,7 +167,7 @@ class _CategoryEditDialogState extends State<CategoryEditDialog> {
 
     try {
       await widget.onSave(name, _selectedColor, _selectedIcon);
-      
+
       if (mounted) {
         Navigator.of(context).pop();
       }
@@ -189,3 +189,4 @@ class _CategoryEditDialogState extends State<CategoryEditDialog> {
     }
   }
 }
+

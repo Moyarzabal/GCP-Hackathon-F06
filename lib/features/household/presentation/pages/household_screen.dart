@@ -41,14 +41,14 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
       final householdId = await ref
           .read(firestoreServiceProvider)
           .createHousehold(name, userUid);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('世帯を作成しました。コード: $householdId'),
           behavior: SnackBarBehavior.floating,
         ),
       );
-      
+
       Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -79,14 +79,14 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
       await ref
           .read(firestoreServiceProvider)
           .joinHousehold(code, userUid);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('世帯に参加しました'),
           behavior: SnackBarBehavior.floating,
         ),
       );
-      
+
       Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

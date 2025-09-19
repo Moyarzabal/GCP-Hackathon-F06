@@ -61,9 +61,9 @@ class ShoppingItemCard extends StatelessWidget {
                       : null,
                 ),
               ),
-              
+
               const SizedBox(width: 12),
-              
+
               // アイテム情報
               Expanded(
                 child: Column(
@@ -108,9 +108,9 @@ class ShoppingItemCard extends StatelessWidget {
                           ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 4),
-                    
+
                     // 数量とカテゴリ
                     Row(
                       children: [
@@ -156,7 +156,7 @@ class ShoppingItemCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     // メモ
                     if (item.notes.isNotEmpty) ...[
                       const SizedBox(height: 4),
@@ -171,7 +171,7 @@ class ShoppingItemCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                    
+
                     // 価格情報
                     if (item.estimatedPrice != null && item.estimatedPrice! > 0) ...[
                       const SizedBox(height: 4),
@@ -187,7 +187,7 @@ class ShoppingItemCard extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               // アクションボタン
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -217,3 +217,4 @@ class ShoppingItemCard extends StatelessWidget {
     );
   }
 }
+

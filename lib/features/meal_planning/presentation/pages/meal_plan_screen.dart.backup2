@@ -1,0 +1,1469 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/models/meal_plan.dart';
+import '../../../../shared/models/shopping_item.dart';
+import '../providers/meal_plan_provider.dart';
+import '../widgets/meal_plan_square_card.dart';
+import '../widgets/meal_detail_dialog.dart';
+import '../../../../core/services/adk_api_client.dart';
+import '../../../../shared/providers/app_state_provider.dart';
+
+class MealPlanScreen extends ConsumerStatefulWidget {
+  const MealPlanScreen({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<MealPlanScreen> createState() => _MealPlanScreenState();
+}
+
+class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
+  Map<String, String?> _mealImages = {};
+  bool _isGeneratingImages = false;
+  bool _isInitialLoading = false;
+  final ScrollController _scrollController = ScrollController();
+  GlobalKey _shoppingListKey = GlobalKey();
+  // 温かみのあるカラーパレット
+  static const Color _baseColor = Color(0xFFF6EACB); // クリーム色
+  static const Color _primaryColor = Color(0xFFD4A574); // 温かいベージュ
+  static const Color _secondaryColor = Color(0xFFB8956A); // 深いベージュ
+  static const Color _accentColor = Color(0xFF8B7355); // ブラウン
+  static const Color _textColor = Color(0xFF5D4E37); // ダークブラウン
+
+  @override
+  void initState() {
+    super.initState();
+    // 画面が表示されたときに献立を提案
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _suggestMealPlan();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mealPlanAsync = ref.watch(mealPlanProvider);
+      // final appState = ref.watch(appStateProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          '本日の献立',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.shopping_cart,
+              color: _accentColor,
+            ),
+            tooltip: '買い物リストへ',
+            onPressed: _scrollToShoppingList,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.refresh,
+              color: _accentColor,
+            ),
+            onPressed: _showReSuggestConfirmation,
+            tooltip: '献立を再提案',
+          ),
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () => _showMealPlanHistory(context),
+            tooltip: '献立履歴',
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        child: Column(
+          children: [
+            // エラー表示
+            if (mealPlanAsync.hasError)
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _baseColor.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _primaryColor.withOpacity(0.5),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: _accentColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '献立の生成に失敗しました: ${mealPlanAsync.error}',
+                      style: TextStyle(
+                        color: _textColor,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _suggestMealPlan,
+                    style: TextButton.styleFrom(
+                      foregroundColor: _primaryColor,
+                    ),
+                    child: const Text('再試行'),
+                  ),
+                ],
+              ),
+            ),
+
+            // メインコンテンツ
+            mealPlanAsync.when(
+              data: (mealPlan) => mealPlan != null
+                  ? (_isInitialLoading ? _buildLoadingWithMealPlan(mealPlan) : _buildMealPlanContent(mealPlan))
+                  : _buildEmptyState(),
+              loading: () => _buildLoadingState(),
+              error: (error, stack) => _buildErrorState(error),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMealPlanContent(MealPlan mealPlan) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 献立ヘッダー
+          _buildMealPlanHeader(mealPlan),
+
+          const SizedBox(height: 24),
+
+          // 献立カード（アクションボタンも含む）
+          _buildMealPlanCards(mealPlan),
+
+          const SizedBox(height: 24),
+
+          // 材料情報
+          _buildIngredientsInfo(mealPlan),
+
+          const SizedBox(height: 24),
+
+          // 買い物リスト
+          if (mealPlan.hasShoppingList)
+            Container(
+              key: _shoppingListKey,
+              child: _buildShoppingListSection(mealPlan),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealPlanHeader(MealPlan mealPlan) {
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            _baseColor.withOpacity(0.8),
+            _baseColor.withOpacity(0.6),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _primaryColor.withOpacity(0.4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.restaurant_menu,
+                color: _textColor,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '今日の献立',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: _textColor,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+
+          Row(
+            children: [
+              _buildInfoChip(
+                icon: Icons.access_time,
+                label: '${mealPlan.totalCookingTime}分',
+                opacity: 0.9,
+              ),
+              const SizedBox(width: 12),
+              _buildInfoChip(
+                icon: Icons.star,
+                label: mealPlan.difficultyDisplayName,
+                opacity: 0.8,
+              ),
+              const SizedBox(width: 12),
+              _buildInfoChip(
+                icon: Icons.favorite,
+                label: '${mealPlan.nutritionScore.toInt()}点',
+                opacity: 0.7,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // 新しいフィールドの表示
+          if (mealPlan.popularityScore != null || mealPlan.cookingFrequency != null)
+            Row(
+              children: [
+                if (mealPlan.popularityScore != null) ...[
+                  _buildInfoChip(
+                    icon: Icons.trending_up,
+                    label: mealPlan.popularityDisplayName,
+                    opacity: 0.6,
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                if (mealPlan.cookingFrequency != null) ...[
+                  _buildInfoChip(
+                    icon: Icons.schedule,
+                    label: mealPlan.cookingFrequencyDisplayName,
+                    opacity: 0.5,
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                if (mealPlan.seasonalRelevance != null && mealPlan.seasonalRelevance != 'all') ...[
+                  _buildInfoChip(
+                    icon: Icons.wb_sunny,
+                    label: mealPlan.seasonalRelevanceDisplayName,
+                    opacity: 0.4,
+                  ),
+                ],
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // 信頼度表示
+          Row(
+            children: [
+              Icon(
+                Icons.psychology,
+                size: 16,
+                color: _accentColor.withOpacity(0.8),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '信頼度: ${(mealPlan.confidence * 100).toInt()}%',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: _accentColor.withOpacity(0.8),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildInfoChip({
+    required IconData icon,
+    required String label,
+    required double opacity,
+  }) {
+    final chipColor = _primaryColor.withOpacity(opacity);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: _baseColor.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: chipColor.withOpacity(0.6)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: chipColor),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: _textColor,
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealPlanCards(MealPlan mealPlan) {
+    return Column(
+      children: [
+        // 2x2の正方形ブロックグリッド（主菜、副菜、汁物、もう一品ボタン）
+        Row(
+          children: [
+            Expanded(
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: MealPlanSquareCard(
+                  mealItem: mealPlan.mainDish,
+                  title: '主菜',
+                  imageUrl: _mealImages['mainDish'],
+                  onTap: () => _showMealDetail(context, mealPlan.mainDish),
+                ),
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: MealPlanSquareCard(
+                  mealItem: mealPlan.sideDish,
+                  title: '副菜',
+                  imageUrl: _mealImages['sideDish'],
+                  onTap: () => _showMealDetail(context, mealPlan.sideDish),
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: MealPlanSquareCard(
+                  mealItem: mealPlan.soup,
+                  title: '汁物',
+                  imageUrl: _mealImages['soup'],
+                  onTap: () => _showMealDetail(context, mealPlan.soup),
+                ),
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: MealPlanSquareCard(
+                  title: 'もう一品',
+                  isAddButton: true,
+                  onTap: () => _suggestAdditionalDish(mealPlan),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // アクションボタン
+        _buildActionButtons(mealPlan),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons(MealPlan mealPlan) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _isGeneratingImages ? null : () => _suggestMealPlan(),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: _textColor,
+              side: BorderSide(color: _secondaryColor.withOpacity(0.6)),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: _isGeneratingImages
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: _accentColor,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('作成中...'),
+                    ],
+                  )
+                : const Text('再提案'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              print('🔘 献立決定ボタンが押されました');
+              _showMealDecisionConfirmation(mealPlan);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              '献立を決定',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShoppingListSection(MealPlan mealPlan) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _baseColor.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _primaryColor.withOpacity(0.4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.shopping_cart,
+                color: _textColor,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '買い物リスト',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: _textColor,
+                ),
+              ),
+              const Spacer(),
+              if (mealPlan.estimatedTotalCost > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _primaryColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '概算: ${mealPlan.estimatedTotalCost.toInt()}円',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // 買い物リストアイテム
+          ...mealPlan.shoppingList!.map((item) => _buildShoppingListItem(item)),
+
+          const SizedBox(height: 16),
+
+          // 買い物リストをFirestoreに保存するボタン
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _saveShoppingList(mealPlan),
+              icon: const Icon(Icons.save),
+              label: const Text('買い物リストを保存'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 1,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShoppingListItem(ShoppingItem item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _secondaryColor.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.shopping_basket,
+            color: _accentColor,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: _textColor,
+                  ),
+                ),
+                if (item.notes.isNotEmpty)
+                  Text(
+                    item.notes,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: _accentColor.withOpacity(0.8),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: _primaryColor.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '${item.quantity}${item.unit}',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIngredientsInfo(MealPlan mealPlan) {
+    final missingIngredients = mealPlan.missingIngredients;
+    final expiringIngredients = mealPlan.expiringIngredients;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '材料情報',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        if (expiringIngredients.isNotEmpty) ...[
+          _buildIngredientSection(
+            title: '賞味期限が近い食材',
+            ingredients: expiringIngredients,
+            opacity: 0.9,
+            icon: Icons.warning,
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        if (missingIngredients.isNotEmpty) ...[
+          _buildIngredientSection(
+            title: '買い物が必要な食材',
+            ingredients: missingIngredients,
+            opacity: 0.8,
+            icon: Icons.shopping_cart,
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        _buildIngredientSection(
+          title: '利用可能な食材',
+          ingredients: mealPlan.mainDish.ingredients
+              .where((ingredient) => ingredient.available)
+              .toList(),
+          opacity: 0.7,
+          icon: Icons.check_circle,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIngredientSection({
+    required String title,
+    required List<Ingredient> ingredients,
+    required double opacity,
+    required IconData icon,
+  }) {
+    final sectionColor = _primaryColor.withOpacity(opacity);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _baseColor.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: sectionColor.withOpacity(0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: sectionColor, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  color: _textColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: ingredients.map((ingredient) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: sectionColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  ingredient.displayName,
+                  style: TextStyle(
+                    color: _textColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.6,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.restaurant_menu,
+              size: 80,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '献立を提案します',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '冷蔵庫の食材を分析して\n最適な献立を提案します',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _suggestMealPlan,
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('献立を提案'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.6,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              color: _primaryColor,
+              strokeWidth: 3,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'AIが献立を作成中...',
+              style: TextStyle(
+                fontSize: 18,
+                color: _textColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingWithMealPlan(MealPlan mealPlan) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.6,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              color: _primaryColor,
+              strokeWidth: 3,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'AIが献立画像を作成中...',
+              style: TextStyle(
+                fontSize: 18,
+                color: _textColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(Object error) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.6,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 80,
+              color: Colors.red[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'エラーが発生しました',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.red[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error.toString(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _suggestMealPlan,
+              icon: const Icon(Icons.refresh),
+              label: const Text('再試行'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _suggestMealPlan() async {
+    print('🍽️ MealPlanScreen: 献立提案ボタンが押されました');
+    // TODO: 実際のhouseholdIdを取得
+    const householdId = 'default_household';
+    print('   世帯ID: $householdId');
+
+    setState(() {
+      _isInitialLoading = true;
+    });
+
+    try {
+      // 献立を提案
+      await ref.read(mealPlanProvider.notifier).suggestMealPlan(householdId: householdId);
+
+      // 献立が生成されたら画像を生成
+      final mealPlan = ref.read(mealPlanProvider).value;
+      if (mealPlan != null) {
+        await _generateMealImages(mealPlan);
+      }
+    } finally {
+      setState(() {
+        _isInitialLoading = false;
+      });
+    }
+  }
+
+
+  Future<void> _generateMealImages(MealPlan mealPlan) async {
+    // 即座にプレースホルダー画像を設定（主食を除く3品）
+    setState(() {
+      _mealImages = {
+        'mainDish': null,
+        'sideDish': null,
+        'soup': null,
+      };
+      _isGeneratingImages = true;
+    });
+
+    try {
+      // シンプルな画像生成APIを呼び出し
+      final adkApiClient = ADKApiClient.forSimpleImageApi();
+
+      // 並列で画像生成を実行（主食を除く3品のみ）
+      final futures = [
+        _generateImageViaADKWithTimeout(
+          adkApiClient,
+          mealPlan.mainDish.name,
+          mealPlan.mainDish.description,
+          180, // 3分でタイムアウト
+        ),
+        _generateImageViaADKWithTimeout(
+          adkApiClient,
+          mealPlan.sideDish.name,
+          mealPlan.sideDish.description,
+          180,
+        ),
+        _generateImageViaADKWithTimeout(
+          adkApiClient,
+          mealPlan.soup.name,
+          mealPlan.soup.description,
+          180,
+        ),
+      ];
+
+      // 並列実行で結果を待つ
+      final results = await Future.wait(futures);
+
+      setState(() {
+        _mealImages = {
+          'mainDish': results[0],
+          'sideDish': results[1],
+          'soup': results[2],
+        };
+        _isGeneratingImages = false;
+      });
+
+      print('✅ 献立画像生成完了');
+      print('   主菜画像: ${results.length > 0 ? results[0] : "null"}');
+      print('   副菜画像: ${results.length > 1 ? results[1] : "null"}');
+      print('   汁物画像: ${results.length > 2 ? results[2] : "null"}');
+    } catch (e) {
+      print('❌ 献立画像生成エラー: $e');
+      setState(() {
+        _isGeneratingImages = false;
+      });
+    }
+  }
+
+  /// タイムアウト付きの画像生成
+  Future<String?> _generateImageViaADKWithTimeout(
+    ADKApiClient adkApiClient,
+    String dishName,
+    String description,
+    int timeoutSeconds,
+  ) async {
+    try {
+      print('🖼️ 画像生成開始（タイムアウト: ${timeoutSeconds}秒）: $dishName');
+
+      // タイムアウト付きで画像生成を実行
+      final response = await adkApiClient.generateImage(
+        prompt: '$dishName: $description',
+        style: 'photorealistic',
+        size: '1024x1024',
+      ).timeout(Duration(seconds: timeoutSeconds));
+
+      if (response != null && response['image_url'] != null) {
+        final imageUrl = response['image_url'] as String;
+        print('✅ 画像生成完了: $dishName');
+        print('   画像URL: $imageUrl');
+        return imageUrl;
+      } else {
+        print('⚠️ 画像生成レスポンスが空: $dishName');
+        return _getFallbackImageUrl(dishName);
+      }
+    } catch (e) {
+      print('❌ 画像生成エラー（タイムアウト）: $dishName - $e');
+      return _getFallbackImageUrl(dishName);
+    }
+  }
+
+  /// フォールバック画像URLを取得
+  String _getFallbackImageUrl(String dishName) {
+    final dishLower = dishName.toLowerCase();
+
+    // 料理タイプに応じたフォールバック画像
+    if (dishLower.contains('炒め') || dishLower.contains('焼き')) {
+      return 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('煮') || dishLower.contains('煮物')) {
+      return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('サラダ') || dishLower.contains('野菜')) {
+      return 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('汁物') || dishLower.contains('スープ') || dishLower.contains('味噌汁')) {
+      return 'https://images.unsplash.com/photo-1547592180-85f173990554?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('肉') || dishLower.contains('豚') || dishLower.contains('鶏')) {
+      return 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('魚') || dishLower.contains('鮭') || dishLower.contains('鯖')) {
+      return 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=512&h=512&fit=crop';
+    } else {
+      // デフォルトの料理画像
+      return 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=512&h=512&fit=crop';
+    }
+  }
+
+  void _showMealDecisionConfirmation(MealPlan mealPlan) {
+    print('🍽️ _showMealDecisionConfirmation called');
+    print('📋 MealPlan: ${mealPlan.displayName}');
+    
+    // 使用する食材を抽出（量も含む）
+    final allIngredients = <Ingredient>[];
+    allIngredients.addAll(mealPlan.mainDish.ingredients);
+    allIngredients.addAll(mealPlan.sideDish.ingredients);
+    allIngredients.addAll(mealPlan.soup.ingredients);
+    
+    print('🥬 Total ingredients: ${allIngredients.length}');
+    for (final ingredient in allIngredients) {
+      print('   - ${ingredient.name} ${ingredient.quantity ?? '適量'}');
+    }
+
+    // 食材がない場合の処理
+    if (allIngredients.isEmpty) {
+      print('⚠️ No ingredients found in meal plan');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('献立に食材情報がありません'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    print('💬 Showing confirmation dialog...');
+    
+    try {
+      showDialog(
+        context: context,
+        builder: (context) {
+          print('🏗️ Building AlertDialog...');
+          return AlertDialog(
+          backgroundColor: _baseColor,
+        title: Text(
+          'この献立で決定しますか？',
+          style: TextStyle(
+            color: _textColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '以下の食材を使用します：',
+              style: TextStyle(color: _accentColor),
+            ),
+            SizedBox(height: 8),
+            Container(
+              height: 150,
+              child: ListView.builder(
+                itemCount: allIngredients.length,
+                itemBuilder: (context, index) => Padding(
+                  padding: EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      Icon(Icons.restaurant, 
+                           color: _accentColor, size: 16),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${allIngredients[index].name} ${allIngredients[index].quantity ?? '適量'}',
+                          style: TextStyle(color: _textColor),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            child: Text('キャンセル', style: TextStyle(color: _accentColor)),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('決定'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _executeMealDecision(mealPlan);
+            },
+          ),
+        ],
+          );
+        },
+      );
+    } catch (e) {
+      print('❌ Error showing dialog: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('ダイアログの表示に失敗しました'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _executeMealDecision(MealPlan mealPlan) async {
+    try {
+      // 食材使用量減少ロジック実装
+      final appState = ref.read(appStateProvider);
+      final allIngredients = <Ingredient>[];
+      allIngredients.addAll(mealPlan.mainDish.ingredients);
+      allIngredients.addAll(mealPlan.sideDish.ingredients);
+      allIngredients.addAll(mealPlan.soup.ingredients);
+
+      int reducedCount = 0;
+      
+      // 冷蔵庫の商品から該当食材の数量を減らす
+      for (final ingredient in allIngredients) {
+        final matchingProducts = appState.products.where(
+          (product) => product.name.contains(ingredient.name) ||
+                      ingredient.name.contains(product.name)
+        ).toList();
+
+        for (final product in matchingProducts) {
+          if (product.id != null && product.quantity > 0) {
+            // 使用する量を計算（最小1、最大現在の数量）
+            final usageAmount = _calculateUsageAmount(ingredient, product);
+            final newQuantity = (product.quantity - usageAmount).clamp(0, product.quantity);
+            
+            if (newQuantity == 0) {
+              // 数量が0になる場合は削除
+              await ref.read(appStateProvider.notifier)
+                        .deleteProductFromFirebase(product.id!);
+            } else {
+              // 数量を減らす
+              final updatedProduct = product.copyWith(quantity: newQuantity);
+              await ref.read(appStateProvider.notifier)
+                        .updateProductInFirebase(updatedProduct);
+            }
+            reducedCount++;
+            break; // 同じ食材は1つだけ処理
+          }
+        }
+      }
+
+      // 献立承認処理
+      if (mealPlan.id != null) {
+        await ref.read(mealPlanProvider.notifier).acceptMealPlan(mealPlan.id!);
+      }
+
+      // 成功メッセージ表示
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('献立が決定されました。${reducedCount}個の食材を使用しました。'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: '買い物リスト',
+              textColor: Colors.white,
+              onPressed: () => _generateShoppingList(mealPlan),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // エラーメッセージ表示
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('食材の使用処理に失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // 食材の使用量を計算するヘルパーメソッド
+  int _calculateUsageAmount(Ingredient ingredient, dynamic product) {
+    // レシピの分量から使用量を推定
+    final quantity = ingredient.quantity?.toLowerCase() ?? '';
+    
+    if (quantity.contains('個') || quantity.contains('本') || quantity.contains('枚')) {
+      // 個数単位の場合
+      final match = RegExp(r'(\d+)').firstMatch(quantity);
+      if (match != null) {
+        return int.tryParse(match.group(1)!) ?? 1;
+      }
+      return 1;
+    } else if (quantity.contains('g') || quantity.contains('ml')) {
+      // 重量・容量単位の場合は現在の数量の半分を使用
+      return (product.quantity * 0.5).ceil().clamp(1, product.quantity);
+    } else {
+      // その他の場合は1個使用
+      return 1;
+    }
+  }
+
+  void _showReSuggestConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: _baseColor,
+        title: Text(
+          '献立を再提案しますか？',
+          style: TextStyle(
+            color: _textColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          '現在の献立が新しい提案に置き換わります。',
+          style: TextStyle(color: _accentColor),
+        ),
+        actions: [
+          TextButton(
+            child: Text('キャンセル', style: TextStyle(color: _accentColor)),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('再提案'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _suggestMealPlan();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+  void _showMealDetail(BuildContext context, MealItem mealItem) {
+    showDialog(
+      context: context,
+      builder: (context) => MealDetailDialog(mealItem: mealItem),
+    );
+  }
+
+  void _showMealPlanHistory(BuildContext context) {
+    // TODO: 献立履歴画面を実装
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('献立履歴機能は準備中です'),
+      ),
+    );
+  }
+
+  void _generateShoppingList(MealPlan mealPlan) {
+    // TODO: 買い物リスト生成機能を実装
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('買い物リスト生成機能は準備中です'),
+      ),
+    );
+  }
+
+  void _suggestAdditionalDish(MealPlan mealPlan) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: _baseColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          'もう一品追加',
+          style: TextStyle(
+            color: _textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        content: Container(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'どのような料理を追加しますか？',
+                style: TextStyle(color: _accentColor, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16),
+              _buildDishOption(
+                title: '副菜',
+                subtitle: '野菜やサラダなど',
+                icon: Icons.eco,
+                onTap: () => _addAdditionalDish('副菜'),
+              ),
+              SizedBox(height: 8),
+              _buildDishOption(
+                title: '汁物',
+                subtitle: 'スープや味噌汁など',
+                icon: Icons.local_drink,
+                onTap: () => _addAdditionalDish('汁物'),
+              ),
+              SizedBox(height: 8),
+              _buildDishOption(
+                title: 'おつまみ',
+                subtitle: '簡単な一品料理',
+                icon: Icons.local_bar,
+                onTap: () => _addAdditionalDish('おつまみ'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: Text('キャンセル', style: TextStyle(color: _accentColor)),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDishOption({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: _primaryColor.withOpacity(0.3)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: _primaryColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: _accentColor, size: 24),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: _textColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: _accentColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios,
+                 color: _accentColor, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addAdditionalDish(String dishType) async {
+    Navigator.of(context).pop();
+
+    // ローディング表示
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: _baseColor,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: _primaryColor),
+            SizedBox(height: 16),
+            Text(
+              '${dishType}を考えています...',
+              style: TextStyle(color: _textColor),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      // 仮の処理（将来的にAI呼び出しに置き換え）
+      await Future.delayed(Duration(seconds: 2));
+
+      Navigator.of(context).pop(); // ローディング閉じる
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${dishType}の提案機能は準備中です'),
+          backgroundColor: _primaryColor,
+        ),
+      );
+    } catch (e) {
+      Navigator.of(context).pop(); // ローディング閉じる
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('料理の提案に失敗しました'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _scrollToShoppingList() {
+    final RenderBox? renderBox = _shoppingListKey.currentContext
+        ?.findRenderObject() as RenderBox?;
+
+    if (renderBox != null) {
+      final position = renderBox.localToGlobal(Offset.zero);
+      final screenHeight = MediaQuery.of(context).size.height;
+
+      _scrollController.animateTo(
+        position.dy - (screenHeight * 0.1), // 上部に少し余白
+        duration: Duration(milliseconds: 800),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _saveShoppingList(MealPlan mealPlan) async {
+    if (mealPlan.shoppingList == null || mealPlan.shoppingList!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('買い物リストがありません'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // 買い物リストプロバイダーを使用して保存
+      await ref.read(shoppingListProvider.notifier).generateShoppingList(mealPlan);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('買い物リストを保存しました（${mealPlan.shoppingList!.length}品目）'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: '確認',
+              textColor: Colors.white,
+              onPressed: () {
+                // 買い物リスト画面に遷移（実装予定）
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('買い物リスト画面は準備中です'),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('買い物リストの保存に失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+}

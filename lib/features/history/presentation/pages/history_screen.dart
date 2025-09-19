@@ -7,11 +7,11 @@ import '../../../products/presentation/pages/product_detail_screen.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({Key? key}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final allProductsAsync = ref.watch(allProductsProvider);
-    
+
     return allProductsAsync.when(
       data: (products) {
         final sortedProducts = List<Product>.from(products)
@@ -20,7 +20,7 @@ class HistoryScreen extends ConsumerWidget {
             final bDate = b.scannedAt ?? DateTime(0);
             return bDate.compareTo(aDate);
           });
-    
+
         return Scaffold(
           appBar: AppBar(
             title: const Text('スキャン履歴'),
@@ -84,7 +84,7 @@ class HistoryScreen extends ConsumerWidget {
                     itemBuilder: (context, index) {
                     final product = sortedProducts[index];
                     final isDeleted = product.deletedAt != null;
-                    
+
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
                       color: isDeleted ? Colors.grey[100] : null,
@@ -260,7 +260,7 @@ class HistoryScreen extends ConsumerWidget {
     print('🔄 履歴データをリロード中...');
     // allProductsProviderを無効化して再読み込み
     ref.invalidate(allProductsProvider);
-    
+
     // リロード完了のフィードバック
     ScaffoldMessenger.of(ref.context).showSnackBar(
       SnackBar(

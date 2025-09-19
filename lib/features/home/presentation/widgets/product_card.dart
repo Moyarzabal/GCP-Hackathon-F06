@@ -11,7 +11,7 @@ class ProductCard extends ConsumerWidget {
   final bool isSelected;
   final VoidCallback? onLongPress;
   final VoidCallback? onSelectionToggle;
-  
+
   const ProductCard({
     Key? key,
     required this.product,
@@ -21,7 +21,7 @@ class ProductCard extends ConsumerWidget {
     this.onLongPress,
     this.onSelectionToggle,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 最新の商品情報を取得（appStateProviderを使用）
@@ -129,11 +129,11 @@ class ProductCard extends ConsumerWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: isSelected 
+                    color: isSelected
                         ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
                         : Colors.transparent,
                     border: Border.all(
-                      color: isSelected 
+                      color: isSelected
                           ? Theme.of(context).colorScheme.primary
                           : Colors.grey[400]!,
                       width: 2,

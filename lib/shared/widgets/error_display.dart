@@ -45,7 +45,7 @@ class _ErrorDisplayState extends State<ErrorDisplay> {
                 color: theme.colorScheme.error,
               ),
               const SizedBox(height: 16),
-              
+
               // メインメッセージ
               Text(
                 errorMessage,
@@ -56,7 +56,7 @@ class _ErrorDisplayState extends State<ErrorDisplay> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              
+
               // エラー詳細
               Text(
                 widget.error.toString(),
@@ -65,7 +65,7 @@ class _ErrorDisplayState extends State<ErrorDisplay> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               // 詳細表示ボタン
               if (widget.showDetails) ...[
                 const SizedBox(height: 16),
@@ -79,7 +79,7 @@ class _ErrorDisplayState extends State<ErrorDisplay> {
                   label: Text(_showingDetails ? '詳細を隠す' : '詳細を表示'),
                 ),
               ],
-              
+
               // 詳細情報
               if (widget.showDetails && _showingDetails) ...[
                 const SizedBox(height: 16),
@@ -123,7 +123,7 @@ class _ErrorDisplayState extends State<ErrorDisplay> {
                   ),
                 ),
               ],
-              
+
               // 再試行ボタン
               if (widget.onRetry != null) ...[
                 const SizedBox(height: 24),

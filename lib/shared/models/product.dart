@@ -25,7 +25,7 @@ class Product {
   final int quantity;
   final String unit;
   final DateTime? deletedAt; // 論理削除用フィールド
-  
+
   Product({
     this.id,
     this.janCode,
@@ -42,14 +42,14 @@ class Product {
     this.unit = 'piece',
     this.deletedAt,
   });
-  
+
   int get daysUntilExpiry {
     if (expiryDate == null) return 999;
     final now = DateTime.now();
     final difference = expiryDate!.difference(DateTime(now.year, now.month, now.day));
     return difference.inDays;
   }
-  
+
   String get emotionState {
     final days = daysUntilExpiry;
     if (days > 7) return '😊';
@@ -79,7 +79,7 @@ class Product {
     // 後方互換性のため既存のimageUrlも使用
     return imageUrl;
   }
-  
+
   Color get statusColor {
     final days = daysUntilExpiry;
     if (days > 7) return const Color(0xFF10b981);
@@ -113,7 +113,7 @@ class Product {
       print('🔍 Product.fromFirestore: imageUrls found for product $id');
       print('    Raw imageUrls data: ${data['imageUrls']}');
       print('    Type: ${data['imageUrls'].runtimeType}');
-      
+
       final imageUrlsData = data['imageUrls'] as Map<String, dynamic>;
       imageUrls = {};
       for (final entry in imageUrlsData.entries) {

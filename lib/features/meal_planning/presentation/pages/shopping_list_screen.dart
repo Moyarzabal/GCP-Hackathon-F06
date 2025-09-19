@@ -128,14 +128,14 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
         children: [
           // サマリー情報
           _buildSummaryCard(items),
-          
+
           const SizedBox(height: 20),
-          
+
           // カテゴリ別リスト
           ...itemsByCategory.entries.map((entry) {
             final category = entry.key;
             final categoryItems = entry.value;
-            
+
             return _buildCategorySection(category, categoryItems, showCompleted);
           }),
         ],
@@ -185,9 +185,9 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Row(
             children: [
               _buildSummaryChip(
@@ -298,9 +298,9 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
               ],
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // アイテムリスト
           ...items.map((item) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -336,7 +336,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            showCompleted 
+            showCompleted
                 ? 'アイテムを完了するとここに表示されます'
                 : '献立を承認するか、手動でアイテムを追加してください',
             textAlign: TextAlign.center,
@@ -456,7 +456,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
   void _deleteItem(ShoppingItem item) {
     if (item.id != null) {
       ref.read(shoppingListProvider.notifier).deleteItem(item.id!);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${item.name}を削除しました'),
@@ -473,7 +473,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
 
   void _clearCompletedItems() {
     ref.read(shoppingListProvider.notifier).clearCompletedItems();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('完了したアイテムをクリアしました'),
@@ -552,3 +552,4 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
     }
   }
 }
+

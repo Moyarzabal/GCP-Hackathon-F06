@@ -39,7 +39,7 @@ class ErrorHandler {
       RawReceivePort((pair) async {
         final List<dynamic> errorAndStacktrace = pair;
         final error = errorAndStacktrace[0];
-        final stackTrace = errorAndStacktrace[1] is StackTrace 
+        final stackTrace = errorAndStacktrace[1] is StackTrace
             ? errorAndStacktrace[1] as StackTrace
             : null;
         await handleAsyncError(error, stackTrace);
@@ -71,7 +71,7 @@ class ErrorHandler {
   /// 非同期エラーの処理
   Future<void> handleAsyncError(Object error, StackTrace? stackTrace) async {
     final isCritical = isCriticalError(error);
-    
+
     logger.severe(
       'Async Error: $error',
       error,
@@ -94,7 +94,7 @@ class ErrorHandler {
     bool fatal = false,
   }) async {
     final contextMsg = context != null ? ' (Context: $context)' : '';
-    
+
     logger.warning(
       'Error: $error$contextMsg',
       error,

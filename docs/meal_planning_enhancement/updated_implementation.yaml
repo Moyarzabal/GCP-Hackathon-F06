@@ -1,0 +1,168 @@
+updated_implementation:
+  title: "改善後の献立生成実装"
+  description: "実際の生活パターンに基づく人気・定番メニュー提案システム"
+  
+  new_meal_planning_flow:
+    step1: "冷蔵庫の食材分析（参考情報として活用）"
+      description: "賞味期限の優先度を計算し、利用可能な食材を特定"
+      priority_logic:
+        urgent: "0-1日（緊急）"
+        soon: "2-3日（近日）"
+        fresh: "4-7日（新鮮）"
+        long_term: "8日以上（長期保存）"
+    
+    step2: "AIプロンプト生成（改善版）"
+      new_approach: "冷蔵庫の食材を活用した人気・定番メニューの提案"
+      constraints:
+        - "人気・定番の家庭料理を優先"
+        - "不足する食材を明確にリストアップ"
+        - "実用的で作りやすい料理を選択"
+        - "栄養バランスの考慮"
+        - "調理時間と難易度の制限"
+    
+    step3: "Gemini AI生成（新しい形式）"
+      model: "gemini-1.5-flash"
+      output_format: "新しいJSON形式の献立データ"
+      response_size: "約4000文字"
+      new_fields:
+        main_menu: "メイン料理の詳細情報"
+        shopping_list: "追加購入食材のリスト"
+        refrigerator_usage: "冷蔵庫食材の活用情報"
+        popularity_score: "人気度スコア（1-10）"
+        cooking_frequency: "調理頻度（weekly/monthly/seasonal）"
+        seasonal_relevance: "季節性（spring/summer/autumn/winter/all）"
+    
+    step4: "献立データ解析（拡張版）"
+      parsing: "新しいJSONレスポンスをMealPlanオブジェクトに変換"
+      validation: "必須フィールドと新フィールドの検証"
+      backward_compatibility: "従来の4品構成への変換"
+    
+    step5: "Firestore保存（拡張データ）"
+      storage: "献立と新しいフィールドの永続化"
+      status_tracking: "提案→承認→完了の状態管理"
+      shopping_list_storage: "買い物リストの個別保存"
+
+  technical_improvements:
+    prompt_engineering:
+      before: "冷蔵庫食材のみを使用した制約付き献立"
+      after: "冷蔵庫食材を活用した人気・定番メニュー提案"
+      improvements:
+        - "制約の削除：冷蔵庫食材のみという制限を撤廃"
+        - "人気度重視：実際に作られる頻度の高い料理を優先"
+        - "買い物ガイド：不足食材の具体的なリストアップ"
+        - "実用性向上：実際の生活パターンに合致した提案"
+    
+    data_model_extensions:
+      meal_plan_model:
+        new_fields:
+          shopping_list: "List<ShoppingItem>? - 追加購入食材リスト"
+          popularity_score: "int? - 人気度スコア（1-10）"
+          cooking_frequency: "String? - 調理頻度"
+          seasonal_relevance: "String? - 季節性"
+          refrigerator_usage: "Map<String, dynamic>? - 冷蔵庫使用情報"
+        new_methods:
+          popularityDisplayName: "人気度の表示名取得"
+          cookingFrequencyDisplayName: "調理頻度の表示名取得"
+          seasonalRelevanceDisplayName: "季節性の表示名取得"
+          hasShoppingList: "買い物リストの有無確認"
+          estimatedTotalCost: "概算費用の計算"
+    
+    ui_ux_enhancements:
+      meal_plan_screen:
+        new_features:
+          popularity_indicator: "人気度バッジの表示"
+          cooking_frequency_badge: "調理頻度バッジの表示"
+          seasonal_badge: "季節性バッジの表示"
+          shopping_list_section: "買い物リストセクション"
+          cost_estimation: "概算費用の表示"
+        shopping_list_ui:
+          item_display: "買い物アイテムの詳細表示"
+          cost_information: "各アイテムの概算費用"
+          save_functionality: "Firestoreへの保存機能"
+          visual_indicators: "カテゴリ別の色分け表示"
+
+  new_json_response_format:
+    structure:
+      main_menu:
+        name: "メイン料理名"
+        description: "料理の説明"
+        popularity_score: "人気度（1-10）"
+        cooking_frequency: "調理頻度（weekly/monthly/seasonal）"
+        seasonal_relevance: "季節性（spring/summer/autumn/winter/all）"
+        cooking_time: "調理時間（分）"
+        difficulty: "難易度（easy/medium/hard/expert）"
+        ingredients: "材料リスト"
+        recipe: "レシピ情報"
+        nutrition_info: "栄養情報"
+      
+      shopping_list:
+        required_ingredients: "追加購入食材リスト"
+        store_sections: "購入場所の案内"
+        total_estimated_cost: "総概算費用"
+      
+      refrigerator_usage:
+        used_ingredients: "使用する冷蔵庫食材"
+        waste_reduction: "食材活用効果の説明"
+      
+      metadata:
+        total_cooking_time: "総調理時間"
+        difficulty: "全体の難易度"
+        nutrition_score: "栄養スコア（0-100）"
+        confidence: "信頼度（0-1）"
+
+  success_metrics_achieved:
+    user_satisfaction: "より実用的な献立提案の実現"
+    menu_variety: "人気・定番メニューの多様な提案"
+    shopping_efficiency: "効率的な買い物リストの自動生成"
+    cooking_motivation: "料理へのモチベーション向上"
+    waste_reduction: "食材の無駄を減らす効果"
+
+  example_scenarios_implemented:
+    scenario1:
+      available: "にんじん、じゃがいも、玉ねぎ"
+      suggested_menu: "カレーライス"
+      additional_shopping: "カレールウ、お米、肉"
+      popularity_score: 8
+      cooking_frequency: "weekly"
+      seasonal_relevance: "all"
+      reasoning: "定番の家庭料理で、冷蔵庫の野菜を有効活用"
+    
+    scenario2:
+      available: "玉ねぎ、じゃがいも、豚肉"
+      suggested_menu: "肉じゃが"
+      additional_shopping: "醤油、みりん、砂糖、出汁"
+      popularity_score: 7
+      cooking_frequency: "monthly"
+      seasonal_relevance: "autumn"
+      reasoning: "日本の定番料理で、季節を問わず人気"
+    
+    scenario3:
+      available: "キャベツ、豚肉、にんじん"
+      suggested_menu: "豚のしょうが焼き定食"
+      additional_shopping: "しょうが、醤油、みりん、ご飯"
+      popularity_score: 6
+      cooking_frequency: "weekly"
+      seasonal_relevance: "all"
+      reasoning: "栄養バランスが良く、作りやすい定番メニュー"
+
+  implementation_status:
+    phase1_completed: "プロンプトエンジニアリングの改善"
+    phase2_completed: "データモデルの拡張"
+    phase3_completed: "UI/UXの改善"
+    total_implementation_time: "約6時間"
+    
+  future_enhancements:
+    menu_comparison: "複数メニューの比較表示機能"
+    user_preferences: "ユーザーの好み学習機能"
+    seasonal_recommendations: "季節に応じた料理提案"
+    cost_optimization: "費用最適化機能"
+    social_features: "献立の共有機能"
+
+  technical_architecture:
+    service_layer: "AIMealPlanningService（拡張版）"
+    provider_layer: "MealPlanNotifier（拡張版）"
+    data_models: "MealPlan, MealItem, Ingredient, ShoppingItem（拡張版）"
+    ai_integration: "Google Gemini API（改善プロンプト）"
+    storage: "Firebase Firestore（拡張スキーマ）"
+    ui_components: "MealPlanScreen（新機能追加）"
+

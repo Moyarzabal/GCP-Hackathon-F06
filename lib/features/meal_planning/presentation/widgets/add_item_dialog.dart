@@ -17,7 +17,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
   final _nameController = TextEditingController();
   final _quantityController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   String _selectedUnit = '個';
   String _selectedCategory = 'その他';
   double? _estimatedPrice;
@@ -60,7 +60,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
           children: [
             // ヘッダー
             _buildHeader(),
-            
+
             // フォーム
             Flexible(
               child: SingleChildScrollView(
@@ -82,9 +82,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
                           return null;
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // 数量と単位
                       Row(
                         children: [
@@ -122,9 +122,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // カテゴリ
                       _buildDropdown(
                         label: 'カテゴリ',
@@ -136,9 +136,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
                           });
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // 予想価格（オプション）
                       _buildTextField(
                         controller: TextEditingController(
@@ -152,9 +152,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
                         },
                         suffix: const Text('円'),
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // メモ（オプション）
                       _buildTextField(
                         controller: _notesController,
@@ -167,7 +167,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                 ),
               ),
             ),
-            
+
             // フッター
             _buildFooter(),
           ],
@@ -391,9 +391,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
         _selectedUnit,
         _selectedCategory,
       );
-      
+
       Navigator.pop(context);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${_nameController.text.trim()}を追加しました'),
@@ -403,3 +403,4 @@ class _AddItemDialogState extends State<AddItemDialog> {
     }
   }
 }
+

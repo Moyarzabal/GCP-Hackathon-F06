@@ -71,7 +71,7 @@ JSON形式で回答してください。形式：
 
       final content = [Content.text(prompt)];
       final response = await _model.generateContent(content);
-      
+
       if (response.text == null) {
         return [];
       }
@@ -83,7 +83,7 @@ JSON形式で回答してください。形式：
       final List<dynamic> recipesJson = List<dynamic>.from(
         (jsonStr is String) ? _parseJson(jsonStr) : jsonStr
       );
-      
+
       return recipesJson.map((json) => Recipe.fromJson(json)).toList();
     } catch (e) {
       print('Error getting recipe suggestions: $e');
@@ -132,7 +132,7 @@ JSON形式で回答してください。形式：
 
       final content = [Content.text(prompt)];
       final response = await _model.generateContent(content);
-      
+
       return response.text ?? '賞味期限が近づいています。早めにお使いください。';
     } catch (e) {
       print('Error getting food waste tip: $e');
@@ -179,7 +179,7 @@ ${recentMeals.join(', ')}
 
       final content = [Content.text(prompt)];
       final response = await _model.generateContent(content);
-      
+
       if (response.text == null) {
         return NutritionAdvice.empty();
       }
@@ -357,13 +357,13 @@ ${categoryOptions.map((cat) => '- $cat').join('\n')}
     // Extract JSON from the response
     final jsonStart = text.indexOf('[');
     final jsonStartObj = text.indexOf('{');
-    
+
     if (jsonStart == -1 && jsonStartObj == -1) return null;
-    
-    final start = (jsonStart != -1 && jsonStartObj != -1) 
+
+    final start = (jsonStart != -1 && jsonStartObj != -1)
         ? (jsonStart < jsonStartObj ? jsonStart : jsonStartObj)
         : (jsonStart != -1 ? jsonStart : jsonStartObj);
-    
+
     if (text[start] == '[') {
       final jsonEnd = text.lastIndexOf(']');
       if (jsonEnd == -1) return null;
@@ -379,7 +379,7 @@ ${categoryOptions.map((cat) => '- $cat').join('\n')}
     try {
       // Remove any markdown code block markers
       jsonStr = jsonStr.replaceAll('```json', '').replaceAll('```', '').trim();
-      
+
       // Use dart:convert for proper JSON parsing
       return json.decode(jsonStr);
     } catch (e) {

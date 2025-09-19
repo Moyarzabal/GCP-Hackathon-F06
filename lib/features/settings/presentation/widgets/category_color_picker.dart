@@ -40,7 +40,7 @@ class CategoryColorPicker extends StatelessWidget {
       runSpacing: 8,
       children: _colors.map((color) {
         final isSelected = color.value == selectedColor.value;
-        
+
         return GestureDetector(
           onTap: () => onColorChanged(color),
           child: Container(
@@ -76,3 +76,4 @@ class CategoryColorPicker extends StatelessWidget {
     );
   }
 }
+

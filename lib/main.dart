@@ -13,11 +13,11 @@ late ProviderContainer globalContainer;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize global error handler
   final errorHandler = GlobalErrorHandler.instance;
   errorHandler.initialize();
-  
+
   // Load environment variables (optional for development)
   try {
     print('Attempting to load .env file...');
@@ -30,7 +30,7 @@ void main() async {
     print('Warning: .env file not found, using default values');
     print('Error details: $e');
   }
-  
+
   // Initialize Firebase with DefaultFirebaseOptions
   try {
     await Firebase.initializeApp(
@@ -41,7 +41,7 @@ void main() async {
     print('Firebase initialization failed: $e');
     // Continue without Firebase for development
   }
-  
+
   // Initialize Japanese locale for date formatting
   try {
     await initializeDateFormatting('ja_JP', null);
@@ -53,10 +53,10 @@ void main() async {
 
   // Set initial breadcrumb
   errorHandler.addBreadcrumb('アプリケーション開始', category: 'lifecycle');
-  
+
   // ProviderContainerを作成してglobalContainerに設定
   globalContainer = ProviderContainer();
-  
+
   runApp(
     RootErrorBoundary(
       onError: (error, stackTrace) {

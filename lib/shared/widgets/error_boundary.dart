@@ -24,7 +24,7 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
   @override
   void initState() {
     super.initState();
-    
+
     // FlutterErrorの処理を設定
     FlutterError.onError = (FlutterErrorDetails details) {
       if (mounted) {
@@ -41,7 +41,7 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
   @override
   void didUpdateWidget(ErrorBoundary oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // エラーがクリアされた場合
     if (oldWidget.child != widget.child && _error != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -59,7 +59,7 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
     if (_error != null) {
       return _buildErrorWidget(context, _error!);
     }
-    
+
     return widget.child;
   }
 

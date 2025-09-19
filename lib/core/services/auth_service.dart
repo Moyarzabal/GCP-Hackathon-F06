@@ -21,7 +21,7 @@ class AuthService {
   Map<String, dynamic>? get userInfo {
     final user = currentUser;
     if (user == null) return null;
-    
+
     return {
       'uid': user.uid,
       'email': user.email,
@@ -37,12 +37,12 @@ class AuthService {
         email: email,
         password: password,
       );
-      
+
       // 表示名を設定
       if (displayName != null && displayName.isNotEmpty) {
         await credential.user?.updateDisplayName(displayName);
       }
-      
+
       return credential;
     } catch (e) {
       print('Sign up error: $e');

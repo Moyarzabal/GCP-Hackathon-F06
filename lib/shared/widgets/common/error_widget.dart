@@ -7,7 +7,7 @@ class ErrorDisplayWidget extends StatelessWidget {
   final String? details;
   final VoidCallback? onRetry;
   final IconData? icon;
-  
+
   const ErrorDisplayWidget({
     Key? key,
     required this.message,
@@ -19,7 +19,7 @@ class ErrorDisplayWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -67,7 +67,7 @@ class ErrorDisplayWidget extends StatelessWidget {
 class InlineErrorWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onDismiss;
-  
+
   const InlineErrorWidget({
     Key? key,
     required this.message,
@@ -77,7 +77,7 @@ class InlineErrorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 8.0),

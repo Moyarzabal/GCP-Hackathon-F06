@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import '../../../../shared/models/meal_plan.dart';
 
 class MealDetailDialog extends StatefulWidget {
+  // カラー定義
+  static const Color _baseColor = Color(0xFFF6EACB);
+  static const Color _primaryColor = Color(0xFFD4A574);
+  static const Color _secondaryColor = Color(0xFFB8956A);
+  static const Color _accentColor = Color(0xFF8B7355);
+  static const Color _textColor = Color(0xFF5D4E37);
   final MealItem mealItem;
 
   const MealDetailDialog({
@@ -32,6 +38,7 @@ class _MealDetailDialogState extends State<MealDetailDialog>
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      backgroundColor: MealDetailDialog._baseColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -39,16 +46,21 @@ class _MealDetailDialogState extends State<MealDetailDialog>
         width: MediaQuery.of(context).size.width * 0.9,
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
+          color: MealDetailDialog._baseColor,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: MealDetailDialog._primaryColor.withOpacity(0.3),
+            width: 1,
+          ),
         ),
         child: Column(
           children: [
             // ヘッダー
             _buildHeader(),
-            
+
             // タブバー
             _buildTabBar(),
-            
+
             // タブコンテンツ
             Expanded(
               child: TabBarView(
@@ -70,14 +82,7 @@ class _MealDetailDialogState extends State<MealDetailDialog>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: MealDetailDialog._primaryColor.withOpacity(0.2),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
@@ -109,38 +114,38 @@ class _MealDetailDialogState extends State<MealDetailDialog>
               const Spacer(),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close),
+                icon: Icon(Icons.close, color: MealDetailDialog._accentColor),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.white.withOpacity(0.2),
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Text(
             widget.mealItem.name,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
+              color: MealDetailDialog._textColor,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          
+
           if (widget.mealItem.description.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
               widget.mealItem.description,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
+                color: MealDetailDialog._accentColor,
               ),
             ),
           ],
-          
+
           const SizedBox(height: 16),
-          
+
           // 情報バー
           Row(
             children: [
@@ -171,18 +176,18 @@ class _MealDetailDialogState extends State<MealDetailDialog>
   Widget _buildTabBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: MealDetailDialog._baseColor,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            color: MealDetailDialog._primaryColor.withOpacity(0.2),
           ),
         ),
       ),
       child: TabBar(
         controller: _tabController,
-        labelColor: Theme.of(context).colorScheme.primary,
-        unselectedLabelColor: Colors.grey[600],
-        indicatorColor: Theme.of(context).colorScheme.primary,
+        labelColor: MealDetailDialog._textColor,
+        unselectedLabelColor: MealDetailDialog._accentColor,
+        indicatorColor: MealDetailDialog._primaryColor,
         tabs: const [
           Tab(
             icon: Icon(Icons.shopping_basket),
@@ -209,9 +214,9 @@ class _MealDetailDialogState extends State<MealDetailDialog>
         children: [
           // 在庫状況のサマリー
           _buildIngredientSummary(),
-          
+
           const SizedBox(height: 20),
-          
+
           // 材料リスト
           Text(
             '材料リスト',
@@ -219,9 +224,9 @@ class _MealDetailDialogState extends State<MealDetailDialog>
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           ...widget.mealItem.ingredients.map((ingredient) => _buildIngredientItem(ingredient)),
         ],
       ),
@@ -232,16 +237,16 @@ class _MealDetailDialogState extends State<MealDetailDialog>
     final availableCount = widget.mealItem.ingredients.where((ingredient) => ingredient.available).length;
     final totalCount = widget.mealItem.ingredients.length;
     final missingCount = totalCount - availableCount;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: availableCount == totalCount 
+        color: availableCount == totalCount
             ? Colors.green.withOpacity(0.1)
             : Colors.orange.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: availableCount == totalCount 
+          color: availableCount == totalCount
               ? Colors.green.withOpacity(0.3)
               : Colors.orange.withOpacity(0.3),
         ),
@@ -259,7 +264,7 @@ class _MealDetailDialogState extends State<MealDetailDialog>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  availableCount == totalCount 
+                  availableCount == totalCount
                       ? 'すべての材料が揃っています'
                       : '$missingCount個の材料が不足しています',
                   style: TextStyle(
@@ -289,12 +294,12 @@ class _MealDetailDialogState extends State<MealDetailDialog>
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: ingredient.available 
+        color: ingredient.available
             ? Colors.green.withOpacity(0.05)
             : Colors.orange.withOpacity(0.05),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: ingredient.available 
+          color: ingredient.available
               ? Colors.green.withOpacity(0.2)
               : Colors.orange.withOpacity(0.2),
         ),
@@ -361,9 +366,9 @@ class _MealDetailDialogState extends State<MealDetailDialog>
         children: [
           // 調理時間と難易度
           _buildRecipeInfo(),
-          
+
           const SizedBox(height: 20),
-          
+
           // 調理手順
           Text(
             '調理手順',
@@ -371,15 +376,15 @@ class _MealDetailDialogState extends State<MealDetailDialog>
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           ...widget.mealItem.recipe.steps.asMap().entries.map((entry) {
             final index = entry.key;
             final step = entry.value;
             return _buildRecipeStep(index + 1, step);
           }),
-          
+
           if (widget.mealItem.recipe.tips.isNotEmpty) ...[
             const SizedBox(height: 20),
             _buildTipsSection(),
@@ -393,10 +398,10 @@ class _MealDetailDialogState extends State<MealDetailDialog>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: MealDetailDialog._baseColor.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          color: MealDetailDialog._primaryColor.withOpacity(0.2),
         ),
       ),
       child: Row(
@@ -405,12 +410,6 @@ class _MealDetailDialogState extends State<MealDetailDialog>
             icon: Icons.access_time,
             label: '調理時間: ${widget.mealItem.recipe.cookingTime}分',
             color: Colors.blue,
-          ),
-          const SizedBox(width: 12),
-          _buildInfoChip(
-            icon: Icons.timer,
-            label: '準備時間: ${widget.mealItem.recipe.prepTime}分',
-            color: Colors.green,
           ),
           const SizedBox(width: 12),
           _buildInfoChip(
@@ -558,7 +557,7 @@ class _MealDetailDialogState extends State<MealDetailDialog>
 
   Widget _buildNutritionTab() {
     final nutrition = widget.mealItem.nutritionInfo;
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -566,9 +565,9 @@ class _MealDetailDialogState extends State<MealDetailDialog>
         children: [
           // カロリー表示
           _buildCalorieDisplay(nutrition.calories),
-          
+
           const SizedBox(height: 20),
-          
+
           // 栄養素の詳細
           Text(
             '栄養素の詳細',
@@ -576,9 +575,9 @@ class _MealDetailDialogState extends State<MealDetailDialog>
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           _buildNutritionItem(
             label: 'タンパク質',
             value: nutrition.protein,
@@ -586,7 +585,7 @@ class _MealDetailDialogState extends State<MealDetailDialog>
             color: Colors.red,
             icon: Icons.fitness_center,
           ),
-          
+
           _buildNutritionItem(
             label: '炭水化物',
             value: nutrition.carbohydrates,
@@ -594,7 +593,7 @@ class _MealDetailDialogState extends State<MealDetailDialog>
             color: Colors.blue,
             icon: Icons.grain,
           ),
-          
+
           _buildNutritionItem(
             label: '脂質',
             value: nutrition.fat,
@@ -602,7 +601,7 @@ class _MealDetailDialogState extends State<MealDetailDialog>
             color: Colors.orange,
             icon: Icons.opacity,
           ),
-          
+
           _buildNutritionItem(
             label: '食物繊維',
             value: nutrition.fiber,
@@ -610,7 +609,7 @@ class _MealDetailDialogState extends State<MealDetailDialog>
             color: Colors.green,
             icon: Icons.eco,
           ),
-          
+
           _buildNutritionItem(
             label: '糖質',
             value: nutrition.sugar,
@@ -618,7 +617,7 @@ class _MealDetailDialogState extends State<MealDetailDialog>
             color: Colors.pink,
             icon: Icons.cake,
           ),
-          
+
           _buildNutritionItem(
             label: 'ナトリウム',
             value: nutrition.sodium,

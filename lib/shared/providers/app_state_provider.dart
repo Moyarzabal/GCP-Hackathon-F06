@@ -89,7 +89,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
   void updateProductImage(String productId, String imageUrl) {
     print('🔄 updateProductImage called: productId=$productId, imageUrl=$imageUrl');
     print('📦 Current products count: ${state.products.length}');
-    
+
     final updatedProducts = state.products.map((product) {
       if (product.id == productId) {
         print('✅ Found product to update: ${product.name}');
@@ -99,7 +99,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       }
       return product;
     }).toList();
-    
+
     print('📦 Updated products count: ${updatedProducts.length}');
     state = state.copyWith(products: updatedProducts);
     print('✅ updateProductImage completed');
@@ -119,7 +119,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       print('🔄 loadProductsFromFirebase: 開始');
       final products = await _dataSource!.getAllProducts();
       print('✅ loadProductsFromFirebase: ${products.length}個の商品を読み込み');
-      
+
       // 各商品のimageUrlsを確認
       for (var product in products) {
         print('   商品ID: ${product.id}, 名前: ${product.name}');
@@ -131,7 +131,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
           }
         }
       }
-      
+
       state = state.copyWith(products: products, isLoading: false);
     } catch (e) {
       print('❌ loadProductsFromFirebase エラー: $e');
@@ -153,11 +153,11 @@ class AppStateNotifier extends StateNotifier<AppState> {
 
       final productId = await _dataSource!.addProduct(product);
       final productWithId = product.copyWith(id: productId);
-      
+
       // ローカル状態も更新
       addProduct(productWithId);
       setLoading(false);
-      
+
       return productWithId;
     } catch (e) {
       setError('Failed to add product to Firebase: $e');
@@ -183,7 +183,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       clearError();
 
       await _dataSource!.updateProduct(product);
-      
+
       // ローカル状態も更新
       updateProduct(product);
       setLoading(false);
@@ -205,7 +205,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       clearError();
 
       await _dataSource!.deleteProduct(productId);
-      
+
       // ローカル状態も更新
       removeProduct(productId);
       setLoading(false);
@@ -220,7 +220,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
     print('🗑️ AppStateProvider.deleteProductsFromFirebase: 開始');
     print('   削除対象商品数: ${productIds.length}');
     print('   削除対象商品ID: $productIds');
-    
+
     if (_dataSource == null) {
       print('❌ Firebase data source is not available');
       setError('Firebase data source is not available');
@@ -249,7 +249,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
         }
         print('✅ 個別論理削除完了');
       }
-      
+
       // ローカル状態は更新しない（論理削除なので、ストリームで自動更新される）
       print('✅ 論理削除完了 - ストリームで自動更新されます');
       setLoading(false);
@@ -314,6 +314,57 @@ class AppStateNotifier extends StateNotifier<AppState> {
     print('📦 Updated products count: ${updatedProducts.length}');
     state = state.copyWith(products: updatedProducts);
     print('✅ updateProductMultiStageImages completed');
+  }
+
+  /// 商品の複数段階画像を更新（ProductImageGenerationService用）
+  void updateProductImages(String productId, Map<ImageStage, String> imageUrls) {
+    print('🔄 updateProductImages: $productId');
+    print('📊 ImageUrls count: ${imageUrls.length}');
+
+    final updatedProducts = state.products.map((product) {
+      if (product.id == productId) {
+        print('🎯 Updating product: ${product.name}');
+        print('    Old imageUrls: ${product.imageUrls?.length ?? 0} stages');
+        print('    New imageUrls: ${imageUrls.length} stages');
+
+        // 既存のimageUrlも保持（後方互換性のため）
+        final currentImageUrl = product.imageUrl;
+
+        final updatedProduct = product.copyWith(
+          imageUrls: imageUrls,
+          imageUrl: currentImageUrl, // 既存のimageUrlを保持
+        );
+
+        // Firebaseにも保存
+        _updateProductInFirebase(updatedProduct);
+
+        return updatedProduct;
+      }
+      return product;
+    }).toList();
+
+    print('📦 Updated products count: ${updatedProducts.length}');
+    state = state.copyWith(products: updatedProducts);
+    print('✅ updateProductImages completed');
+  }
+
+  /// Firebaseで商品を更新
+  Future<void> _updateProductInFirebase(Product product) async {
+    if (_dataSource == null || product.id == null) {
+      print('❌ Firebase data source or product ID is null');
+      return;
+    }
+
+    try {
+      print('🔥 Firebaseに商品を更新中: ${product.id}');
+      print('   imageUrls: ${product.imageUrls?.length ?? 0}個の段階');
+      
+      await _dataSource!.updateProduct(product);
+      
+      print('✅ Firebase更新完了: ${product.id}');
+    } catch (e) {
+      print('❌ Firebase更新エラー: $e');
+    }
   }
 }
 
