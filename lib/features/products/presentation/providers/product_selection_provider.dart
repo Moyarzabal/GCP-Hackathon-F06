@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:barcode_scanner/features/products/presentation/states/product_selection_state.dart';
-import 'package:barcode_scanner/features/products/presentation/providers/product_provider.dart';
-import 'package:barcode_scanner/core/errors/result.dart';
-import 'package:barcode_scanner/core/errors/app_exception.dart';
+import '../states/product_selection_state.dart';
+import 'product_provider.dart';
+import '../../../../core/errors/result.dart';
+import '../../../../core/errors/app_exception.dart';
 
 /// 商品選択状態を管理するStateNotifier
 class ProductSelectionNotifier extends StateNotifier<ProductSelectionState> {
