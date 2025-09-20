@@ -45,8 +45,8 @@ class FridgeShelfLayer extends StatelessWidget {
     final double fridgeBodyTop = height * 0.02;
     final double fridgeBodyHeight = height * 0.75;
 
-    // 棚は冷蔵庫本体内に収まるように配置
-    final double shelfAreaHeight = fridgeBodyHeight * 0.8; // 引き出し部分を除く
+    // 棚は1段目（大扉）の領域内に配置（新しい4段構成に対応）
+    final double shelfAreaHeight = fridgeBodyHeight * 0.5; // 1段目: 50%
 
     // 3つの棚を均等に配置
     for (int i = 0; i < 3; i++) {
@@ -125,7 +125,7 @@ class ShelfPainter extends CustomPainter {
         fridgeBodyLeft,
         fridgeBodyTop,
         fridgeBodyWidth,
-        fridgeBodyHeight * 0.8, // 引き出し部分を除く
+        fridgeBodyHeight * 0.5, // 1段目: 50%
       ),
       const Radius.circular(12),
     );
@@ -149,7 +149,7 @@ class ShelfPainter extends CustomPainter {
     }
     
     // 棚板の描画（メタリック質感）
-    final double shelfAreaHeight = fridgeBodyHeight * 0.8; // 引き出し部分を除く
+    final double shelfAreaHeight = fridgeBodyHeight * 0.5; // 1段目: 50%
     for (int i = 0; i < 3; i++) {
       final double y = fridgeBodyTop + (shelfAreaHeight / 3) * i;
       final double shelfHeight = shelfAreaHeight / 3;
