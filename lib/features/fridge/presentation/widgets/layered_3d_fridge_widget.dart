@@ -274,6 +274,8 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
   void _toggleSecondRight() async {
     setState(() {
       _secondRightOpen = !_secondRightOpen;
+      // タップされた引き出しをアクティブに設定
+      _activeDrawer = _secondRightOpen ? 'secondRight' : null;
     });
 
     if (_secondRightOpen) {
@@ -288,6 +290,8 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
   void _toggleVegetableDrawer() async {
     setState(() {
       _vegetableDrawerOpen = !_vegetableDrawerOpen;
+      // タップされた引き出しをアクティブに設定
+      _activeDrawer = _vegetableDrawerOpen ? 'vegetable' : null;
     });
 
     if (_vegetableDrawerOpen) {
@@ -302,6 +306,8 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
   void _toggleFreezerDrawer() async {
     setState(() {
       _freezerDrawerOpen = !_freezerDrawerOpen;
+      // タップされた引き出しをアクティブに設定
+      _activeDrawer = _freezerDrawerOpen ? 'freezer' : null;
     });
 
     if (_freezerDrawerOpen) {
@@ -495,33 +501,54 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
         final double section3Height = sectionsHeight * 0.3;  // 3段目: 30%
         final double section4Height = sectionsHeight * 0.3;  // 4段目: 30%
 
-        return Stack(
-          children: [
-            // 2段目: 左右分割セクション
-            _buildSecondSection(
-              left: fridgeBodyLeft,
-              top: sectionsStartY,
-              width: fridgeBodyWidth,
-              height: section2Height,
-            ),
+        // 各セクションの定義
+        final Map<String, Widget> sections = {
+          'secondSection': _buildSecondSection(
+            left: fridgeBodyLeft,
+            top: sectionsStartY,
+            width: fridgeBodyWidth,
+            height: section2Height,
+          ),
+          'vegetable': _buildThirdSection(
+            left: fridgeBodyLeft,
+            top: sectionsStartY + section2Height,
+            width: fridgeBodyWidth,
+            height: section3Height,
+          ),
+          'freezer': _buildFourthSection(
+            left: fridgeBodyLeft,
+            top: sectionsStartY + section2Height + section3Height,
+            width: fridgeBodyWidth,
+            height: section4Height,
+          ),
+        };
 
-            // 3段目: 野菜室
-            _buildThirdSection(
-              left: fridgeBodyLeft,
-              top: sectionsStartY + section2Height,
-              width: fridgeBodyWidth,
-              height: section3Height,
-            ),
+        // アクティブな引き出しを最前面に配置するための動的Stack
+        List<Widget> stackChildren = [];
 
-            // 4段目: 冷凍庫
-            _buildFourthSection(
-              left: fridgeBodyLeft,
-              top: sectionsStartY + section2Height + section3Height,
-              width: fridgeBodyWidth,
-              height: section4Height,
-            ),
-          ],
-        );
+        // 非アクティブな引き出しを先に追加
+        sections.forEach((key, widget) {
+          if (_activeDrawer == null ||
+              (_activeDrawer != key &&
+               !(_activeDrawer == 'secondLeft' && key == 'secondSection') &&
+               !(_activeDrawer == 'secondRight' && key == 'secondSection'))) {
+            stackChildren.add(widget);
+          }
+        });
+
+        // アクティブな引き出しを最後に追加（最前面に表示）
+        if (_activeDrawer != null) {
+          if (_activeDrawer == 'vegetable' && sections.containsKey('vegetable')) {
+            stackChildren.add(sections['vegetable']!);
+          } else if (_activeDrawer == 'freezer' && sections.containsKey('freezer')) {
+            stackChildren.add(sections['freezer']!);
+          } else if ((_activeDrawer == 'secondLeft' || _activeDrawer == 'secondRight') &&
+                     sections.containsKey('secondSection')) {
+            stackChildren.add(sections['secondSection']!);
+          }
+        }
+
+        return Stack(children: stackChildren);
       },
     );
   }
@@ -533,35 +560,52 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
     required double width,
     required double height,
   }) {
-    return Stack(
-      children: [
-        // 左セクション（冷凍庫引き出し）
-        _buildDrawerSection(
-          left: left,
-          top: top,
-          width: width / 2,
-          height: height,
-          animation: secondLeftAnimation,
-          label: '冷凍庫',
-          backgroundColor: Colors.white,
-          onTap: _toggleSecondLeft,
-          onDoubleTap: () => widget.onSectionTap(FridgeCompartment.freezer, 1),
-        ),
-
-        // 右セクション（冷蔵室引き出し）
-        _buildDrawerSection(
-          left: left + width / 2,
-          top: top,
-          width: width / 2,
-          height: height,
-          animation: secondRightAnimation,
-          label: '冷蔵室',
-          backgroundColor: Colors.white,
-          onTap: _toggleSecondRight,
-          onDoubleTap: () => widget.onSectionTap(FridgeCompartment.refrigerator, 1),
-        ),
-      ],
+    // 左右の引き出しウィジェットを定義
+    final leftDrawer = _buildDrawerSection(
+      left: left,
+      top: top,
+      width: width / 2,
+      height: height,
+      animation: secondLeftAnimation,
+      label: '冷凍庫',
+      backgroundColor: Colors.white,
+      onTap: _toggleSecondLeft,
+      onDoubleTap: () => widget.onSectionTap(FridgeCompartment.freezer, 1),
+      drawerKey: 'secondLeft',
     );
+
+    final rightDrawer = _buildDrawerSection(
+      left: left + width / 2,
+      top: top,
+      width: width / 2,
+      height: height,
+      animation: secondRightAnimation,
+      label: '冷蔵室',
+      backgroundColor: Colors.white,
+      onTap: _toggleSecondRight,
+      onDoubleTap: () => widget.onSectionTap(FridgeCompartment.refrigerator, 1),
+      drawerKey: 'secondRight',
+    );
+
+    // アクティブな引き出しを最前面に配置するための動的Stack
+    List<Widget> stackChildren = [];
+
+    // アクティブでない引き出しを先に追加
+    if (_activeDrawer != 'secondLeft') {
+      stackChildren.add(leftDrawer);
+    }
+    if (_activeDrawer != 'secondRight') {
+      stackChildren.add(rightDrawer);
+    }
+
+    // アクティブな引き出しを最後に追加（最前面に表示）
+    if (_activeDrawer == 'secondLeft') {
+      stackChildren.add(leftDrawer);
+    } else if (_activeDrawer == 'secondRight') {
+      stackChildren.add(rightDrawer);
+    }
+
+    return Stack(children: stackChildren);
   }
 
   /// 3段目: 野菜室（引き出しスタイル）
@@ -581,6 +625,7 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
       backgroundColor: Colors.white,
       onTap: _toggleVegetableDrawer,
       onDoubleTap: () => widget.onSectionTap(FridgeCompartment.vegetableDrawer, 0),
+      drawerKey: 'vegetable',
     );
   }
 
@@ -601,6 +646,7 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
       backgroundColor: Colors.white,
       onTap: _toggleFreezerDrawer,
       onDoubleTap: () => widget.onSectionTap(FridgeCompartment.freezer, 0),
+      drawerKey: 'freezer',
     );
   }
 
@@ -615,11 +661,17 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
     required Color backgroundColor,
     required VoidCallback onTap,
     required VoidCallback onDoubleTap,
+    String? drawerKey, // アクティブ判定のためのキー
   }) {
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
         final double pullDistance = animation.value;
+        final bool isActive = drawerKey != null && _activeDrawer == drawerKey;
+
+        // アクティブな引き出しには追加のZ軸効果を適用
+        final double additionalZ = isActive ? 50.0 : 0.0; // 最前面に配置するための追加Z軸移動
+        final double perspective = isActive ? 0.003 : 0.002; // アクティブな引き出しはより強いパースペクティブ
 
         return Positioned(
           left: left,
@@ -629,9 +681,9 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
           child: Transform(
             alignment: Alignment.center,
             transform: Matrix4.identity()
-              ..setEntry(3, 2, 0.002) // 強めのパースペクティブ
-              ..translate(0.0, 0.0, -pullDistance) // Z軸方向を逆に（手前に引き出し）
-              ..scale(1.0 + (pullDistance * 0.002)), // 引き出すと少し大きくなる
+              ..setEntry(3, 2, perspective) // アクティブ時は強めのパースペクティブ
+              ..translate(0.0, 0.0, -pullDistance - additionalZ) // Z軸方向を逆に（手前に引き出し）+ アクティブ時の追加移動
+              ..scale(1.0 + (pullDistance * 0.002) + (isActive ? 0.05 : 0.0)), // 引き出すと少し大きくなる + アクティブ時の追加拡大
             child: GestureDetector(
               onTap: () {
                 HapticFeedback.lightImpact();
