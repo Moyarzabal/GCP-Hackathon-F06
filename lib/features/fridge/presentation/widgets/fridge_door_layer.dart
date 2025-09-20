@@ -76,8 +76,8 @@ class FridgeDoorLayer extends StatelessWidget {
 
     // 扉の幅を冷蔵庫本体の正確に半分にして軸のぶれを防ぐ
     final double width = fridgeBodyWidth * 0.5;  // 正確に半分
-    // 扉の高さを冷蔵庫本体の高さから引き出し部分を除いた高さにする
-    final double height = fridgeBodyHeight * 0.8; // 下部の引き出し部分を除く
+    // 扉の高さを冷蔵庫本体の50%に変更（新しい4段構成に対応）
+    final double height = fridgeBodyHeight * 0.5; // 1段目: 50%
     // 扉の上部位置を冷蔵庫本体の上部位置に合わせる
     final double top = fridgeBodyTop;
 
