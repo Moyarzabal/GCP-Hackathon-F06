@@ -67,7 +67,7 @@ class FridgeDoorLayer extends StatelessWidget {
     final double fridgeBodyLeft = constraints.maxWidth * 0.1;
     final double fridgeBodyWidth = constraints.maxWidth * 0.8;
     final double fridgeBodyTop = constraints.maxHeight * 0.02;
-    final double fridgeBodyHeight = constraints.maxHeight * 0.75;
+    final double fridgeBodyHeight = constraints.maxHeight * 0.95;
 
     // 冷蔵庫本体の正確な端の位置
     final double fridgeLeftEdge = fridgeBodyLeft;  // 冷蔵庫の左端
@@ -76,8 +76,8 @@ class FridgeDoorLayer extends StatelessWidget {
 
     // 扉の幅を冷蔵庫本体の正確に半分にして軸のぶれを防ぐ
     final double width = fridgeBodyWidth * 0.5;  // 正確に半分
-    // 扉の高さを冷蔵庫本体の50%に変更（新しい4段構成に対応）
-    final double height = fridgeBodyHeight * 0.5; // 1段目: 50%
+    // 扉の高さを冷蔵庫本体の55%に変更（バランス調整対応）
+    final double height = fridgeBodyHeight * 0.55; // 1段目: 55%
     // 扉の上部位置を冷蔵庫本体の上部位置に合わせる
     final double top = fridgeBodyTop;
 

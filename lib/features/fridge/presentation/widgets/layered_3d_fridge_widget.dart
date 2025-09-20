@@ -488,14 +488,14 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
         final double fridgeBodyLeft = constraints.maxWidth * 0.1;
         final double fridgeBodyWidth = constraints.maxWidth * 0.8;
         final double fridgeBodyTop = constraints.maxHeight * 0.02;
-        final double fridgeBodyHeight = constraints.maxHeight * 0.75;
+        final double fridgeBodyHeight = constraints.maxHeight * 0.95;
 
-        // 1段目の高さ（扉領域、50%）
-        final double topSectionHeight = fridgeBodyHeight * 0.5;
+        // 1段目の高さ（扉領域、55%に調整）
+        final double topSectionHeight = fridgeBodyHeight * 0.55;
 
         // 2-4段目の開始位置（1段目の下）
         final double sectionsStartY = fridgeBodyTop + topSectionHeight;
-        final double sectionsHeight = fridgeBodyHeight * 0.5;
+        final double sectionsHeight = fridgeBodyHeight * 0.45;
 
         // 各段の高さ配分
         final double section2Height = sectionsHeight * 0.4;  // 2段目: 40%
