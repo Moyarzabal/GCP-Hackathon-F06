@@ -1,0 +1,342 @@
+updated_implementation:
+  project_name: "献立画面UI改善 - 更新後実装"
+  version: "v1.1.0"
+  date: "2025-01-19"
+  status: "planned" # 実装完了後に "completed" に変更
+  
+  files:
+    meal_plan_screen:
+      path: "lib/features/meal_planning/presentation/pages/meal_plan_screen.dart"
+      status: "to_be_updated"
+      new_features:
+        - name: "再提案確認ダイアログ"
+          status: "planned"
+          description: "再提案前にユーザーに確認を求める"
+          implementation_method: "_showReSuggestConfirmation()"
+          user_benefit: "誤操作防止"
+        
+        - name: "献立決定確認ダイアログ"
+          status: "planned"
+          description: "食材削除前に確認とリスト表示"
+          implementation_method: "_showMealDecisionConfirmation(MealPlan)"
+          user_benefit: "削除される食材の事前確認"
+        
+        - name: "食材削除機能"
+          status: "planned"
+          description: "献立決定時の冷蔵庫食材削除"
+          implementation_method: "_executeMealDecision(MealPlan)"
+          user_benefit: "自動的な食材管理"
+        
+        - name: "改善されたもう一品機能"
+          status: "planned"
+          description: "副菜・汁物・おつまみの適切な提案"
+          implementation_method: "_suggestAdditionalDish() + _buildDishOption()"
+          user_benefit: "より実用的な料理提案"
+        
+        - name: "買い物リストボタン"
+          status: "planned"
+          description: "AppBarからワンタップで買い物リストへスクロール"
+          implementation_method: "_scrollToShoppingList()"
+          user_benefit: "アクセシビリティ向上"
+        
+        - name: "ScrollController統合"
+          status: "planned"
+          description: "スムーズなスクロール機能"
+          implementation_method: "_scrollController + _shoppingListKey"
+          user_benefit: "直感的なナビゲーション"
+
+      removed_features:
+        - name: "献立テーマ表示"
+          reason: "AIが適切に生成できないため"
+          alternative: "カロリー・調理時間は保持"
+
+      updated_ui_elements:
+        confirmation_dialogs:
+          style: "cream-based color scheme"
+          components:
+            - "AlertDialog with _baseColor background"
+            - "Styled buttons with _primaryColor"
+            - "Consistent text colors (_textColor, _accentColor)"
+        
+        app_bar:
+          new_actions:
+            - icon: "Icons.shopping_cart"
+              function: "_scrollToShoppingList()"
+              tooltip: "買い物リストへ"
+            - icon: "Icons.refresh" 
+              function: "_showReSuggestConfirmation()"
+              tooltip: "再提案"
+
+        additional_dish_dialog:
+          layout: "improved card-based selection"
+          options:
+            - title: "副菜"
+              subtitle: "野菜やサラダなど"
+              icon: "Icons.eco"
+            - title: "汁物"
+              subtitle: "スープや味噌汁など" 
+              icon: "Icons.local_drink"
+            - title: "おつまみ"
+              subtitle: "簡単な一品料理"
+              icon: "Icons.local_bar"
+
+    meal_plan_square_card:
+      path: "lib/features/meal_planning/presentation/widgets/meal_plan_square_card.dart"
+      status: "to_be_updated"
+      new_features:
+        - name: "境界線とシャドウ"
+          status: "planned"
+          description: "視認性向上のための境界線とドロップシャドウ"
+          implementation_details:
+            border: "Border.all(color: _primaryColor.withOpacity(0.4), width: 2)"
+            shadow: "BoxShadow with _primaryColor.withOpacity(0.1)"
+            border_radius: "BorderRadius.circular(12)"
+          user_benefit: "背景との明確な区別"
+
+      updated_styling:
+        container_decoration:
+          background_color: "_baseColor.withOpacity(0.8)"
+          border_styling: "consistent with app theme"
+          shadow_effect: "subtle depth enhancement"
+
+    meal_detail_dialog:
+      path: "lib/features/meal_planning/presentation/widgets/meal_detail_dialog.dart"
+      status: "to_be_updated"
+      new_features:
+        - name: "クリーム色テーマ統一"
+          status: "planned"
+          description: "アプリ全体のカラーテーマに統一"
+          implementation_details:
+            background_color: "_baseColor"
+            text_colors: "_textColor for main text, _accentColor for secondary"
+            accent_elements: "_primaryColor for highlights"
+          user_benefit: "一貫したデザイン体験"
+        
+        - name: "セクション化されたレイアウト"
+          status: "planned"
+          description: "_buildSection()による構造化表示"
+          sections:
+            - "説明セクション"
+            - "材料セクション" 
+            - "作り方セクション"
+          user_benefit: "情報の整理された表示"
+
+      removed_features:
+        - name: "準備時間表示"
+          reason: "レイアウトはみ出しの原因"
+          alternative: "調理時間のみ表示"
+
+      updated_styling:
+        dialog_container:
+          background: "_baseColor"
+          border: "_primaryColor.withOpacity(0.3) border"
+          border_radius: "16px"
+        
+        header_section:
+          background: "_primaryColor.withOpacity(0.2)"
+          text_color: "_textColor"
+        
+        content_sections:
+          background: "_baseColor.withOpacity(0.5)"
+          border: "_primaryColor.withOpacity(0.2)"
+          icon_color: "_accentColor"
+
+    ai_meal_planning_service:
+      path: "lib/core/services/ai_meal_planning_service.dart"
+      status: "to_be_updated"
+      new_features:
+        - name: "generateAdditionalDish method"
+          status: "planned"
+          description: "もう一品機能用の単品料理生成"
+          parameters:
+            - "String dishType (副菜/汁物/おつまみ)"
+          return_type: "Future<MealItem?>"
+          implementation_details:
+            prompt_engineering: "家庭料理風の単品料理生成"
+            json_parsing: "既存のparseMealItemを使用"
+            error_handling: "null返却でエラー対応"
+
+  enhanced_user_flows:
+    meal_suggestion_flow:
+      steps:
+        1: "献立提案ボタン押下"
+        2: "ローディング表示（献立生成）"
+        3: "画像生成ローディング"
+        4: "境界線付きの美しい献立表示"
+        5: "再提案ボタン → 確認ダイアログ → 実行"
+        6: "もう一品ボタン → 適切な選択肢 → AI生成"
+        7: "買い物リストボタン → スムーズスクロール"
+      improvements:
+        - "視覚的な境界線で情報整理"
+        - "確認ダイアログによる操作安全性"
+        - "実用的な追加料理提案"
+
+    meal_decision_flow:
+      steps:
+        1: "献立確認（境界線付きカード表示）"
+        2: "決定ボタン押下"
+        3: "削除食材リスト表示ダイアログ"
+        4: "確認後、食材削除実行"
+        5: "成功メッセージ表示"
+      safety_features:
+        - "削除前の食材リスト確認"
+        - "キャンセル機能"
+        - "エラー時の適切なメッセージ"
+
+  ui_consistency_improvements:
+    color_theme:
+      status: "fully_unified"
+      applied_files:
+        - "meal_plan_screen.dart"
+        - "meal_plan_square_card.dart"
+        - "meal_detail_dialog.dart"
+      color_definitions:
+        base_color: "#F6EACB"
+        primary_color: "#D4A574"
+        secondary_color: "#B8956A"
+        accent_color: "#8B7355"
+        text_color: "#5D4E37"
+    
+    border_styling:
+      status: "implemented"
+      specifications:
+        width: "2px for main borders, 1px for subtle borders"
+        color: "_primaryColor.withOpacity(0.4) for main, 0.2 for subtle"
+        radius: "12px for cards, 8px for sections, 16px for dialogs"
+        shadow: "subtle BoxShadow with _primaryColor.withOpacity(0.1)"
+    
+    confirmation_dialogs:
+      status: "implemented"
+      count: 2
+      style: "consistent cream-based theme"
+      features:
+        - "clear titles and descriptions"
+        - "cancel and confirm options"
+        - "appropriate button styling"
+
+  technical_improvements:
+    state_management:
+      scroll_controller:
+        purpose: "smooth navigation to shopping list"
+        implementation: "ScrollController with GlobalKey"
+        disposal: "proper cleanup in dispose()"
+      
+      dialog_state:
+        confirmation_dialogs: "stateless with proper context handling"
+        loading_states: "consistent loading indicators"
+        error_handling: "user-friendly error messages"
+
+    performance_optimizations:
+      lazy_loading: "maintained for images"
+      efficient_scrolling: "optimized scroll animations"
+      dialog_rendering: "lightweight dialog implementations"
+
+    code_organization:
+      method_separation:
+        confirmation_methods: "dedicated methods for each dialog type"
+        ui_builders: "reusable widget builders"
+        business_logic: "clear separation of concerns"
+      
+      constants_management:
+        color_constants: "centralized in each file"
+        animation_durations: "consistent timing values"
+        sizing_constants: "responsive design values"
+
+  accessibility_enhancements:
+    keyboard_navigation:
+      dialog_navigation: "proper tab order in dialogs"
+      button_focus: "clear focus indicators"
+    
+    screen_reader_support:
+      semantic_labels: "meaningful button and dialog labels"
+      content_descriptions: "descriptive text for images"
+    
+    visual_accessibility:
+      color_contrast: "sufficient contrast ratios maintained"
+      font_sizes: "readable text throughout"
+      touch_targets: "adequate button sizes"
+
+  testing_coverage:
+    unit_tests:
+      confirmation_dialogs:
+        - "dialog display and dismissal"
+        - "button functionality"
+        - "proper context handling"
+      
+      scroll_functionality:
+        - "smooth scroll to shopping list"
+        - "proper key targeting"
+        - "edge case handling"
+      
+      ingredient_deletion:
+        - "matching algorithm accuracy"
+        - "batch deletion handling"
+        - "error recovery"
+
+    integration_tests:
+      complete_user_flows:
+        - "suggestion to decision flow"
+        - "re-suggestion with confirmation"
+        - "additional dish selection"
+      
+      ui_consistency:
+        - "color theme application"
+        - "border styling consistency"
+        - "responsive behavior"
+
+    performance_tests:
+      rendering_performance:
+        - "dialog display speed"
+        - "scroll animation smoothness"
+        - "image loading impact"
+
+  deployment_strategy:
+    phased_rollout:
+      phase_1: "critical fixes (layout, confirmations)"
+      phase_2: "ui improvements (borders, colors, navigation)"
+      phase_3: "feature enhancements (additional dishes, ai service)"
+    
+    rollback_readiness:
+      backup_files: "pre-change file backups"
+      feature_flags: "ability to disable new features"
+      monitoring: "user experience metrics tracking"
+
+  success_metrics_targets:
+    quantitative:
+      layout_errors: "0 reported layout overflow issues"
+      user_confirmations: "100% of critical actions have confirmations"
+      ui_consistency: "100% color theme compliance"
+      performance: "<100ms dialog display time"
+    
+    qualitative:
+      user_feedback: "improved ease of use ratings"
+      visual_appeal: "enhanced design consistency scores"
+      safety: "reduced accidental action reports"
+      navigation: "improved findability of features"
+
+  maintenance_plan:
+    regular_reviews:
+      monthly: "user feedback analysis"
+      quarterly: "performance metrics review"
+      bi_annually: "design system updates"
+    
+    update_procedures:
+      color_theme_changes: "centralized constant updates"
+      dialog_modifications: "template-based consistency"
+      new_feature_additions: "design system compliance checks"
+
+  documentation_updates:
+    user_documentation:
+      - "updated user guide with new confirmation flows"
+      - "shopping list navigation instructions"
+      - "additional dish selection guide"
+    
+    developer_documentation:
+      - "color theme usage guidelines"
+      - "dialog implementation patterns"
+      - "scroll functionality integration"
+    
+    design_documentation:
+      - "updated design system specifications"
+      - "component usage guidelines"
+      - "accessibility compliance checklist"

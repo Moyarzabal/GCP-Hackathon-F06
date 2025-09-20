@@ -7,9 +7,9 @@ import 'package:crypto/crypto.dart';
 class SecureStorageException implements Exception {
   final String message;
   final Exception? cause;
-  
+
   const SecureStorageException(this.message, [this.cause]);
-  
+
   @override
   String toString() => 'SecureStorageException: $message${cause != null ? ' (Caused by: $cause)' : ''}';
 }
@@ -17,24 +17,24 @@ class SecureStorageException implements Exception {
 /// Secure storage manager for sensitive data
 class SecureStorage {
   final FlutterSecureStorage _storage;
-  
+
   // Default options for secure storage
   static const AndroidOptions _androidOptions = AndroidOptions(
     encryptedSharedPreferences: true,
     sharedPreferencesName: 'barcode_scanner_secure_prefs',
     preferencesKeyPrefix: 'secure_',
   );
-  
+
   static const IOSOptions _iosOptions = IOSOptions(
     groupId: 'group.com.f06team.fridgemanager',
     accountName: 'barcode_scanner_keychain',
     accessibility: KeychainAccessibility.first_unlock_this_device,
   );
-  
+
   static const LinuxOptions _linuxOptions = LinuxOptions();
   static const WindowsOptions _windowsOptions = WindowsOptions();
   static const WebOptions _webOptions = WebOptions();
-  
+
   SecureStorage({FlutterSecureStorage? storage})
       : _storage = storage ?? const FlutterSecureStorage(
           aOptions: _androidOptions,
@@ -43,7 +43,7 @@ class SecureStorage {
           wOptions: _windowsOptions,
           webOptions: _webOptions,
         );
-  
+
   /// Store a key-value pair securely
   Future<void> store(String key, String value) async {
     try {
@@ -52,7 +52,7 @@ class SecureStorage {
       throw SecureStorageException('Failed to store data for key: $key', Exception(e.toString()));
     }
   }
-  
+
   /// Read a value by key
   Future<String?> read(String key) async {
     try {
@@ -61,7 +61,7 @@ class SecureStorage {
       throw SecureStorageException('Failed to read data for key: $key', Exception(e.toString()));
     }
   }
-  
+
   /// Delete a key-value pair
   Future<void> delete(String key) async {
     try {
@@ -70,7 +70,7 @@ class SecureStorage {
       throw SecureStorageException('Failed to delete data for key: $key', Exception(e.toString()));
     }
   }
-  
+
   /// Clear all stored data
   Future<void> clearAll() async {
     try {
@@ -79,7 +79,7 @@ class SecureStorage {
       throw SecureStorageException('Failed to clear all data', Exception(e.toString()));
     }
   }
-  
+
   /// Store API key with additional security
   Future<void> storeApiKey(String keyName, String apiKey) async {
     try {
@@ -89,7 +89,7 @@ class SecureStorage {
       throw SecureStorageException('Failed to store API key: $keyName', Exception(e.toString()));
     }
   }
-  
+
   /// Get API key
   Future<String?> getApiKey(String keyName) async {
     try {
@@ -99,7 +99,7 @@ class SecureStorage {
       throw SecureStorageException('Failed to retrieve API key: $keyName', Exception(e.toString()));
     }
   }
-  
+
   /// Store biometric authentication preference
   Future<void> setBiometricEnabled(bool enabled) async {
     try {
@@ -108,7 +108,7 @@ class SecureStorage {
       throw SecureStorageException('Failed to store biometric preference', Exception(e.toString()));
     }
   }
-  
+
   /// Get biometric authentication preference
   Future<bool> isBiometricEnabled() async {
     try {
@@ -118,7 +118,7 @@ class SecureStorage {
       throw SecureStorageException('Failed to retrieve biometric preference', Exception(e.toString()));
     }
   }
-  
+
   /// Store encrypted data (additional layer of security)
   Future<void> storeEncrypted(String key, String data) async {
     try {
@@ -129,30 +129,30 @@ class SecureStorage {
       throw SecureStorageException('Failed to store encrypted data for key: $key', Exception(e.toString()));
     }
   }
-  
+
   /// Read and decrypt data
   Future<String?> readEncrypted(String key) async {
     try {
       final secureKey = 'encrypted_$key';
       final encryptedData = await _storage.read(key: secureKey);
       if (encryptedData == null) return null;
-      
+
       return _decrypt(encryptedData);
     } catch (e) {
       throw SecureStorageException('Failed to read encrypted data for key: $key', Exception(e.toString()));
     }
   }
-  
+
   /// Simple encryption using base64 and basic obfuscation
   /// Note: For production, consider using more robust encryption
   String _encrypt(String data) {
     final bytes = utf8.encode(data);
     final encoded = base64.encode(bytes);
-    
+
     // Simple obfuscation - reverse the string
     return encoded.split('').reversed.join('');
   }
-  
+
   /// Simple decryption
   String _decrypt(String encryptedData) {
     try {
@@ -164,32 +164,32 @@ class SecureStorage {
       throw SecureStorageException('Failed to decrypt data', Exception(e.toString()));
     }
   }
-  
+
   /// Generate a secure hash for data integrity
   String _generateHash(String data) {
     final bytes = utf8.encode(data);
     final digest = sha256.convert(bytes);
     return digest.toString();
   }
-  
+
   /// Check if all required data is present
   Future<bool> hasRequiredData() async {
     try {
       final requiredKeys = ['api_key_gemini', 'api_key_firebase'];
-      
+
       for (final key in requiredKeys) {
         final value = await _storage.read(key: key);
         if (value == null || value.isEmpty) {
           return false;
         }
       }
-      
+
       return true;
     } catch (e) {
       return false;
     }
   }
-  
+
   /// Get all stored keys (for debugging purposes)
   Future<Set<String>> getAllKeys() async {
     try {

@@ -1,0 +1,47 @@
+current_implementation:
+  title: "現在の献立生成実装"
+  description: "冷蔵庫の食材のみを使用した献立生成"
+  
+  meal_planning_flow:
+    step1: "冷蔵庫の食材分析"
+      description: "賞味期限の優先度を計算し、利用可能な食材を特定"
+      priority_logic:
+        urgent: "0-1日（緊急）"
+        soon: "2-3日（近日）"
+        fresh: "4-7日（新鮮）"
+        long_term: "8日以上（長期保存）"
+    
+    step2: "AIプロンプト生成"
+      current_approach: "冷蔵庫の食材のみを使用した献立"
+      constraints:
+        - "賞味期限の近い食材を優先"
+        - "栄養バランスの考慮"
+        - "調理時間と難易度の制限"
+        - "4品構成（主菜、副菜、汁物、主食）"
+    
+    step3: "Gemini AI生成"
+      model: "gemini-1.5-flash"
+      output_format: "JSON形式の献立データ"
+      response_size: "約3000文字"
+    
+    step4: "献立データ解析"
+      parsing: "JSONレスポンスをMealPlanオブジェクトに変換"
+      validation: "必須フィールドの検証"
+    
+    step5: "Firestore保存"
+      storage: "献立の永続化"
+      status_tracking: "提案→承認→完了の状態管理"
+
+  current_issues:
+    limitation: "冷蔵庫の食材のみに制限されている"
+    missing_shopping: "買い物が必要な食材の提案がない"
+    not_practical: "実際の生活パターンと乖離"
+    example_scenario: "にんじん、じゃがいも、玉ねぎがあってもカレーや肉じゃがが提案されない"
+
+  technical_architecture:
+    service_layer: "AIMealPlanningService"
+    provider_layer: "MealPlanNotifier"
+    data_models: "MealPlan, MealItem, Ingredient"
+    ai_integration: "Google Gemini API"
+    storage: "Firebase Firestore"
+

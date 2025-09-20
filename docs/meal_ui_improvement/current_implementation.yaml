@@ -1,0 +1,167 @@
+current_implementation:
+  project_name: "献立画面UI改善"
+  version: "v1.0.0"
+  date: "2025-01-19"
+  
+  files:
+    meal_plan_screen:
+      path: "lib/features/meal_planning/presentation/pages/meal_plan_screen.dart"
+      status: "needs_modification"
+      current_features:
+        - name: "献立提案機能"
+          status: "implemented"
+          description: "AIによる献立提案とローディング状態管理"
+        - name: "画像生成完了待ち"
+          status: "implemented"
+          description: "画像生成完了まで専用ローディング画面を表示"
+        - name: "再提案ボタン"
+          status: "implemented"
+          description: "即座に実行される再提案機能"
+          issue: "確認ダイアログがない"
+        - name: "もう一品機能"
+          status: "implemented"
+          description: "デザート・メイン・ドリンク選択"
+          issue: "レイアウト崩れ、選択肢が不適切"
+        - name: "献立まとめ表示"
+          status: "implemented"
+          description: "カロリー、時間、テーマ表示"
+          issue: "献立テーマが適切に生成されない"
+      color_scheme:
+        base_color: "#F6EACB"
+        primary_color: "#D4A574"
+        secondary_color: "#B8956A"
+        accent_color: "#8B7355"
+        text_color: "#5D4E37"
+      issues:
+        - "再提案時の確認がない"
+        - "献立決定時の食材削除確認がない"
+        - "買い物リストへのアクセスが不便"
+        - "もう一品画面のレイアウト崩れ"
+        - "献立テーマの不適切な表示"
+
+    meal_plan_square_card:
+      path: "lib/features/meal_planning/presentation/widgets/meal_plan_square_card.dart"
+      status: "needs_modification"
+      current_features:
+        - name: "メニューカード表示"
+          status: "implemented"
+          description: "主菜・副菜・汁物の正方形カード"
+        - name: "画像表示機能"
+          status: "implemented"
+          description: "フォールバック画像対応"
+        - name: "クリーム色テーマ"
+          status: "implemented"
+          description: "統一されたカラーパレット使用"
+      issues:
+        - "境界線がなく背景と区別しにくい"
+        - "視認性の問題"
+
+    meal_detail_dialog:
+      path: "lib/features/meal_planning/presentation/widgets/meal_detail_dialog.dart"
+      status: "needs_modification"
+      current_features:
+        - name: "レシピ詳細表示"
+          status: "implemented"
+          description: "材料、手順、調理時間表示"
+        - name: "準備時間表示"
+          status: "implemented"
+          description: "準備時間の表示機能"
+          issue: "レイアウトがはみ出る"
+      color_scheme:
+        status: "inconsistent"
+        description: "クリーム色基調と合っていない"
+      issues:
+        - "準備時間表示でレイアウト崩れ"
+        - "デザインテーマの不統一"
+
+    ai_meal_planning_service:
+      path: "lib/core/services/ai_meal_planning_service.dart"
+      status: "stable"
+      current_features:
+        - name: "献立提案生成"
+          status: "implemented"
+          description: "Gemini APIを使用した献立生成"
+        - name: "JSON解析機能"
+          status: "implemented"
+          description: "不完全JSONの修復機能"
+        - name: "家庭料理風プロンプト"
+          status: "implemented"
+          description: "自然な家庭料理画像生成"
+      missing_features:
+        - "追加料理生成機能（もう一品用）"
+
+  current_user_flow:
+    meal_suggestion:
+      steps:
+        1: "献立提案ボタン押下"
+        2: "ローディング表示（献立生成）"
+        3: "画像生成ローディング"
+        4: "完成した献立表示"
+        5: "再提案ボタン（即座に実行）"
+        6: "もう一品ボタン（デザート等選択）"
+      issues:
+        - "再提案時の確認なし"
+        - "もう一品の選択肢が不適切"
+
+    meal_decision:
+      steps:
+        1: "献立確認"
+        2: "決定ボタン押下（予定）"
+        3: "食材削除実行（予定）"
+      issues:
+        - "決定機能が未実装"
+        - "食材削除確認がない"
+
+  ui_consistency:
+    color_theme:
+      status: "partially_implemented"
+      applied_files:
+        - "meal_plan_screen.dart"
+        - "meal_plan_square_card.dart"
+      missing_files:
+        - "meal_detail_dialog.dart"
+    
+    border_styling:
+      status: "missing"
+      description: "メニューブロックに境界線がない"
+    
+    confirmation_dialogs:
+      status: "missing"
+      description: "重要な操作に確認ダイアログがない"
+
+  technical_debt:
+    - name: "レイアウト崩れ"
+      severity: "high"
+      files: ["meal_detail_dialog.dart", "meal_plan_screen.dart"]
+    - name: "UI一貫性"
+      severity: "medium"
+      files: ["meal_detail_dialog.dart"]
+    - name: "ユーザビリティ"
+      severity: "high"
+      description: "確認なしの重要操作"
+    - name: "機能不足"
+      severity: "medium"
+      description: "買い物リストアクセス、適切なもう一品提案"
+
+  dependencies:
+    flutter_riverpod: "^3.0.0"
+    gemini_api: "integrated"
+    adk_backend: "running on localhost:8003"
+    firebase: "configured"
+
+  performance:
+    image_generation:
+      status: "optimized"
+      timeout: "180 seconds"
+      fallback: "implemented"
+    
+    loading_states:
+      status: "implemented"
+      description: "適切なローディング表示"
+
+  accessibility:
+    status: "basic"
+    missing:
+      - "スクリーンリーダー対応"
+      - "キーボードナビゲーション"
+      - "色覚異常への配慮"

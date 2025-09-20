@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import '../../../../core/services/auth_service.dart';
-// import '../../../../shared/providers/auth_provider.dart';
+import '../../../../shared/providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -32,7 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // final authService = ref.read(authServiceProvider);
+      final authService = ref.read(authServiceProvider);
       if (_isSignUp) {
         await Future.delayed(const Duration(milliseconds: 300));
       } else {

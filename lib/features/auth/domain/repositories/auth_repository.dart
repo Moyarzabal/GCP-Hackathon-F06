@@ -11,8 +11,8 @@ abstract class AuthRepository {
 
   /// メールアドレスとパスワードでアカウント作成
   Future<Result<User>> createAccount(
-    String email, 
-    String password, 
+    String email,
+    String password,
     String displayName,
   );
 

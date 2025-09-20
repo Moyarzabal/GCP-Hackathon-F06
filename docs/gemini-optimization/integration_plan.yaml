@@ -1,0 +1,99 @@
+integration_plan:
+  title: "Gemini API統合最適化計画"
+  description: "カテゴリ分類と賞味期限予測を1回のAPI呼び出しに統合"
+  
+  optimization_goals:
+    - "API呼び出し回数: 2回 → 1回"
+    - "処理時間: 約50%短縮"
+    - "コスト: 約50%削減"
+    - "保守性向上: 1つのサービスで管理"
+  
+  new_architecture:
+    gemini_service:
+      new_method: "analyzeProduct"
+      description: "商品情報からカテゴリと賞味期限を同時に分析"
+      input:
+        - "productName: String"
+        - "manufacturer: String?"
+        - "brandName: String?"
+      output:
+        - "category: String"
+        - "expiryDays: int"
+        - "confidence: double?"
+      
+      unified_prompt: |
+        商品名: {productName}
+        メーカー: {manufacturer}
+        ブランド: {brandName}
+        
+        以下の情報をJSON形式で回答してください：
+        1. カテゴリ分類（以下の選択肢から1つ）
+        2. 賞味期限（冷蔵保存を前提とした日数）
+        3. 信頼度（0.0-1.0）
+        
+        利用可能なカテゴリ：
+        [飲料, 乳製品, 肉類, 魚類, 野菜, 果物, 加工食品, 即席麺, その他]
+        
+        回答形式：
+        {
+          "category": "カテゴリ名",
+          "expiryDays": 数字,
+          "confidence": 0.0-1.0
+        }
+        
+        例：
+        - 牛乳: {"category": "乳製品", "expiryDays": 7, "confidence": 0.9}
+        - トマト: {"category": "野菜", "expiryDays": 5, "confidence": 0.8}
+        - カップラーメン: {"category": "即席麺", "expiryDays": 60, "confidence": 0.95}
+  
+  implementation_steps:
+    1. gemini_service_enhancement:
+       - "GeminiServiceにanalyzeProductメソッドを追加"
+       - "統合プロンプトの実装"
+       - "JSON解析ロジックの実装"
+       - "エラーハンドリングの追加"
+    
+    2. jan_code_service_refactor:
+       - "_getCategoryFromAPIを統合版に変更"
+       - "analyzeProductメソッドを呼び出し"
+       - "既存のフォールバック機能を維持"
+    
+    3. scanner_provider_refactor:
+       - "_predictExpiryDateを統合版に変更"
+       - "analyzeProductメソッドを呼び出し"
+       - "既存のデフォルト値機能を維持"
+    
+    4. testing_and_validation:
+       - "統合後の動作確認"
+       - "エラーハンドリングのテスト"
+       - "パフォーマンス測定"
+  
+  fallback_strategy:
+    gemini_failure:
+      - "カテゴリ: キーワードマッチング"
+      - "賞味期限: カテゴリ別デフォルト値"
+    
+    api_key_missing:
+      - "カテゴリ: フォールバック判定"
+      - "賞味期限: デフォルト値"
+  
+  data_flow_optimized:
+    barcode_scan:
+      - "JAN Code API → 商品基本情報取得"
+      - "Gemini API #1 → カテゴリ分類 + 賞味期限予測（統合）"
+      - "Product オブジェクト作成"
+  
+  expected_benefits:
+    performance:
+      - "API呼び出し時間: 50%短縮"
+      - "総処理時間: 30-40%短縮"
+      - "ネットワーク負荷: 50%削減"
+    
+    cost:
+      - "Gemini API使用量: 50%削減"
+      - "月間コスト: 大幅削減"
+    
+    maintainability:
+      - "コードの重複排除"
+      - "単一責任の原則に準拠"
+      - "テストケースの簡素化"

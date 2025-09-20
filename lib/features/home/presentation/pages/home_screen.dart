@@ -6,6 +6,7 @@ import '../widgets/product_card.dart';
 import '../../../products/presentation/pages/product_detail_screen.dart';
 import '../../../products/presentation/widgets/product_search_delegate.dart';
 import '../../../products/presentation/providers/product_provider.dart';
+import '../../../products/presentation/providers/product_selection_provider.dart';
 import '../../../../shared/widgets/common/error_widget.dart';
 import '../../../fridge/presentation/providers/fridge_view_provider.dart';
 // import '../../../fridge/presentation/widgets/fridge_overview_widget.dart';
@@ -13,19 +14,49 @@ import '../../../fridge/presentation/pages/fridge_section_view.dart';
 // import '../../../fridge/presentation/widgets/realistic_fridge_widget.dart';
 // import '../../../fridge/presentation/widgets/tesla_style_fridge_widget.dart';
 import '../../../fridge/presentation/widgets/layered_3d_fridge_widget.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
-  
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Firebaseから商品データをストリーム監視
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(appStateProvider.notifier).watchProductsFromFirebase();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final productState = ref.watch(productProvider);
     final productNotifier = ref.watch(productProvider.notifier);
-    final availableCategories = ref.watch(availableCategoriesProvider);
-    
+    final availableCategoriesAsync = ref.watch(availableCategoriesProvider);
+    final selectionState = ref.watch(productSelectionProvider);
+    final selectionNotifier = ref.watch(productSelectionProvider.notifier);
+
     final fridgeState = ref.watch(fridgeViewProvider);
     final fridgeNotifier = ref.watch(fridgeViewProvider.notifier);
+
+    // ソート済みの商品リストを使用
+    final products = productState.filteredProducts;
+
+    // デバッグログ: 商品リストの状態を確認
+    print('🏠 HomeScreen: 商品リストの状態');
+    print('   全商品数: ${appState.products.length}');
+    print('   フィルター済み商品数: ${products.length}');
+    print('   現在のソートタイプ: ${productState.sortType.displayName}');
+    print('   現在のソート方向: ${productState.sortDirection.displayName}');
+    for (var product in products) {
+      print('   商品ID: ${product.id}, 名前: ${product.name}, 賞味期限: ${product.expiryDate}');
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -36,23 +67,76 @@ class HomeScreen extends ConsumerWidget {
         backgroundColor: Theme.of(context).colorScheme.surface,
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              _reloadProducts();
+            },
+            tooltip: 'データをリロード',
+          ),
+          IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
               showSearch(
                 context: context,
-                delegate: ProductSearchDelegate(appState.products),
+                delegate: ProductSearchDelegate(products),
               );
             },
           ),
+          // カテゴリ選択アイコン
+          availableCategoriesAsync.when(
+            data: (availableCategories) => PopupMenuButton<String>(
+              icon: const Icon(Icons.filter_list),
+              onSelected: (category) {
+                productNotifier.filterByCategory(category);
+              },
+              itemBuilder: (context) => availableCategories.map((category) {
+                final isSelected = category == productState.selectedCategory;
+                return PopupMenuItem(
+                  value: category,
+                  child: Row(
+                    children: [
+                      if (isSelected) const Icon(Icons.check, size: 16),
+                      if (isSelected) const SizedBox(width: 8),
+                      Text(category == 'すべて' ? 'すべて' : category),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+            loading: () => const Icon(Icons.filter_list),
+            error: (error, stack) => const Icon(Icons.error),
+          ),
+          // Material Design Iconsのソートアイコン
           PopupMenuButton<ProductSortType>(
-            icon: const Icon(Icons.sort),
+            icon: Icon(
+              productState.sortDirection == SortDirection.ascending
+                  ? MdiIcons.sortAscending
+                  : MdiIcons.sortDescending,
+              // color: Theme.of(context).colorScheme.primary,
+            ),
             onSelected: (sortType) {
               productNotifier.setSortType(sortType);
             },
             itemBuilder: (context) => ProductSortType.values.map((sortType) {
+              final isSelected = sortType == productState.sortType;
               return PopupMenuItem(
                 value: sortType,
-                child: Text(sortType.displayName),
+                child: Row(
+                  children: [
+                    if (isSelected) const Icon(Icons.check, size: 16),
+                    if (isSelected) const SizedBox(width: 8),
+                    Text(sortType.displayName),
+                    const Spacer(),
+                    if (isSelected)
+                      Icon(
+                        productState.sortDirection == SortDirection.ascending
+                            ? MdiIcons.sortAscending
+                            : MdiIcons.sortDescending,
+                        size: 16,
+                        // color: Theme.of(context).colorScheme.primary,
+                      ),
+                  ],
+                ),
               );
             }).toList(),
           ),
@@ -75,43 +159,30 @@ class HomeScreen extends ConsumerWidget {
               },
             ),
           ),
-          // カテゴリフィルター
-          SizedBox(
-            height: 50,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: availableCategories.length,
-              itemBuilder: (context, index) {
-                final category = availableCategories[index];
-                final isSelected = category == productState.selectedCategory;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(category == 'all' ? 'すべて' : category),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      productNotifier.filterByCategory(category);
-                    },
-                    backgroundColor: isSelected 
-                      ? Theme.of(context).colorScheme.primary 
-                      : null,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : null,
-                    ),
-                  ),
-                );
+          // エラー表示
+          if (appState.error != null)
+            InlineErrorWidget(
+              message: appState.error!,
+              onDismiss: () {
+                ref.read(appStateProvider.notifier).clearError();
               },
             ),
-          ),
-          
+          // ローディング表示
+          if (appState.isLoading)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+
           // エラー表示
           if (productState.error != null)
             InlineErrorWidget(
               message: productState.error!,
               onDismiss: () => productNotifier.clearError(),
             ),
-          
+
           // 表示切替（AnimatedSwitcher）
           Expanded(
             child: AnimatedSwitcher(
@@ -119,28 +190,40 @@ class HomeScreen extends ConsumerWidget {
               switchInCurve: Curves.easeOutCubic,
               switchOutCurve: Curves.easeInCubic,
               child: fridgeState.mode == FridgeViewMode.list
-                  ? _buildProductList(context, productState)
+                  ? _buildProductList(context, productState, products, selectionState, selectionNotifier)
                   : _buildFridgeView(context, fridgeState, fridgeNotifier),
             ),
           ),
         ],
       ),
+      // 削除ボタン（選択された商品がある場合のみ表示）
+      floatingActionButton: selectionState.selectedProductIds.isNotEmpty
+          ? FloatingActionButton(
+              onPressed: () => _showDeleteConfirmation(context, selectionNotifier),
+              backgroundColor: const Color(0xFFD4A5A5),
+              child: const Icon(Icons.delete, color: Colors.black),
+            )
+          : null,
     );
   }
 
-  Widget _buildProductList(BuildContext context, ProductState productState) {
-    if (productState.filteredProducts.isEmpty) {
+  Widget _buildProductList(BuildContext context, ProductState productState, List<Product> products, ProductSelectionState selectionState, ProductSelectionNotifier selectionNotifier) {
+    if (products.isEmpty) {
       return _buildEmptyState(context);
     }
     return ListView.builder(
       key: const ValueKey('listView'),
       padding: const EdgeInsets.all(16),
-      itemCount: productState.filteredProducts.length,
+      itemCount: products.length,
       itemBuilder: (context, index) {
-        final product = productState.filteredProducts[index];
+        final product = products[index];
         return ProductCard(
           product: product,
+          isSelectionMode: selectionState.isSelectionMode,
+          isSelected: selectionState.isSelected(product.id ?? ''),
           onTap: () => _showProductDetail(context, product),
+          onLongPress: () => selectionNotifier.toggleSelectionMode(),
+          onSelectionToggle: () => selectionNotifier.toggleProductSelection(product.id ?? ''),
         );
       },
     );
@@ -163,7 +246,7 @@ class HomeScreen extends ConsumerWidget {
       ],
     );
   }
-  
+
   Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
@@ -195,7 +278,7 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
-  
+
   void _showProductDetail(BuildContext context, Product product) {
     Navigator.push(
       context,
@@ -203,5 +286,219 @@ class HomeScreen extends ConsumerWidget {
         builder: (context) => ProductDetailScreen(product: product),
       ),
     );
+  }
+
+  /// 商品データをリロード
+  void _reloadProducts() {
+    print('🔄 商品データをリロード中...');
+    ref.read(appStateProvider.notifier).watchProductsFromFirebase();
+
+    // リロード完了のフィードバック
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'データをリロードしました',
+          style: TextStyle(fontSize: 14),
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        elevation: 4,
+      ),
+    );
+  }
+
+  /// 削除確認ダイアログを表示
+  Future<void> _showDeleteConfirmation(BuildContext context, ProductSelectionNotifier selectionNotifier) async {
+    final selectionState = ref.read(productSelectionProvider);
+
+    // デバッグログ: 選択状態を確認
+    print('🗑️ 削除確認ダイアログ: 選択状態');
+    print('   選択モード: ${selectionState.isSelectionMode}');
+    print('   選択数: ${selectionState.selectedCount}');
+    print('   選択された商品ID: ${selectionState.selectedProductIds}');
+
+    if (selectionState.selectedCount == 0) {
+      // 選択された商品がない場合
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              '削除する商品を選択してください',
+              style: TextStyle(fontSize: 14),
+            ),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            elevation: 4,
+          ),
+        );
+      }
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1D3CE).withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.delete_outline,
+                color: const Color(0xFFD4A5A5),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              '商品を削除',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '選択された${selectionState.selectedCount}個の商品を削除しますか？',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1D3CE).withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFFD4A5A5).withOpacity(0.5),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_outlined,
+                    color: const Color(0xFFB87B7B),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'この操作は取り消せません',
+                      style: TextStyle(
+                        color: const Color(0xFF8B5A5A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'キャンセル',
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD4A5A5),
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              '削除',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      // 削除実行
+      final result = await selectionNotifier.deleteSelectedProducts();
+
+      if (result.isSuccess) {
+        // 成功時のスナックバー表示
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${selectionState.selectedCount}個の商品を削除しました',
+                style: const TextStyle(fontSize: 14),
+              ),
+              duration: const Duration(seconds: 2),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 4,
+            ),
+          );
+        }
+      } else {
+        // エラー時のスナックバー表示
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '削除に失敗しました: ${result.exception?.message ?? '不明なエラー'}',
+                style: const TextStyle(fontSize: 14),
+              ),
+              duration: const Duration(seconds: 3),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 4,
+            ),
+          );
+        }
+      }
+    }
   }
 }

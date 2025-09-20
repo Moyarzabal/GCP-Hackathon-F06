@@ -25,8 +25,13 @@ import 'package:mockito/mockito.dart' as _i1;
 
 class _FakeFirebaseConfig_0 extends _i1.SmartFake
     implements _i2.FirebaseConfig {
-  _FakeFirebaseConfig_0(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
+  _FakeFirebaseConfig_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 /// A class which mocks [SecureStorage].
@@ -38,106 +43,139 @@ class MockSecureStorage extends _i1.Mock implements _i3.SecureStorage {
   }
 
   @override
-  _i4.Future<void> store(String? key, String? value) =>
+  _i4.Future<void> store(
+    String? key,
+    String? value,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#store, [key, value]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
+        Invocation.method(
+          #store,
+          [
+            key,
+            value,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i4.Future<String?> read(String? key) =>
-      (super.noSuchMethod(
-            Invocation.method(#read, [key]),
-            returnValue: _i4.Future<String?>.value(),
-          )
-          as _i4.Future<String?>);
+  _i4.Future<String?> read(String? key) => (super.noSuchMethod(
+        Invocation.method(
+          #read,
+          [key],
+        ),
+        returnValue: _i4.Future<String?>.value(),
+      ) as _i4.Future<String?>);
 
   @override
-  _i4.Future<void> delete(String? key) =>
-      (super.noSuchMethod(
-            Invocation.method(#delete, [key]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
+  _i4.Future<void> delete(String? key) => (super.noSuchMethod(
+        Invocation.method(
+          #delete,
+          [key],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> clearAll() =>
-      (super.noSuchMethod(
-            Invocation.method(#clearAll, []),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
+  _i4.Future<void> clearAll() => (super.noSuchMethod(
+        Invocation.method(
+          #clearAll,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> storeApiKey(String? keyName, String? apiKey) =>
+  _i4.Future<void> storeApiKey(
+    String? keyName,
+    String? apiKey,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#storeApiKey, [keyName, apiKey]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
+        Invocation.method(
+          #storeApiKey,
+          [
+            keyName,
+            apiKey,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i4.Future<String?> getApiKey(String? keyName) =>
-      (super.noSuchMethod(
-            Invocation.method(#getApiKey, [keyName]),
-            returnValue: _i4.Future<String?>.value(),
-          )
-          as _i4.Future<String?>);
+  _i4.Future<String?> getApiKey(String? keyName) => (super.noSuchMethod(
+        Invocation.method(
+          #getApiKey,
+          [keyName],
+        ),
+        returnValue: _i4.Future<String?>.value(),
+      ) as _i4.Future<String?>);
 
   @override
-  _i4.Future<void> setBiometricEnabled(bool? enabled) =>
-      (super.noSuchMethod(
-            Invocation.method(#setBiometricEnabled, [enabled]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
+  _i4.Future<void> setBiometricEnabled(bool? enabled) => (super.noSuchMethod(
+        Invocation.method(
+          #setBiometricEnabled,
+          [enabled],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i4.Future<bool> isBiometricEnabled() =>
-      (super.noSuchMethod(
-            Invocation.method(#isBiometricEnabled, []),
-            returnValue: _i4.Future<bool>.value(false),
-          )
-          as _i4.Future<bool>);
+  _i4.Future<bool> isBiometricEnabled() => (super.noSuchMethod(
+        Invocation.method(
+          #isBiometricEnabled,
+          [],
+        ),
+        returnValue: _i4.Future<bool>.value(false),
+      ) as _i4.Future<bool>);
 
   @override
-  _i4.Future<void> storeEncrypted(String? key, String? data) =>
+  _i4.Future<void> storeEncrypted(
+    String? key,
+    String? data,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#storeEncrypted, [key, data]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
+        Invocation.method(
+          #storeEncrypted,
+          [
+            key,
+            data,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i4.Future<String?> readEncrypted(String? key) =>
-      (super.noSuchMethod(
-            Invocation.method(#readEncrypted, [key]),
-            returnValue: _i4.Future<String?>.value(),
-          )
-          as _i4.Future<String?>);
+  _i4.Future<String?> readEncrypted(String? key) => (super.noSuchMethod(
+        Invocation.method(
+          #readEncrypted,
+          [key],
+        ),
+        returnValue: _i4.Future<String?>.value(),
+      ) as _i4.Future<String?>);
 
   @override
-  _i4.Future<bool> hasRequiredData() =>
-      (super.noSuchMethod(
-            Invocation.method(#hasRequiredData, []),
-            returnValue: _i4.Future<bool>.value(false),
-          )
-          as _i4.Future<bool>);
+  _i4.Future<bool> hasRequiredData() => (super.noSuchMethod(
+        Invocation.method(
+          #hasRequiredData,
+          [],
+        ),
+        returnValue: _i4.Future<bool>.value(false),
+      ) as _i4.Future<bool>);
 
   @override
-  _i4.Future<Set<String>> getAllKeys() =>
-      (super.noSuchMethod(
-            Invocation.method(#getAllKeys, []),
-            returnValue: _i4.Future<Set<String>>.value(<String>{}),
-          )
-          as _i4.Future<Set<String>>);
+  _i4.Future<Set<String>> getAllKeys() => (super.noSuchMethod(
+        Invocation.method(
+          #getAllKeys,
+          [],
+        ),
+        returnValue: _i4.Future<Set<String>>.value(<String>{}),
+      ) as _i4.Future<Set<String>>);
 }
 
 /// A class which mocks [EnvConfig].
@@ -149,28 +187,35 @@ class MockEnvConfig extends _i1.Mock implements _i2.EnvConfig {
   }
 
   @override
-  bool get isWeb =>
-      (super.noSuchMethod(Invocation.getter(#isWeb), returnValue: false)
-          as bool);
+  bool get isWeb => (super.noSuchMethod(
+        Invocation.getter(#isWeb),
+        returnValue: false,
+      ) as bool);
 
   @override
-  bool get isDevelopment =>
-      (super.noSuchMethod(Invocation.getter(#isDevelopment), returnValue: false)
-          as bool);
+  bool get isDevelopment => (super.noSuchMethod(
+        Invocation.getter(#isDevelopment),
+        returnValue: false,
+      ) as bool);
 
   @override
-  bool get isProduction =>
-      (super.noSuchMethod(Invocation.getter(#isProduction), returnValue: false)
-          as bool);
+  bool get isProduction => (super.noSuchMethod(
+        Invocation.getter(#isProduction),
+        returnValue: false,
+      ) as bool);
 
   @override
-  _i2.FirebaseConfig getFirebaseConfig() =>
-      (super.noSuchMethod(
-            Invocation.method(#getFirebaseConfig, []),
-            returnValue: _FakeFirebaseConfig_0(
-              this,
-              Invocation.method(#getFirebaseConfig, []),
-            ),
-          )
-          as _i2.FirebaseConfig);
+  _i2.FirebaseConfig getFirebaseConfig() => (super.noSuchMethod(
+        Invocation.method(
+          #getFirebaseConfig,
+          [],
+        ),
+        returnValue: _FakeFirebaseConfig_0(
+          this,
+          Invocation.method(
+            #getFirebaseConfig,
+            [],
+          ),
+        ),
+      ) as _i2.FirebaseConfig);
 }

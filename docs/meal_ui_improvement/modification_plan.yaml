@@ -1,0 +1,537 @@
+modification_plan:
+  project_name: "献立画面UI改善 - 修正計画"
+  version: "v1.1.0"
+  date: "2025-01-19"
+  
+  phases:
+    phase_1_urgent_fixes:
+      priority: "high"
+      duration: "1-2 days"
+      description: "レイアウト崩れと重要機能の修正"
+      
+      tasks:
+        recipe_detail_layout_fix:
+          file: "lib/features/meal_planning/presentation/widgets/meal_detail_dialog.dart"
+          priority: "high"
+          estimated_time: "30 minutes"
+          changes:
+            - action: "remove"
+              target: "準備時間表示部分"
+              code_location: "build method内のprepTime表示Row"
+              reason: "レイアウトはみ出しの原因"
+            - action: "keep"
+              target: "調理時間表示"
+              reason: "必要な情報として保持"
+            - action: "keep"
+              target: "材料リスト"
+              reason: "重要な情報として保持"
+
+        menu_block_borders:
+          file: "lib/features/meal_planning/presentation/widgets/meal_plan_square_card.dart"
+          priority: "high"
+          estimated_time: "45 minutes"
+          changes:
+            - action: "add"
+              target: "Container decoration"
+              implementation: |
+                decoration: BoxDecoration(
+                  color: _baseColor.withOpacity(0.8),
+                  border: Border.all(
+                    color: _primaryColor.withOpacity(0.4),
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primaryColor.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                )
+            - action: "define"
+              target: "color constants"
+              implementation: |
+                static const Color _baseColor = Color(0xFFF6EACB);
+                static const Color _primaryColor = Color(0xFFD4A574);
+                static const Color _accentColor = Color(0xFF8B7355);
+
+        meal_decision_confirmation:
+          file: "lib/features/meal_planning/presentation/pages/meal_plan_screen.dart"
+          priority: "high"
+          estimated_time: "2 hours"
+          changes:
+            - action: "add"
+              target: "_showMealDecisionConfirmation method"
+              implementation: |
+                void _showMealDecisionConfirmation(MealPlan mealPlan) {
+                  final ingredients = <String>[];
+                  ingredients.addAll(mealPlan.mainDish.ingredients.map((i) => i.name));
+                  ingredients.addAll(mealPlan.sideDish.ingredients.map((i) => i.name));
+                  ingredients.addAll(mealPlan.soup.ingredients.map((i) => i.name));
+
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: _baseColor,
+                      title: Text('この献立で決定しますか？'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('以下の食材を冷蔵庫から削除します：'),
+                          Container(
+                            height: 150,
+                            child: ListView.builder(
+                              itemCount: ingredients.length,
+                              itemBuilder: (context, index) => ListTile(
+                                leading: Icon(Icons.remove_circle_outline),
+                                title: Text(ingredients[index]),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(child: Text('キャンセル'), onPressed: () => Navigator.pop(context)),
+                        ElevatedButton(child: Text('決定'), onPressed: () => _executeMealDecision(mealPlan)),
+                      ],
+                    ),
+                  );
+                }
+            - action: "add"
+              target: "_executeMealDecision method"
+              implementation: |
+                Future<void> _executeMealDecision(MealPlan mealPlan) async {
+                  Navigator.of(context).pop();
+                  try {
+                    final appState = ref.read(appStateProvider);
+                    final ingredients = <String>[];
+                    // 食材リスト作成
+                    ingredients.addAll(mealPlan.mainDish.ingredients.map((i) => i.name));
+                    ingredients.addAll(mealPlan.sideDish.ingredients.map((i) => i.name));
+                    ingredients.addAll(mealPlan.soup.ingredients.map((i) => i.name));
+
+                    // 食材削除処理
+                    for (final ingredientName in ingredients) {
+                      final matchingProducts = appState.products.where(
+                        (product) => product.name.contains(ingredientName) ||
+                                    ingredientName.contains(product.name)
+                      ).toList();
+
+                      for (final product in matchingProducts) {
+                        if (product.id != null) {
+                          await ref.read(appStateProvider.notifier)
+                                    .deleteProductFromFirebase(product.id!);
+                        }
+                      }
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('献立が決定されました。食材を削除しました。'), backgroundColor: Colors.green),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('食材削除に失敗しました: $e'), backgroundColor: Colors.red),
+                    );
+                  }
+                }
+            - action: "add"
+              target: "決定ボタン"
+              location: "献立表示部分"
+              implementation: |
+                ElevatedButton(
+                  onPressed: () => _showMealDecisionConfirmation(mealPlan),
+                  child: Text('この献立で決定'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                )
+
+    phase_2_ui_improvements:
+      priority: "medium"
+      duration: "2-3 days"
+      description: "UI統一とユーザビリティ向上"
+      
+      tasks:
+        re_suggest_confirmation:
+          file: "lib/features/meal_planning/presentation/pages/meal_plan_screen.dart"
+          priority: "medium"
+          estimated_time: "45 minutes"
+          changes:
+            - action: "add"
+              target: "_showReSuggestConfirmation method"
+              implementation: |
+                void _showReSuggestConfirmation() {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: _baseColor,
+                      title: Text('献立を再提案しますか？', style: TextStyle(color: _textColor, fontWeight: FontWeight.bold)),
+                      content: Text('現在の献立が新しい提案に置き換わります。', style: TextStyle(color: _accentColor)),
+                      actions: [
+                        TextButton(child: Text('キャンセル'), onPressed: () => Navigator.pop(context)),
+                        ElevatedButton(
+                          child: Text('再提案'),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _suggestMealPlan();
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: _primaryColor, foregroundColor: Colors.white),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+            - action: "modify"
+              target: "再提案ボタンのonPressed"
+              from: "_suggestMealPlan"
+              to: "_showReSuggestConfirmation"
+
+        additional_dish_improvement:
+          file: "lib/features/meal_planning/presentation/pages/meal_plan_screen.dart"
+          priority: "medium"
+          estimated_time: "3 hours"
+          changes:
+            - action: "rewrite"
+              target: "_suggestAdditionalDish method"
+              implementation: |
+                void _suggestAdditionalDish() {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: _baseColor,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      title: Text('もう一品追加', style: TextStyle(color: _textColor, fontWeight: FontWeight.bold, fontSize: 20), textAlign: TextAlign.center),
+                      content: Container(
+                        width: double.maxFinite,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('どのような料理を追加しますか？', style: TextStyle(color: _accentColor, fontSize: 14), textAlign: TextAlign.center),
+                            SizedBox(height: 16),
+                            _buildDishOption(title: '副菜', subtitle: '野菜やサラダなど', icon: Icons.eco, onTap: () => _addAdditionalDish('副菜')),
+                            SizedBox(height: 8),
+                            _buildDishOption(title: '汁物', subtitle: 'スープや味噌汁など', icon: Icons.local_drink, onTap: () => _addAdditionalDish('汁物')),
+                            SizedBox(height: 8),
+                            _buildDishOption(title: 'おつまみ', subtitle: '簡単な一品料理', icon: Icons.local_bar, onTap: () => _addAdditionalDish('おつまみ')),
+                          ],
+                        ),
+                      ),
+                      actions: [TextButton(child: Text('キャンセル'), onPressed: () => Navigator.pop(context))],
+                    ),
+                  );
+                }
+            - action: "add"
+              target: "_buildDishOption method"
+              implementation: |
+                Widget _buildDishOption({required String title, required String subtitle, required IconData icon, required VoidCallback onTap}) {
+                  return InkWell(
+                    onTap: onTap,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: _primaryColor.withOpacity(0.3)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(color: _primaryColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                            child: Icon(icon, color: _accentColor, size: 24),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(title, style: TextStyle(color: _textColor, fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(subtitle, style: TextStyle(color: _accentColor, fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward_ios, color: _accentColor, size: 16),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+            - action: "add"
+              target: "_addAdditionalDish method"
+              implementation: |
+                Future<void> _addAdditionalDish(String dishType) async {
+                  Navigator.pop(context);
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: _baseColor,
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(color: _primaryColor),
+                          SizedBox(height: 16),
+                          Text('${dishType}を考えています...', style: TextStyle(color: _textColor)),
+                        ],
+                      ),
+                    ),
+                  );
+
+                  try {
+                    // AI呼び出しで追加料理を生成（実装予定）
+                    await Future.delayed(Duration(seconds: 2)); // 仮の処理
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('${dishType}を追加しました'), backgroundColor: Colors.green),
+                    );
+                  } catch (e) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('料理の提案に失敗しました'), backgroundColor: Colors.red),
+                    );
+                  }
+                }
+
+        menu_detail_theme_update:
+          file: "lib/features/meal_planning/presentation/widgets/meal_detail_dialog.dart"
+          priority: "medium"
+          estimated_time: "2 hours"
+          changes:
+            - action: "add"
+              target: "color constants"
+              implementation: |
+                static const Color _baseColor = Color(0xFFF6EACB);
+                static const Color _primaryColor = Color(0xFFD4A574);
+                static const Color _secondaryColor = Color(0xFFB8956A);
+                static const Color _accentColor = Color(0xFF8B7355);
+                static const Color _textColor = Color(0xFF5D4E37);
+            - action: "modify"
+              target: "Dialog backgroundColor"
+              from: "Theme.of(context).dialogBackgroundColor"
+              to: "_baseColor"
+            - action: "add"
+              target: "container decoration"
+              implementation: |
+                decoration: BoxDecoration(
+                  color: _baseColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: _primaryColor.withOpacity(0.3), width: 1),
+                )
+            - action: "modify"
+              target: "text styles"
+              description: "全てのTextStyleをクリーム色基調に変更"
+            - action: "add"
+              target: "_buildSection method"
+              implementation: |
+                Widget _buildSection({required String title, required IconData icon, required Widget content}) {
+                  return Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _baseColor.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: _primaryColor.withOpacity(0.2)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(icon, color: _accentColor, size: 20),
+                            SizedBox(width: 8),
+                            Text(title, style: TextStyle(color: _textColor, fontSize: 16, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        content,
+                      ],
+                    ),
+                  );
+                }
+
+        shopping_list_button:
+          file: "lib/features/meal_planning/presentation/pages/meal_plan_screen.dart"
+          priority: "medium"
+          estimated_time: "1.5 hours"
+          changes:
+            - action: "add"
+              target: "ScrollController and GlobalKey"
+              implementation: |
+                final ScrollController _scrollController = ScrollController();
+                GlobalKey _shoppingListKey = GlobalKey();
+            - action: "modify"
+              target: "AppBar actions"
+              implementation: |
+                actions: [
+                  IconButton(
+                    icon: Icon(Icons.shopping_cart, color: _accentColor),
+                    tooltip: '買い物リストへ',
+                    onPressed: _scrollToShoppingList,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.refresh, color: _accentColor),
+                    tooltip: '再提案',
+                    onPressed: _showReSuggestConfirmation,
+                  ),
+                ],
+            - action: "add"
+              target: "_scrollToShoppingList method"
+              implementation: |
+                void _scrollToShoppingList() {
+                  final RenderBox? renderBox = _shoppingListKey.currentContext?.findRenderObject() as RenderBox?;
+                  if (renderBox != null) {
+                    final position = renderBox.localToGlobal(Offset.zero);
+                    final screenHeight = MediaQuery.of(context).size.height;
+                    _scrollController.animateTo(
+                      position.dy - (screenHeight * 0.1),
+                      duration: Duration(milliseconds: 800),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                }
+            - action: "add"
+              target: "shopping list container key"
+              description: "買い物リスト部分にkey: _shoppingListKeyを追加"
+
+    phase_3_fine_tuning:
+      priority: "low"
+      duration: "1 day"
+      description: "細部調整と最適化"
+      
+      tasks:
+        remove_meal_theme:
+          file: "lib/features/meal_planning/presentation/pages/meal_plan_screen.dart"
+          priority: "low"
+          estimated_time: "15 minutes"
+          changes:
+            - action: "remove"
+              target: "献立テーマ表示"
+              code_location: "献立まとめ部分のmealPlan.theme表示"
+            - action: "keep"
+              target: "カロリー・調理時間表示"
+              reason: "有用な情報として保持"
+
+        ai_service_enhancement:
+          file: "lib/core/services/ai_meal_planning_service.dart"
+          priority: "low"
+          estimated_time: "2 hours"
+          changes:
+            - action: "add"
+              target: "generateAdditionalDish method"
+              implementation: |
+                Future<MealItem?> generateAdditionalDish(String dishType) async {
+                  try {
+                    final prompt = '''
+                    Generate a single ${dishType} dish for a Japanese family meal.
+                    
+                    Requirements:
+                    - Simple home cooking style
+                    - Uses common ingredients
+                    - Appropriate for ${dishType}
+                    - Include name, description, ingredients with amounts, and simple cooking steps
+                    
+                    Return JSON format:
+                    {
+                      "name": "dish name",
+                      "description": "brief description",
+                      "ingredients": [{"name": "ingredient", "amount": "amount"}],
+                      "recipe": {
+                        "steps": [{"instruction": "step description"}],
+                        "cookingTime": 15
+                      }
+                    }
+                    ''';
+
+                    final response = await _geminiService.generateContent(prompt);
+                    return _parseMealItem(response, MealCategory.side);
+                  } catch (e) {
+                    print('Error generating additional dish: $e');
+                    return null;
+                  }
+                }
+
+  testing_strategy:
+    unit_tests:
+      - test: "confirmation dialogs display correctly"
+        files: ["meal_plan_screen.dart"]
+      - test: "ingredient deletion logic works"
+        files: ["meal_plan_screen.dart"]
+      - test: "scroll to shopping list functions"
+        files: ["meal_plan_screen.dart"]
+      - test: "border styling applies correctly"
+        files: ["meal_plan_square_card.dart"]
+
+    integration_tests:
+      - test: "complete meal suggestion to decision flow"
+        description: "Test entire user journey from suggestion to final decision"
+      - test: "error handling in all confirmation dialogs"
+        description: "Verify proper error states and recovery"
+      - test: "UI consistency across all screens"
+        description: "Verify color theme and styling consistency"
+
+    ui_tests:
+      - test: "responsive design on different screen sizes"
+      - test: "accessibility features"
+      - test: "smooth animations and transitions"
+
+  rollback_plan:
+    backup_files:
+      - "meal_plan_screen.dart.backup"
+      - "meal_plan_square_card.dart.backup" 
+      - "meal_detail_dialog.dart.backup"
+    
+    rollback_triggers:
+      - "critical UI breaking changes"
+      - "performance degradation > 20%"
+      - "user reported usability issues"
+    
+    rollback_procedure:
+      1: "Stop current deployment"
+      2: "Restore backup files"
+      3: "Run regression tests"
+      4: "Verify functionality"
+      5: "Deploy rollback version"
+
+  success_metrics:
+    quantitative:
+      - "Layout overflow errors: 0"
+      - "Confirmation dialogs added: 2"
+      - "UI consistency score: 100%"
+      - "User flow completion rate: >95%"
+    
+    qualitative:
+      - "Improved visual hierarchy"
+      - "Better user control over actions"
+      - "Consistent design language"
+      - "Enhanced usability"
+
+  dependencies:
+    external:
+      - "ADK server running on localhost:8003"
+      - "Firebase connection stable"
+      - "Gemini API access"
+    
+    internal:
+      - "app_state_provider functionality"
+      - "meal_plan_provider state management"
+      - "image generation service"
+
+  risk_assessment:
+    high_risk:
+      - name: "Food ingredient deletion logic"
+        mitigation: "Extensive testing with various ingredient names"
+      - name: "UI layout changes"
+        mitigation: "Test on multiple screen sizes"
+    
+    medium_risk:
+      - name: "Performance impact of new dialogs"
+        mitigation: "Monitor rendering performance"
+      - name: "State management complexity"
+        mitigation: "Clear state flow documentation"
+    
+    low_risk:
+      - name: "Color theme changes"
+        mitigation: "Easy rollback available"
+      - name: "Minor UI adjustments"
+        mitigation: "Non-breaking changes"

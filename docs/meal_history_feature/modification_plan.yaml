@@ -1,0 +1,317 @@
+name: "献立履歴機能 - 修正計画"
+version: "1.0"
+date: "2025-01-19"
+author: "Claude AI Assistant"
+
+# 献立履歴機能の要件定義と実装計画
+
+## プロジェクト概要
+
+### 目標
+献立提案画面に献立履歴機能を追加し、過去の献立を確認・再利用できる機能を実装する
+
+### 対象ユーザー
+- 家庭で献立を管理するユーザー
+- 過去の献立を参考にしたいユーザー
+- 定期的に同じ献立を作りたいユーザー
+
+### 期間
+5-7日間（優先度別段階実装）
+
+## 機能要件
+
+### 1. 献立履歴画面 【優先度: 高】
+
+#### 基本機能
+- 過去の献立を時系列で表示
+- 献立の基本情報表示（日付、料理名、状態）
+- 献立詳細表示（タップで詳細表示）
+- 無限スクロール対応
+
+#### 表示項目
+```yaml
+meal_history_item:
+  - date: "作成日時"
+  - main_dish_name: "主菜名"
+  - status: "献立状態（提案中/承認済み/完了/キャンセル）"
+  - status_icon: "状態アイコン"
+  - thumbnail: "料理画像（あれば）"
+  - cooking_time: "調理時間"
+  - difficulty: "難易度"
+  - nutrition_score: "栄養スコア"
+```
+
+#### UI設計
+```yaml
+layout:
+  type: "ListView.builder"
+  item_design:
+    - card_style: "Material Card"
+    - color_scheme: "クリーム色基調（既存UIと統一）"
+    - height: "120px"
+    - padding: "16px"
+    - border_radius: "12px"
+    - shadow: "軽い影"
+```
+
+### 2. フィルタリング機能 【優先度: 中】
+
+#### フィルター項目
+```yaml
+filters:
+  status_filter:
+    - all: "すべて"
+    - completed: "完了済み"
+    - accepted: "承認済み"
+    - cancelled: "キャンセル"
+  date_filter:
+    - last_week: "過去1週間"
+    - last_month: "過去1ヶ月"
+    - last_3_months: "過去3ヶ月"
+    - custom_range: "カスタム期間"
+  difficulty_filter:
+    - easy: "簡単"
+    - medium: "普通"
+    - hard: "難しい"
+    - expert: "上級"
+```
+
+#### UI実装
+```yaml
+filter_ui:
+  type: "FilterChip"
+  location: "画面上部"
+  style: "水平スクロール可能"
+  color: "プライマリカラー"
+```
+
+### 3. 検索機能 【優先度: 中】
+
+#### 検索対象
+- 主菜名
+- 副菜名
+- 汁物名
+- 材料名
+
+#### UI実装
+```yaml
+search_ui:
+  type: "SearchBar"
+  location: "AppBar内"
+  placeholder: "献立を検索..."
+  icon: "Icons.search"
+```
+
+### 4. 過去献立再利用機能 【優先度: 高】
+
+#### 機能詳細
+- 履歴から献立を選択
+- 現在の冷蔵庫食材との照合
+- 不足材料の表示
+- 買い物リスト生成
+- 献立として再提案
+
+#### 実装フロー
+```yaml
+reuse_flow:
+  1. select_meal: "履歴から献立選択"
+  2. check_ingredients: "現在の冷蔵庫食材と照合"
+  3. show_missing: "不足材料表示"
+  4. confirm_reuse: "再利用確認ダイアログ"
+  5. generate_shopping: "買い物リスト生成"
+  6. set_as_current: "現在の献立として設定"
+```
+
+### 5. 献立詳細表示 【優先度: 中】
+
+#### 表示内容
+- 4品構成（主菜、副菜、汁物、主食）
+- 各料理の詳細情報
+- 材料リスト
+- 調理手順
+- 栄養情報
+- 作成日時・状態
+
+#### UI設計
+```yaml
+detail_ui:
+  type: "BottomSheet or Dialog"
+  style: "既存のmeal_detail_dialogと統一"
+  color_scheme: "クリーム色基調"
+```
+
+## 非機能要件
+
+### パフォーマンス
+```yaml
+performance:
+  loading_time: "< 2秒"
+  scroll_performance: "60fps維持"
+  memory_usage: "< 100MB追加"
+  cache_strategy: "最新50件はローカルキャッシュ"
+```
+
+### ユーザビリティ
+```yaml
+usability:
+  navigation: "直感的なナビゲーション"
+  accessibility: "スクリーンリーダー対応"
+  error_handling: "適切なエラーメッセージ"
+  loading_states: "ローディング表示"
+```
+
+### デザイン統一
+```yaml
+design_consistency:
+  color_scheme: "既存のクリーム色基調"
+  typography: "既存フォントスタイル"
+  component_style: "既存コンポーネントと統一"
+  spacing: "既存の16px基準"
+```
+
+## 技術要件
+
+### 新規ファイル作成
+```yaml
+new_files:
+  - "lib/features/meal_planning/presentation/pages/meal_plan_history_screen.dart"
+  - "lib/features/meal_planning/presentation/widgets/meal_history_item_card.dart"
+  - "lib/features/meal_planning/presentation/widgets/meal_history_filter_bar.dart"
+  - "lib/features/meal_planning/presentation/widgets/meal_reuse_confirmation_dialog.dart"
+```
+
+### 既存ファイル修正
+```yaml
+modified_files:
+  - "lib/features/meal_planning/presentation/pages/meal_plan_screen.dart":
+      - "_showMealPlanHistory メソッドの実装"
+  - "lib/features/meal_planning/presentation/providers/meal_plan_provider.dart":
+      - "MealPlanHistoryNotifier の拡張（必要に応じて）"
+  - "lib/core/services/firestore_service.dart":
+      - "追加のクエリメソッド（必要に応じて）"
+```
+
+### データベース要件
+```yaml
+firestore_requirements:
+  collection: "meal_plans"
+  indexes:
+    - "householdId + createdAt (desc)"
+    - "householdId + status + createdAt (desc)"
+  query_patterns:
+    - "時系列取得"
+    - "状態別フィルタリング"
+    - "期間指定取得"
+```
+
+## 実装方針
+
+### 段階的実装
+```yaml
+phase_1: "基本履歴表示"
+  - 履歴画面作成
+  - 基本リスト表示
+  - 詳細表示
+
+phase_2: "フィルタリング・検索"
+  - フィルター機能
+  - 検索機能
+  - ソート機能
+
+phase_3: "再利用機能"
+  - 過去献立選択
+  - 材料照合
+  - 再提案機能
+
+phase_4: "最適化・改善"
+  - パフォーマンス最適化
+  - UI/UX改善
+  - エラーハンドリング強化
+```
+
+### テスト戦略
+```yaml
+testing:
+  unit_tests:
+    - "MealPlanHistoryNotifier"
+    - "Firestore service methods"
+    - "Filter/Search logic"
+  
+  widget_tests:
+    - "MealPlanHistoryScreen"
+    - "MealHistoryItemCard"
+    - "Filter components"
+  
+  integration_tests:
+    - "履歴表示フロー"
+    - "フィルタリングフロー"
+    - "再利用フロー"
+```
+
+## リスク分析
+
+### 技術リスク
+```yaml
+risks:
+  performance_risk:
+    level: "中"
+    description: "大量履歴データの表示パフォーマンス"
+    mitigation: "ページング・仮想化実装"
+  
+  ui_consistency_risk:
+    level: "低"
+    description: "既存UIとのデザイン不整合"
+    mitigation: "既存コンポーネント再利用"
+  
+  data_migration_risk:
+    level: "低"
+    description: "既存データとの互換性"
+    mitigation: "既存データ構造を維持"
+```
+
+### スケジュールリスク
+```yaml
+schedule_risks:
+  complexity_underestimation:
+    level: "中"
+    description: "実装複雑性の過小評価"
+    mitigation: "段階的実装・早期テスト"
+  
+  integration_issues:
+    level: "低"
+    description: "既存機能との統合問題"
+    mitigation: "既存APIを最大限活用"
+```
+
+## 成功指標
+
+### 定量的指標
+```yaml
+quantitative_metrics:
+  - "履歴表示時間 < 2秒"
+  - "検索レスポンス時間 < 1秒"
+  - "メモリ使用量増加 < 50MB"
+  - "クラッシュ率 < 0.1%"
+```
+
+### 定性的指標
+```yaml
+qualitative_metrics:
+  - "ユーザビリティの向上"
+  - "デザインの一貫性"
+  - "機能の直感性"
+  - "エラーハンドリングの適切性"
+```
+
+## 今後の拡張可能性
+
+### 将来的な機能
+```yaml
+future_features:
+  - "献立評価・レビュー機能"
+  - "献立共有機能"
+  - "お気に入り献立機能"
+  - "献立カレンダー表示"
+  - "統計・分析機能"
+  - "献立推薦の学習機能"
+```

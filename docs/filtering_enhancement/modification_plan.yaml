@@ -1,0 +1,115 @@
+# フィルタリング機能修正計画
+modification_plan:
+  name: "カテゴリドロップダウン実装"
+  version: "1.1.0"
+  
+  # 修正目標
+  objectives:
+    - "「すべて」ボタンをドロップダウンメニューに変更"
+    - "ユーザ定義カテゴリの一覧をドロップダウンで表示"
+    - "選択されたカテゴリのみを冷蔵庫画面に表示"
+    - "複数選択は実装しない（単一選択のみ）"
+
+  # 修正対象ファイル
+  target_files:
+    - file: "lib/features/home/presentation/pages/home_screen.dart"
+      changes:
+        - "FilterChip List を DropdownButton に変更"
+        - "横スクロールレイアウトを削除"
+        - "ドロップダウンメニューの実装"
+
+  # 実装詳細
+  implementation_details:
+    ui_changes:
+      - component: "カテゴリフィルター"
+        current: "FilterChip List (横スクロール)"
+        new: "DropdownButton<String>"
+        location: "HomeScreen lines 130-158"
+        
+      - component: "レイアウト"
+        current: "SizedBox(height: 50) + ListView.builder"
+        new: "Padding + DropdownButton"
+        
+      - component: "選択表示"
+        current: "FilterChip.selected"
+        new: "DropdownButton.value"
+
+    code_changes:
+      - file: "lib/features/home/presentation/pages/home_screen.dart"
+        method: "build()"
+        lines: "130-158"
+        changes:
+          - "FilterChip List を削除"
+          - "DropdownButton を追加"
+          - "onChanged コールバック実装"
+          - "アイコンとスタイリング追加"
+
+  # 新しいUI設計
+  new_ui_design:
+    category_dropdown:
+      type: "DropdownButton<String>"
+      location: "AppBar下部、商品リスト上部"
+      styling:
+        - "Material Design準拠"
+        - "プライマリカラー使用"
+        - "適切なパディング"
+      features:
+        - "現在選択中のカテゴリを表示"
+        - "タップでカテゴリ一覧を表示"
+        - "選択時にフィルタリング実行"
+        - "「すべて」オプション含む"
+
+  # 実装手順
+  implementation_steps:
+    - step: 1
+      action: "現在のFilterChip Listを削除"
+      target: "home_screen.dart lines 130-158"
+      
+    - step: 2
+      action: "DropdownButtonウィジェットを実装"
+      target: "home_screen.dart build() method"
+      details:
+        - "DropdownButton<String>を使用"
+        - "availableCategoriesProviderからカテゴリ取得"
+        - "onChangedでProductNotifier.filterByCategory()呼び出し"
+        - "適切なスタイリング適用"
+    
+    - step: 3
+      action: "レイアウト調整"
+      target: "home_screen.dart Column children"
+      details:
+        - "適切なパディング設定"
+        - "マージン調整"
+        - "レスポンシブ対応"
+    
+    - step: 4
+      action: "テスト実行"
+      target: "全体"
+      details:
+        - "ドロップダウン表示確認"
+        - "カテゴリ選択動作確認"
+        - "フィルタリング結果確認"
+
+  # 期待される結果
+  expected_outcome:
+    ui_improvements:
+      - "より直感的なカテゴリ選択UI"
+      - "画面スペースの効率的利用"
+      - "Material Design準拠のデザイン"
+    
+    functionality:
+      - "単一カテゴリ選択によるフィルタリング"
+      - "「すべて」選択で全商品表示"
+      - "選択状態の明確な表示"
+    
+    user_experience:
+      - "操作の簡素化"
+      - "視覚的な分かりやすさ"
+      - "一貫したUI体験"
+
+  # 技術的考慮事項
+  technical_considerations:
+    - "既存のProductNotifierロジックは変更不要"
+    - "availableCategoriesProviderはそのまま使用"
+    - "フィルタリングロジックは既存のものを活用"
+    - "パフォーマンスへの影響は最小限"
