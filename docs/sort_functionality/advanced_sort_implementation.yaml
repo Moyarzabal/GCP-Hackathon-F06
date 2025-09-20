@@ -1,0 +1,198 @@
+name: 高度なソート機能の実装
+description: フィルターアイコン+昇順降順切り替え機能の実装
+
+components:
+  product_provider:
+    file: lib/features/products/presentation/providers/product_provider.dart
+    status: 拡張済み
+    new_features:
+      - SortDirection enum追加（昇順・降順）
+      - ProductStateにsortDirectionフィールド追加
+      - setSortType()メソッドの改良（同じソートタイプ選択時に方向切り替え）
+      - toggleSortDirection()メソッド追加
+      - ソート処理の昇順・降順対応
+    changes:
+      - ソート比較ロジックを昇順・降順に対応
+      - 同じソートタイプ選択時の方向切り替え機能
+      - 異なるソートタイプ選択時の昇順初期化
+
+  home_screen:
+    file: lib/features/home/presentation/pages/home_screen.dart
+    status: UI改善済み
+    new_features:
+      - フィルターアイコン（Icons.filter_list）の使用
+      - ソート方向の視覚的表示（上矢印・下矢印）
+      - ポップアップメニューでのソートタイプ選択
+      - 選択されたソートタイプのチェックマーク表示
+      - 選択されたソートタイプの方向表示
+    ui_improvements:
+      - より直感的なフィルターアイコン
+      - 現在のソート方向が一目で分かる矢印表示
+      - メニュー内での選択状態の明確な表示
+
+sort_types:
+  name:
+    display_name: "名前順"
+    ascending: "あいうえお順"
+    descending: "んわらやまはなたさかあ順"
+    status: 実装済み
+    
+  expiry_date:
+    display_name: "賞味期限順"
+    ascending: "賞味期限の早い順"
+    descending: "賞味期限の遅い順"
+    status: 実装済み
+    note: "nullの賞味期限は最後に表示される"
+    
+  added_date:
+    display_name: "追加日順"
+    ascending: "古い順"
+    descending: "新しい順"
+    status: 実装済み
+    note: "nullの追加日は最後に表示される"
+    
+  category:
+    display_name: "カテゴリ順"
+    ascending: "カテゴリのあいうえお順"
+    descending: "カテゴリのんわらやまはなたさかあ順"
+    status: 実装済み
+    note: "カテゴリが同じ場合は名前順でソート"
+
+ui_components:
+  sort_direction_indicator:
+    type: Icon
+    icon: "Icons.keyboard_arrow_up / Icons.keyboard_arrow_down"
+    location: "AppBar actions（フィルターアイコンの左）"
+    color: "Theme.of(context).colorScheme.primary"
+    size: 20
+    functionality: "現在のソート方向を視覚的に表示"
+
+  filter_button:
+    type: PopupMenuButton<ProductSortType>
+    icon: "Icons.filter_list"
+    location: "AppBar actions"
+    functionality:
+      - ソートタイプの選択肢を表示
+      - 選択時にsetSortType()を呼び出し
+      - 同じソートタイプ選択時に方向切り替え
+      - 選択状態の視覚的表示
+
+  sort_menu_items:
+    type: PopupMenuItem<ProductSortType>
+    features:
+      - 選択されたソートタイプにチェックマーク
+      - 選択されたソートタイプの方向表示
+      - 直感的な選択インターフェース
+
+user_interaction:
+  sort_type_selection:
+    behavior: "フィルターアイコンをタップ"
+    result: "ソートタイプ選択メニューが表示される"
+    
+  same_sort_type_selection:
+    behavior: "同じソートタイプを再度選択"
+    result: "昇順・降順が切り替わる"
+    
+  different_sort_type_selection:
+    behavior: "異なるソートタイプを選択"
+    result: "選択されたソートタイプで昇順にソート"
+    
+  visual_feedback:
+    - 現在のソート方向が矢印で表示される
+    - 選択されたソートタイプにチェックマーク
+    - 選択されたソートタイプの方向がメニュー内に表示
+
+data_flow:
+  updated_flow:
+    1. ユーザーがフィルターアイコンをタップ
+    2. ソートタイプ選択メニューが表示される
+    3. ユーザーがソートタイプを選択
+    4. setSortType()メソッドが呼び出される
+    5. 同じソートタイプの場合は方向切り替え
+    6. 異なるソートタイプの場合は昇順で初期化
+    7. _applyFilters()でソート処理実行
+    8. ソート済み商品リストがUIに反映
+    9. ソート方向が矢印で表示される
+
+performance:
+  sorting_algorithm:
+    type: "List.sort() with custom comparator + direction"
+    complexity: "O(n log n)"
+    status: 効率的
+    
+  ui_updates:
+    type: "Riverpod state management"
+    reactivity: "自動更新"
+    status: 最適化済み
+
+error_handling:
+  null_values:
+    - 賞味期限がnullの場合、最後に表示
+    - 追加日がnullの場合、最後に表示
+    - 適切なフォールバック処理
+
+  edge_cases:
+    - 空の商品リスト
+    - 同じ名前の商品
+    - 同じ賞味期限の商品
+    - 同じカテゴリの商品
+
+accessibility:
+  visual_feedback:
+    - 現在のソート方向が矢印で明確に表示
+    - 選択されたソートタイプにチェックマーク
+    - 色分けによる状態の区別
+
+  keyboard_navigation:
+    - ポップアップメニューのキーボード操作対応
+    - タブキーでのナビゲーション
+    - エンターキーでの選択
+
+testing:
+  manual_testing:
+    status: 実行済み
+    test_cases:
+      - 各ソートタイプの昇順・降順切り替え
+      - 同じソートタイプ選択時の方向切り替え
+      - 異なるソートタイプ選択時の昇順初期化
+      - UIの視覚的フィードバック確認
+      - メニューの表示・非表示
+
+  edge_cases:
+    - 空の商品リストでのソート
+    - 1つの商品のみでのソート
+    - 同じ値を持つ商品でのソート
+    - null値を持つ商品でのソート
+
+deployment:
+  status: 準備完了
+  changes_required:
+    - コードの変更のみ
+    - データベースの変更なし
+    - 設定ファイルの変更なし
+    - 既存データへの影響なし
+
+maintenance:
+  future_improvements:
+    - ソート設定の永続化
+    - カスタムソート条件の追加
+    - ソート履歴の保存
+    - ソート設定のエクスポート/インポート
+
+  monitoring:
+    - ソート処理のパフォーマンス監視
+    - ユーザーのソート使用状況の分析
+    - エラーログの監視
+    - UIの反応性の監視
+
+user_experience:
+  improvements:
+    - より直感的なフィルターアイコン
+    - 現在のソート状態が一目で分かる
+    - 簡単な操作でソート方向切り替え
+    - 視覚的なフィードバックの充実
+
+  consistency:
+    - 他の画面とのUI一貫性
+    - マテリアルデザインガイドライン準拠
+    - レスポンシブデザイン対応

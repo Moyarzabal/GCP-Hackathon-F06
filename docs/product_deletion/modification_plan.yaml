@@ -1,0 +1,220 @@
+modification_plan:
+  overview: "商品削除機能のTDD実装計画"
+  
+  implementation_phases:
+    phase_1_test_design:
+      title: "テスト設計と基盤準備"
+      tasks:
+        - "商品選択状態のテストケース設計"
+        - "選択モードのテストケース設計"
+        - "削除機能のテストケース設計"
+        - "統合テストの設計"
+      deliverables:
+        - "test/features/products/presentation/providers/product_selection_provider_test.dart"
+        - "test/features/products/presentation/widgets/product_selection_test.dart"
+        - "integration_test/product_deletion_test.dart"
+    
+    phase_2_state_management:
+      title: "状態管理の実装"
+      tasks:
+        - "ProductSelectionStateクラスの実装"
+        - "ProductSelectionNotifierクラスの実装"
+        - "選択状態のプロバイダー実装"
+        - "選択モードの切り替え機能"
+        - "複数選択の管理機能"
+      deliverables:
+        - "lib/features/products/presentation/states/product_selection_state.dart"
+        - "lib/features/products/presentation/providers/product_selection_provider.dart"
+    
+    phase_3_ui_implementation:
+      title: "UI実装"
+      tasks:
+        - "ProductCardに長押しジェスチャー追加"
+        - "選択モードUIの実装"
+        - "選択状態の視覚的フィードバック"
+        - "削除ボタンの実装"
+        - "HomeScreenの選択モード対応"
+      deliverables:
+        - "更新されたProductCardウィジェット"
+        - "更新されたHomeScreen"
+        - "選択モード用のUIコンポーネント"
+    
+    phase_4_deletion_functionality:
+      title: "削除機能の実装"
+      tasks:
+        - "FirestoreProductDataSourceに一括削除機能追加"
+        - "ProductProviderに一括削除機能追加"
+        - "削除確認ダイアログの実装"
+        - "エラーハンドリングの実装"
+        - "部分削除の処理"
+      deliverables:
+        - "更新されたFirestoreProductDataSource"
+        - "更新されたProductProvider"
+        - "削除確認ダイアログウィジェット"
+    
+    phase_5_integration_testing:
+      title: "統合テストと最適化"
+      tasks:
+        - "エンドツーエンドテストの実行"
+        - "パフォーマンステスト"
+        - "ユーザビリティテスト"
+        - "エラーハンドリングの検証"
+      deliverables:
+        - "統合テストの実行結果"
+        - "パフォーマンス最適化"
+        - "ユーザビリティ改善"
+  
+  detailed_implementation:
+    
+    test_cases:
+      unit_tests:
+        product_selection_state:
+          - "should initialize with default values"
+          - "should toggle selection mode"
+          - "should add product to selection"
+          - "should remove product from selection"
+          - "should clear all selections"
+          - "should handle selection errors"
+        
+        product_selection_notifier:
+          - "should enter selection mode on toggle"
+          - "should exit selection mode on toggle"
+          - "should select multiple products"
+          - "should deselect products"
+          - "should select all products"
+          - "should clear selection"
+          - "should handle deletion errors"
+        
+        deletion_functionality:
+          - "should delete single product"
+          - "should delete multiple products"
+          - "should handle deletion errors"
+          - "should update state after deletion"
+      
+      widget_tests:
+        product_card_selection:
+          - "should show selection UI on long press"
+          - "should highlight selected products"
+          - "should toggle selection on tap in selection mode"
+          - "should show checkbox when in selection mode"
+        
+        home_screen_selection:
+          - "should show delete button when products selected"
+          - "should hide delete button when no products selected"
+          - "should show selection mode UI"
+          - "should handle selection mode toggle"
+        
+        deletion_dialog:
+          - "should show confirmation dialog"
+          - "should handle confirm action"
+          - "should handle cancel action"
+      
+      integration_tests:
+        full_deletion_flow:
+          - "should complete full deletion flow from long press to confirmation"
+          - "should handle network errors during deletion"
+          - "should maintain selection state across rebuilds"
+          - "should handle partial deletion success"
+    
+    state_management:
+      product_selection_state:
+        properties:
+          - "isSelectionMode: bool"
+          - "selectedProductIds: Set<String>"
+          - "isDeleting: bool"
+          - "error: String?"
+        methods:
+          - "copyWith()"
+          - "isSelected(String productId): bool"
+          - "selectedCount: int"
+      
+      product_selection_notifier:
+        methods:
+          - "toggleSelectionMode()"
+          - "toggleProductSelection(String productId)"
+          - "selectAll()"
+          - "clearSelection()"
+          - "deleteSelectedProducts()"
+          - "clearError()"
+    
+    ui_components:
+      product_card_updates:
+        new_gestures:
+          - "onLongPress: 選択モードの切り替え"
+          - "onTap: 選択モード時は選択切り替え、通常時は詳細表示"
+        new_properties:
+          - "isSelectionMode: bool"
+          - "isSelected: bool"
+          - "onSelectionToggle: VoidCallback"
+        visual_feedback:
+          - "選択時のハイライト表示"
+          - "チェックボックスの表示"
+          - "選択モード時のオーバーレイ"
+      
+      home_screen_updates:
+        new_components:
+          - "削除ボタン（FloatingActionButton）"
+          - "選択モード時のUI変更"
+        new_providers:
+          - "productSelectionProvider"
+        new_gestures:
+          - "削除ボタンのタップ"
+      
+      deletion_dialog:
+        properties:
+          - "selectedCount: int"
+          - "onConfirm: VoidCallback"
+          - "onCancel: VoidCallback"
+        features:
+          - "選択された商品数の表示"
+          - "確認・キャンセルボタン"
+          - "エラーメッセージの表示"
+    
+    data_layer_updates:
+      firestore_datasource:
+        new_methods:
+          - "deleteProducts(List<String> productIds): Future<void>"
+        implementation:
+          - "Firestore batch操作を使用"
+          - "エラーハンドリング"
+          - "ログ出力"
+      
+      product_provider:
+        new_methods:
+          - "deleteSelectedProducts(): Future<Result<void>>"
+        integration:
+          - "ProductSelectionProviderとの連携"
+          - "削除後の状態更新"
+          - "エラーハンドリング"
+  
+  success_criteria:
+    functional_requirements:
+      - "長押しで選択モードに切り替わる"
+      - "複数商品を選択できる"
+      - "削除確認ダイアログが表示される"
+      - "Firebaseから商品が削除される"
+      - "ローカル状態が更新される"
+      - "エラーが適切に処理される"
+    
+    non_functional_requirements:
+      - "テストカバレッジ90%以上"
+      - "パフォーマンス: 大量商品でもスムーズな操作"
+      - "ユーザビリティ: 直感的な操作感"
+      - "アクセシビリティ: スクリーンリーダー対応"
+      - "エラーハンドリング: 適切なエラーメッセージ"
+  
+  risk_mitigation:
+    performance_risks:
+      - "大量商品での選択処理の最適化"
+      - "メモリ使用量の監視"
+      - "UIの応答性の確保"
+    
+    user_experience_risks:
+      - "選択状態の分かりやすさ"
+      - "誤操作の防止"
+      - "操作の一貫性"
+    
+    technical_risks:
+      - "Firebase制限の考慮"
+      - "ネットワークエラーの処理"
+      - "状態管理の複雑性"

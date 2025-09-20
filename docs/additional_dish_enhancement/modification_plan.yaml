@@ -1,0 +1,1167 @@
+name: "もう一品機能強化 - 修正計画"
+version: "1.0"
+date: "2025-01-19"
+author: "Claude AI Assistant"
+
+# 「もう一品」機能の完全実装計画
+
+## プロジェクト概要
+
+### 目標
+献立提案時にADKで全ジャンル（主菜・副菜・汁物・おつまみ）の追加料理を事前生成し、
+ユーザーが選択したジャンルに応じて即座に料理を表示する機能を実装する
+
+### 現在の問題点
+- スタブ実装で実際の料理生成なし
+- ユーザー選択後に生成するため応答が遅い
+- 生成された料理の保存・表示機能なし
+- ADK APIとの連携が未実装
+
+### 解決アプローチ
+- 献立生成時に追加料理も同時生成
+- MealPlanモデルに追加料理フィールド追加
+- 事前生成された料理の即座表示
+- 冷蔵庫食材に基づく最適化
+
+## 詳細実装計画
+
+### Phase 1: データモデル拡張 【0.5日】
+
+#### 1.1 MealPlanモデルの拡張
+**ファイル**: `lib/shared/models/meal_plan.dart`
+
+```dart
+class MealPlan {
+  // 既存フィールド
+  final String? id;
+  final String householdId;
+  final DateTime date;
+  final MealPlanStatus status;
+  final MealItem mainDish;
+  final MealItem sideDish;
+  final MealItem soup;
+  final MealItem rice;
+  
+  // 新規追加フィールド
+  final Map<String, MealItem>? additionalDishes; // 追加料理マップ
+  final bool additionalDishesGenerated; // 追加料理生成済みフラグ
+  final DateTime? additionalDishesGeneratedAt; // 生成日時
+  
+  // 既存フィールド（続き）
+  final int totalCookingTime;
+  final DifficultyLevel difficulty;
+  // ... その他既存フィールド
+
+  MealPlan({
+    // 既存パラメータ
+    this.id,
+    required this.householdId,
+    required this.date,
+    required this.status,
+    required this.mainDish,
+    required this.sideDish,
+    required this.soup,
+    required this.rice,
+    
+    // 新規パラメータ
+    this.additionalDishes,
+    this.additionalDishesGenerated = false,
+    this.additionalDishesGeneratedAt,
+    
+    // 既存パラメータ（続き）
+    required this.totalCookingTime,
+    required this.difficulty,
+    // ... その他既存パラメータ
+  });
+
+  /// 指定されたジャンルの追加料理を取得
+  MealItem? getAdditionalDish(String dishType) {
+    return additionalDishes?[dishType];
+  }
+
+  /// 追加料理が利用可能かチェック
+  bool hasAdditionalDish(String dishType) {
+    return additionalDishes?.containsKey(dishType) == true;
+  }
+
+  /// 利用可能な追加料理ジャンルのリスト
+  List<String> get availableAdditionalDishTypes {
+    return additionalDishes?.keys.toList() ?? [];
+  }
+
+  /// 追加料理の総数
+  int get additionalDishCount {
+    return additionalDishes?.length ?? 0;
+  }
+
+  // Firestore変換メソッドの拡張
+  Map<String, dynamic> toFirestore() {
+    return {
+      // 既存フィールド
+      'householdId': householdId,
+      'date': Timestamp.fromDate(date),
+      'status': status.name,
+      'mainDish': mainDish.toFirestore(),
+      'sideDish': sideDish.toFirestore(),
+      'soup': soup.toFirestore(),
+      'rice': rice.toFirestore(),
+      
+      // 新規フィールド
+      'additionalDishes': additionalDishes?.map(
+        (key, value) => MapEntry(key, value.toFirestore()),
+      ),
+      'additionalDishesGenerated': additionalDishesGenerated,
+      'additionalDishesGeneratedAt': additionalDishesGeneratedAt != null
+          ? Timestamp.fromDate(additionalDishesGeneratedAt!)
+          : null,
+      
+      // 既存フィールド（続き）
+      'totalCookingTime': totalCookingTime,
+      'difficulty': difficulty.name,
+      // ... その他既存フィールド
+    };
+  }
+
+  static MealPlan fromFirestore(String id, Map<String, dynamic> data) {
+    // 追加料理の復元
+    Map<String, MealItem>? additionalDishes;
+    if (data['additionalDishes'] != null) {
+      final additionalDishesData = data['additionalDishes'] as Map<String, dynamic>;
+      additionalDishes = additionalDishesData.map(
+        (key, value) => MapEntry(
+          key,
+          MealItem.fromFirestore(value as Map<String, dynamic>),
+        ),
+      );
+    }
+
+    return MealPlan(
+      id: id,
+      // 既存フィールドの復元
+      householdId: data['householdId'] as String,
+      date: (data['date'] as Timestamp).toDate(),
+      status: MealPlanStatus.values.firstWhere(
+        (e) => e.name == data['status'],
+        orElse: () => MealPlanStatus.suggested,
+      ),
+      mainDish: MealItem.fromFirestore(data['mainDish'] as Map<String, dynamic>),
+      sideDish: MealItem.fromFirestore(data['sideDish'] as Map<String, dynamic>),
+      soup: MealItem.fromFirestore(data['soup'] as Map<String, dynamic>),
+      rice: MealItem.fromFirestore(data['rice'] as Map<String, dynamic>),
+      
+      // 新規フィールドの復元
+      additionalDishes: additionalDishes,
+      additionalDishesGenerated: data['additionalDishesGenerated'] as bool? ?? false,
+      additionalDishesGeneratedAt: data['additionalDishesGeneratedAt'] != null
+          ? (data['additionalDishesGeneratedAt'] as Timestamp).toDate()
+          : null,
+      
+      // 既存フィールド（続き）の復元
+      totalCookingTime: data['totalCookingTime'] as int,
+      difficulty: DifficultyLevel.values.firstWhere(
+        (e) => e.name == data['difficulty'],
+        orElse: () => DifficultyLevel.easy,
+      ),
+      // ... その他既存フィールド
+    );
+  }
+
+  MealPlan copyWith({
+    String? id,
+    String? householdId,
+    DateTime? date,
+    MealPlanStatus? status,
+    MealItem? mainDish,
+    MealItem? sideDish,
+    MealItem? soup,
+    MealItem? rice,
+    
+    // 新規フィールド
+    Map<String, MealItem>? additionalDishes,
+    bool? additionalDishesGenerated,
+    DateTime? additionalDishesGeneratedAt,
+    
+    // 既存フィールド（続き）
+    int? totalCookingTime,
+    DifficultyLevel? difficulty,
+    // ... その他
+  }) {
+    return MealPlan(
+      id: id ?? this.id,
+      householdId: householdId ?? this.householdId,
+      date: date ?? this.date,
+      status: status ?? this.status,
+      mainDish: mainDish ?? this.mainDish,
+      sideDish: sideDish ?? this.sideDish,
+      soup: soup ?? this.soup,
+      rice: rice ?? this.rice,
+      
+      // 新規フィールド
+      additionalDishes: additionalDishes ?? this.additionalDishes,
+      additionalDishesGenerated: additionalDishesGenerated ?? this.additionalDishesGenerated,
+      additionalDishesGeneratedAt: additionalDishesGeneratedAt ?? this.additionalDishesGeneratedAt,
+      
+      // 既存フィールド（続き）
+      totalCookingTime: totalCookingTime ?? this.totalCookingTime,
+      difficulty: difficulty ?? this.difficulty,
+      // ... その他
+    );
+  }
+}
+```
+
+### Phase 2: AI献立サービス拡張 【1日】
+
+#### 2.1 追加料理生成機能の実装
+**ファイル**: `lib/core/services/ai_meal_planning_service.dart`
+
+```dart
+class AIMealPlanningService {
+  // 既存のメソッド...
+
+  /// 献立を提案する（追加料理も含む）
+  Future<MealPlan> suggestMealPlan({
+    required List<Product> refrigeratorItems,
+    required String householdId,
+    required UserPreferences preferences,
+  }) async {
+    try {
+      print('🍽️ AI献立生成開始（追加料理含む）');
+      
+      // 冷蔵庫の食材を分析
+      final analyzedIngredients = _analyzeIngredients(refrigeratorItems);
+      
+      // 拡張プロンプトで献立と追加料理を同時生成
+      final prompt = _buildExtendedMealPlanPrompt(analyzedIngredients, preferences);
+      
+      final response = await _model.generateContent([Content.text(prompt)]);
+      
+      // レスポンスを解析して献立と追加料理を取得
+      final mealPlan = _parseExtendedMealPlanResponse(
+        response.text ?? '',
+        householdId,
+        analyzedIngredients,
+      );
+      
+      print('✅ 献立生成完了（追加料理: ${mealPlan.additionalDishCount}品）');
+      return mealPlan;
+    } catch (e) {
+      print('❌ 献立生成エラー: $e');
+      throw Exception('献立の生成に失敗しました: $e');
+    }
+  }
+
+  /// 拡張献立生成プロンプトの構築
+  String _buildExtendedMealPlanPrompt(
+    List<Ingredient> ingredients, 
+    UserPreferences preferences
+  ) {
+    final ingredientsText = ingredients.map((ingredient) {
+      final priorityText = ingredient.priority == ExpiryPriority.urgent ? '[URGENT]' : 
+                          ingredient.priority == ExpiryPriority.soon ? '[SOON]' : '';
+      return '$priorityText${ingredient.name} ${ingredient.quantity}${ingredient.unit}';
+    }).join('\n');
+
+    return '''
+あなたは日本の家庭料理のエキスパートです。冷蔵庫の食材を活用した献立を提案してください。
+
+【基本方針】
+1. 基本4品構成（主菜・副菜・汁物・主食）の献立を提案
+2. さらに追加料理として以下も提案：
+   - 追加主菜（メイン料理のバリエーション）
+   - 追加副菜（野菜中心の一品）
+   - 追加汁物（スープ系のバリエーション）
+   - おつまみ（簡単な一品料理）
+3. 冷蔵庫の食材を最大限活用
+4. 栄養バランスと調理時間を考慮
+
+【冷蔵庫の食材】
+$ingredientsText
+
+【ユーザー設定】
+- 最大調理時間: ${preferences.maxCookingTime}分
+- 難易度: ${preferences.preferredDifficulty.name}
+
+【出力形式】
+以下のJSON形式で献立を提案してください：
+
+{
+  "basicMeals": {
+    "mainDish": {
+      "name": "メイン料理名",
+      "description": "料理の説明",
+      "cookingTime": 30,
+      "difficulty": "easy",
+      "ingredients": [
+        {"name": "玉ねぎ", "quantity": "1", "unit": "個", "available": true}
+      ],
+      "recipe": {
+        "steps": ["手順1", "手順2"],
+        "tips": ["コツ1"]
+      },
+      "nutritionInfo": {"calories": 300, "protein": 20, "carbohydrates": 30, "fat": 10}
+    },
+    "sideDish": { /* 副菜の詳細 */ },
+    "soup": { /* 汁物の詳細 */ },
+    "rice": { /* 主食の詳細 */ }
+  },
+  "additionalDishes": {
+    "additionalMainDish": {
+      "name": "追加主菜名",
+      "description": "メイン料理とは異なるアプローチの主菜",
+      "cookingTime": 25,
+      "difficulty": "easy",
+      "ingredients": [/* 材料リスト */],
+      "recipe": {
+        "steps": ["手順1", "手順2"],
+        "tips": ["コツ1"]
+      },
+      "nutritionInfo": {"calories": 280, "protein": 18, "carbohydrates": 25, "fat": 12}
+    },
+    "additionalSideDish": {
+      "name": "追加副菜名",
+      "description": "野菜中心の栄養豊富な一品",
+      "cookingTime": 15,
+      "difficulty": "easy",
+      "ingredients": [/* 材料リスト */],
+      "recipe": {
+        "steps": ["手順1", "手順2"],
+        "tips": ["コツ1"]
+      },
+      "nutritionInfo": {"calories": 120, "protein": 5, "carbohydrates": 15, "fat": 8}
+    },
+    "additionalSoup": {
+      "name": "追加汁物名",
+      "description": "基本汁物とは異なる味わいのスープ",
+      "cookingTime": 20,
+      "difficulty": "easy",
+      "ingredients": [/* 材料リスト */],
+      "recipe": {
+        "steps": ["手順1", "手順2"],
+        "tips": ["コツ1"]
+      },
+      "nutritionInfo": {"calories": 80, "protein": 3, "carbohydrates": 8, "fat": 4}
+    },
+    "snack": {
+      "name": "おつまみ名",
+      "description": "簡単に作れる一品料理",
+      "cookingTime": 10,
+      "difficulty": "easy",
+      "ingredients": [/* 材料リスト */],
+      "recipe": {
+        "steps": ["手順1", "手順2"],
+        "tips": ["コツ1"]
+      },
+      "nutritionInfo": {"calories": 150, "protein": 8, "carbohydrates": 10, "fat": 10}
+    }
+  },
+  "shoppingList": {
+    "requiredIngredients": [
+      {"name": "材料名", "quantity": "1", "unit": "個", "category": "野菜", "estimatedCost": 100}
+    ],
+    "totalEstimatedCost": 500
+  },
+  "mealPlanSummary": {
+    "totalCookingTime": 45,
+    "difficulty": "easy",
+    "nutritionScore": 85,
+    "confidence": 0.9,
+    "popularityScore": 8,
+    "cookingFrequency": "weekly",
+    "seasonalRelevance": "all"
+  }
+}
+
+重要：
+- 有効なJSON形式のみを返す
+- 追加料理は基本料理と重複しない内容にする
+- 冷蔵庫の食材を効率的に活用する
+- 全ての料理が実際に作れる内容にする
+''';
+  }
+
+  /// 拡張献立レスポンスの解析
+  MealPlan _parseExtendedMealPlanResponse(
+    String response,
+    String householdId,
+    List<Ingredient> availableIngredients,
+  ) {
+    try {
+      // JSON部分を抽出・クリーニング
+      final jsonStart = response.indexOf('{');
+      final jsonEnd = response.lastIndexOf('}') + 1;
+      
+      if (jsonStart == -1 || jsonEnd == 0) {
+        throw Exception('JSON形式のレスポンスが見つかりません');
+      }
+      
+      String jsonString = response.substring(jsonStart, jsonEnd);
+      jsonString = _cleanJsonResponse(jsonString);
+      
+      final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
+      
+      // 基本献立の解析
+      final basicMealsData = jsonData['basicMeals'] as Map<String, dynamic>;
+      final mainDish = _parseMainMenu(basicMealsData['mainDish'], availableIngredients);
+      final sideDish = _parseMealItem(basicMealsData['sideDish'], availableIngredients, MealCategory.side);
+      final soup = _parseMealItem(basicMealsData['soup'], availableIngredients, MealCategory.soup);
+      final rice = _parseMealItem(basicMealsData['rice'], availableIngredients, MealCategory.rice);
+
+      // 追加料理の解析
+      final additionalDishesData = jsonData['additionalDishes'] as Map<String, dynamic>?;
+      Map<String, MealItem>? additionalDishes;
+      
+      if (additionalDishesData != null) {
+        additionalDishes = {};
+        
+        // 追加主菜
+        if (additionalDishesData['additionalMainDish'] != null) {
+          additionalDishes['主菜'] = _parseMealItem(
+            additionalDishesData['additionalMainDish'],
+            availableIngredients,
+            MealCategory.main,
+          );
+        }
+        
+        // 追加副菜
+        if (additionalDishesData['additionalSideDish'] != null) {
+          additionalDishes['副菜'] = _parseMealItem(
+            additionalDishesData['additionalSideDish'],
+            availableIngredients,
+            MealCategory.side,
+          );
+        }
+        
+        // 追加汁物
+        if (additionalDishesData['additionalSoup'] != null) {
+          additionalDishes['汁物'] = _parseMealItem(
+            additionalDishesData['additionalSoup'],
+            availableIngredients,
+            MealCategory.soup,
+          );
+        }
+        
+        // おつまみ
+        if (additionalDishesData['snack'] != null) {
+          additionalDishes['おつまみ'] = _parseMealItem(
+            additionalDishesData['snack'],
+            availableIngredients,
+            MealCategory.side, // おつまみは副菜カテゴリとして扱う
+          );
+        }
+      }
+
+      // 買い物リストの解析
+      final shoppingListData = jsonData['shoppingList'] as Map<String, dynamic>?;
+      final shoppingList = _parseShoppingList(shoppingListData);
+
+      // 献立サマリーの解析
+      final summaryData = jsonData['mealPlanSummary'] as Map<String, dynamic>?;
+
+      return MealPlan(
+        householdId: householdId,
+        date: DateTime.now(),
+        status: MealPlanStatus.suggested,
+        mainDish: mainDish,
+        sideDish: sideDish,
+        soup: soup,
+        rice: rice,
+        
+        // 新規フィールド
+        additionalDishes: additionalDishes,
+        additionalDishesGenerated: additionalDishes != null && additionalDishes.isNotEmpty,
+        additionalDishesGeneratedAt: DateTime.now(),
+        
+        // 既存フィールド
+        totalCookingTime: summaryData?['totalCookingTime'] as int? ?? 60,
+        difficulty: DifficultyLevel.values.firstWhere(
+          (e) => e.name == summaryData?['difficulty'],
+          orElse: () => DifficultyLevel.easy,
+        ),
+        nutritionScore: (summaryData?['nutritionScore'] as num?)?.toDouble() ?? 80.0,
+        confidence: (summaryData?['confidence'] as num?)?.toDouble() ?? 0.8,
+        createdAt: DateTime.now(),
+        createdBy: 'ai_agent',
+        shoppingList: shoppingList,
+        popularityScore: summaryData?['popularityScore'] as int? ?? 5,
+        cookingFrequency: summaryData?['cookingFrequency'] as String? ?? 'monthly',
+        seasonalRelevance: summaryData?['seasonalRelevance'] as String? ?? 'all',
+      );
+    } catch (e) {
+      print('❌ 拡張献立解析エラー: $e');
+      throw Exception('献立データの解析に失敗しました: $e');
+    }
+  }
+
+  /// 指定されたジャンルの追加料理を取得
+  MealItem? getAdditionalDish(MealPlan mealPlan, String dishType) {
+    return mealPlan.getAdditionalDish(dishType);
+  }
+
+  /// 追加料理が利用可能かチェック
+  bool hasAdditionalDish(MealPlan mealPlan, String dishType) {
+    return mealPlan.hasAdditionalDish(dishType);
+  }
+}
+```
+
+### Phase 3: UI機能強化 【1日】
+
+#### 3.1 追加料理表示ダイアログの実装
+**ファイル**: `lib/features/meal_planning/presentation/widgets/additional_dish_display_dialog.dart`
+
+```dart
+class AdditionalDishDisplayDialog extends StatelessWidget {
+  final MealItem additionalDish;
+  final String dishType;
+  
+  // カラーパレット（既存と統一）
+  static const Color _baseColor = Color(0xFFF6EACB);
+  static const Color _primaryColor = Color(0xFFD4A574);
+  static const Color _accentColor = Color(0xFF8B7355);
+  static const Color _textColor = Color(0xFF5D4E37);
+  
+  const AdditionalDishDisplayDialog({
+    Key? key,
+    required this.additionalDish,
+    required this.dishType,
+  }) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: _baseColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: _baseColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _primaryColor.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildHeader(context),
+            _buildContent(),
+            _buildActions(context),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            _primaryColor.withOpacity(0.3),
+            _primaryColor.withOpacity(0.1),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(16),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: _primaryColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              _getIconForDishType(dishType),
+              color: _accentColor,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${dishType}の提案',
+                  style: TextStyle(
+                    color: _accentColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  additionalDish.name,
+                  style: TextStyle(
+                    color: _textColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close, color: _accentColor),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildContent() {
+    return Flexible(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 料理の説明
+            _buildSection(
+              title: '説明',
+              icon: Icons.description,
+              content: Text(
+                additionalDish.description,
+                style: TextStyle(color: _textColor, fontSize: 14),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 調理情報
+            _buildInfoRow(),
+            
+            const SizedBox(height: 16),
+            
+            // 材料
+            _buildSection(
+              title: '材料',
+              icon: Icons.shopping_basket,
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: additionalDish.ingredients.map((ingredient) =>
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: ingredient.available ? Colors.green : Colors.orange,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${ingredient.name} ${ingredient.quantity}${ingredient.unit}',
+                            style: TextStyle(
+                              color: _textColor,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        if (!ingredient.available)
+                          Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 16,
+                            color: Colors.orange,
+                          ),
+                      ],
+                    ),
+                  ),
+                ).toList(),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // レシピ手順
+            if (additionalDish.recipe.steps.isNotEmpty)
+              _buildSection(
+                title: '作り方',
+                icon: Icons.list_alt,
+                content: Column(
+                  children: additionalDish.recipe.steps.asMap().entries.map(
+                    (entry) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: _primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${entry.key + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              entry.value.description,
+                              style: TextStyle(color: _textColor, fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ).toList(),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildInfoRow() {
+    return Row(
+      children: [
+        _buildInfoChip(
+          icon: Icons.access_time,
+          label: '${additionalDish.cookingTime}分',
+        ),
+        const SizedBox(width: 12),
+        _buildInfoChip(
+          icon: Icons.star,
+          label: additionalDish.difficultyDisplayName,
+        ),
+        const SizedBox(width: 12),
+        _buildInfoChip(
+          icon: Icons.local_fire_department,
+          label: '${additionalDish.nutritionInfo.calories.toInt()}kcal',
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildInfoChip({
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: _primaryColor.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _primaryColor.withOpacity(0.4),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: _accentColor),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: _textColor,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildSection({
+    required String title,
+    required IconData icon,
+    required Widget content,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _baseColor.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _primaryColor.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: _accentColor, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  color: _textColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          content,
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildActions(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _accentColor,
+                side: BorderSide(color: _primaryColor.withOpacity(0.5)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('閉じる'),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => _addToMealPlan(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 2,
+              ),
+              child: const Text(
+                '献立に追加',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  IconData _getIconForDishType(String dishType) {
+    switch (dishType) {
+      case '主菜':
+        return Icons.restaurant;
+      case '副菜':
+        return Icons.eco;
+      case '汁物':
+        return Icons.local_drink;
+      case 'おつまみ':
+        return Icons.local_bar;
+      default:
+        return Icons.restaurant_menu;
+    }
+  }
+  
+  void _addToMealPlan(BuildContext context) {
+    // TODO: 献立に追加する機能を実装
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${additionalDish.name}を献立に追加しました'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+}
+```
+
+#### 3.2 既存UI の修正
+**ファイル**: `lib/features/meal_planning/presentation/pages/meal_plan_screen.dart`
+
+```dart
+// _addAdditionalDish メソッドの完全書き換え
+Future<void> _addAdditionalDish(String dishType) async {
+  Navigator.of(context).pop();
+  
+  final currentMealPlan = ref.read(mealPlanProvider).value;
+  if (currentMealPlan == null) {
+    _showErrorMessage('献立情報が見つかりません');
+    return;
+  }
+  
+  // 事前生成された追加料理をチェック
+  if (!currentMealPlan.hasAdditionalDish(dishType)) {
+    _showErrorMessage('$dishTypeの追加料理が生成されていません');
+    return;
+  }
+  
+  // 追加料理を取得
+  final additionalDish = currentMealPlan.getAdditionalDish(dishType);
+  if (additionalDish == null) {
+    _showErrorMessage('$dishTypeの料理情報が取得できません');
+    return;
+  }
+  
+  // 追加料理表示ダイアログを表示
+  showDialog(
+    context: context,
+    builder: (context) => AdditionalDishDisplayDialog(
+      additionalDish: additionalDish,
+      dishType: dishType,
+    ),
+  );
+}
+
+void _showErrorMessage(String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+    ),
+  );
+}
+
+// _suggestAdditionalDish メソッドの修正
+void _suggestAdditionalDish(MealPlan mealPlan) {
+  // 追加料理が生成されているかチェック
+  if (!mealPlan.additionalDishesGenerated) {
+    _showErrorMessage('追加料理が生成されていません。献立を再生成してください。');
+    return;
+  }
+  
+  // 利用可能な追加料理のジャンルを取得
+  final availableTypes = mealPlan.availableAdditionalDishTypes;
+  if (availableTypes.isEmpty) {
+    _showErrorMessage('利用可能な追加料理がありません');
+    return;
+  }
+  
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: _baseColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      title: Text(
+        'もう一品追加',
+        style: TextStyle(
+          color: _textColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+        ),
+        textAlign: TextAlign.center,
+      ),
+      content: Container(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '冷蔵庫の食材から提案された追加料理です',
+              style: TextStyle(color: _accentColor, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            
+            // 利用可能な追加料理のオプションを動的に生成
+            ...availableTypes.map((dishType) {
+              final additionalDish = mealPlan.getAdditionalDish(dishType);
+              return Column(
+                children: [
+                  _buildEnhancedDishOption(
+                    title: dishType,
+                    subtitle: additionalDish?.name ?? '料理名不明',
+                    description: additionalDish?.description ?? '',
+                    cookingTime: additionalDish?.cookingTime ?? 0,
+                    icon: _getIconForDishType(dishType),
+                    onTap: () => _addAdditionalDish(dishType),
+                  ),
+                  if (dishType != availableTypes.last) const SizedBox(height: 8),
+                ],
+              );
+            }).toList(),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: Text('キャンセル', style: TextStyle(color: _accentColor)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
+    ),
+  );
+}
+
+// 強化されたDishOptionウィジェット
+Widget _buildEnhancedDishOption({
+  required String title,
+  required String subtitle,
+  required String description,
+  required int cookingTime,
+  required IconData icon,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(8),
+    child: Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: _primaryColor.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: _primaryColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: _accentColor, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: _textColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _primaryColor.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${cookingTime}分',
+                        style: TextStyle(
+                          color: _textColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: _accentColor,
+                    fontSize: 11,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Icon(Icons.arrow_forward_ios, color: _accentColor, size: 16),
+        ],
+      ),
+    ),
+  );
+}
+
+IconData _getIconForDishType(String dishType) {
+  switch (dishType) {
+    case '主菜':
+      return Icons.restaurant;
+    case '副菜':
+      return Icons.eco;
+    case '汁物':
+      return Icons.local_drink;
+    case 'おつまみ':
+      return Icons.local_bar;
+    default:
+      return Icons.restaurant_menu;
+  }
+}
+```
+
+## 実装スケジュール
+
+### Day 1: データモデル拡張
+- [x] MealPlanモデルに追加料理フィールド追加
+- [x] Firestore変換メソッド修正
+- [x] 基本的な追加料理操作メソッド実装
+
+### Day 2: AI サービス拡張
+- [ ] 拡張プロンプト作成
+- [ ] 追加料理生成機能実装
+- [ ] レスポンス解析機能拡張
+- [ ] エラーハンドリング強化
+
+### Day 3: UI機能実装
+- [ ] AdditionalDishDisplayDialog作成
+- [ ] 既存UI修正（_addAdditionalDish等）
+- [ ] ジャンル別アイコン・スタイル統一
+- [ ] 統合テスト
+
+## テスト計画
+
+### 単体テスト
+- MealPlanモデルの追加料理関連メソッド
+- AI サービスの拡張プロンプト・解析機能
+- 追加料理表示ダイアログ
+
+### 統合テスト
+- 献立生成から追加料理表示までの完全フロー
+- エラーケースのハンドリング
+- パフォーマンステスト
+
+## 成功指標
+
+### 機能的指標
+- ✅ 献立生成時に4種類の追加料理が生成される
+- ✅ 選択したジャンルの料理が即座に表示される
+- ✅ 生成された料理の詳細情報が適切に表示される
+- ✅ 冷蔵庫食材に基づく最適な料理が提案される
+
+### パフォーマンス指標
+- ✅ 追加料理選択から表示まで < 500ms
+- ✅ 献立生成時間の増加 < 50%
+- ✅ メモリ使用量の増加 < 30MB
+
+### ユーザビリティ指標
+- ✅ 既存UIとの統一性
+- ✅ 直感的な操作性
+- ✅ 適切な情報表示

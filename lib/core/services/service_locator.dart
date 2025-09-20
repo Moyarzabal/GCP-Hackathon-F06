@@ -56,7 +56,7 @@ class ServiceLocator {
     if (!_initialized) {
       throw StateError('ServiceLocator not initialized. Call init() first.');
     }
-    
+
     final service = _services[T];
     if (service == null) {
       throw ArgumentError('Service of type $T not registered');

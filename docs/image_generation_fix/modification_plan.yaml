@@ -1,0 +1,105 @@
+image_generation_fix_plan:
+  overview: "商品追加時の画像生成機能の修正計画"
+  
+  phase_1_immediate_fixes:
+    title: "即座に修正可能な問題"
+    
+    fix_image_generation_service:
+      target: "lib/core/services/image_generation_service.dart"
+      changes:
+        - "generateMultiStageProductIconsメソッドを有効化"
+        - "実際の画像生成処理を実装"
+        - "フォールバック機能を追加"
+      priority: "高"
+    
+    fix_imagen_service_auth:
+      target: "lib/core/services/imagen_service.dart"
+      changes:
+        - "Application Default Credentialsを使用した認証実装"
+        - "Service Account認証の追加"
+        - "エラーハンドリングの改善"
+      priority: "高"
+    
+    add_error_notifications:
+      target: "lib/features/scanner/presentation/pages/scanner_screen.dart"
+      changes:
+        - "画像生成失敗時のユーザー通知を追加"
+        - "ローディング状態の表示"
+        - "エラーメッセージの改善"
+      priority: "中"
+  
+  phase_2_authentication_setup:
+    title: "認証設定の改善"
+    
+    vertex_ai_auth:
+      method: "Application Default Credentials"
+      implementation:
+        - "Google Cloud認証の設定"
+        - "適切な権限の付与"
+        - "ローカル開発環境での認証設定"
+    
+    openai_api_setup:
+      method: "環境変数でのAPIキー管理"
+      implementation:
+        - ".envファイルでのAPIキー設定"
+        - "ADKApiClientの認証確認"
+        - "APIキーの検証機能"
+  
+  phase_3_enhancements:
+    title: "機能強化"
+    
+    caching_improvement:
+      target: "画像キャッシュ機能の改善"
+      changes:
+        - "Firebase Storageでの画像キャッシュ"
+        - "キャッシュ有効期限の管理"
+        - "重複生成の防止"
+    
+    user_feedback:
+      target: "ユーザー体験の改善"
+      changes:
+        - "画像生成中のプログレス表示"
+        - "生成完了の通知"
+        - "失敗時の再試行オプション"
+    
+    fallback_images:
+      target: "フォールバック画像の追加"
+      changes:
+        - "デフォルト画像アセットの追加"
+        - "カテゴリ別のデフォルト画像"
+        - "絵文字ベースのフォールバック"
+  
+  implementation_order:
+    1: "ImageGenerationServiceの即座修正"
+    2: "ImagenServiceの認証実装"
+    3: "エラー通知の追加"
+    4: "認証設定の確認"
+    5: "機能強化の実装"
+  
+  testing_strategy:
+    unit_tests:
+      - "ImageGenerationServiceのテスト"
+      - "ImagenServiceのテスト"
+      - "エラーハンドリングのテスト"
+    
+    integration_tests:
+      - "商品追加フローのテスト"
+      - "画像生成の統合テスト"
+      - "認証フローのテスト"
+    
+    user_acceptance_tests:
+      - "手動商品追加での画像生成"
+      - "バーコードスキャンでの画像生成"
+      - "エラー時の適切な通知"
+  
+  rollback_plan:
+    if_issues_occur:
+      - "ImageGenerationServiceを元の状態に戻す"
+      - "ImagenServiceの認証を無効化"
+      - "フォールバック画像のみを使用"
+    
+    monitoring:
+      - "画像生成成功率の監視"
+      - "API呼び出しエラーの監視"
+      - "ユーザー体験の評価"
+

@@ -1,0 +1,129 @@
+category_management_plan:
+  implementation_phases:
+    phase_1:
+      name: "カテゴリモデルとサービスの実装"
+      components:
+        - "CategoryModel クラス"
+        - "CategoryService クラス"
+        - "Firestoreでのカテゴリデータ管理"
+        - "デフォルトカテゴリの初期化"
+    
+    phase_2:
+      name: "カテゴリ管理UIの実装"
+      components:
+        - "CategoryManagementScreen"
+        - "CategoryEditDialog"
+        - "CategoryColorPicker"
+        - "CategoryIconPicker"
+        - "Drag & Drop 並び替え機能"
+    
+    phase_3:
+      name: "既存システムとの統合"
+      components:
+        - "availableCategoriesProvider の更新"
+        - "商品追加時のカテゴリ選択UI"
+        - "フィルタリング機能の更新"
+        - "設定画面との連携"
+    
+    phase_4:
+      name: "高度な機能の実装"
+      components:
+        - "カテゴリ使用状況の表示"
+        - "カテゴリ削除時の既存商品の処理"
+        - "カテゴリのインポート/エクスポート"
+        - "カテゴリテンプレート機能"
+
+  ui_design:
+    category_management_screen:
+      layout: "ListView with cards"
+      features:
+        - "カテゴリ一覧表示"
+        - "ドラッグ&ドロップで並び替え"
+        - "各カテゴリの編集・削除ボタン"
+        - "新規カテゴリ追加ボタン"
+        - "カテゴリの色・アイコン表示"
+      
+      card_design:
+        - "カテゴリ名とアイコン"
+        - "色のプレビュー"
+        - "使用商品数の表示"
+        - "編集・削除ボタン"
+        - "ドラッグハンドル"
+    
+    category_edit_dialog:
+      fields:
+        - "カテゴリ名入力"
+        - "色選択（カラーピッカー）"
+        - "アイコン選択（アイコンピッカー）"
+        - "保存・キャンセルボタン"
+      
+      validation:
+        - "カテゴリ名の重複チェック"
+        - "必須項目の入力チェック"
+        - "既存商品への影響警告"
+
+  technical_implementation:
+    new_files:
+      - "lib/shared/models/category.dart"
+      - "lib/core/services/category_service.dart"
+      - "lib/features/settings/presentation/pages/category_management_screen.dart"
+      - "lib/features/settings/presentation/widgets/category_edit_dialog.dart"
+      - "lib/features/settings/presentation/widgets/category_color_picker.dart"
+      - "lib/features/settings/presentation/widgets/category_icon_picker.dart"
+    
+    modified_files:
+      - "lib/features/products/presentation/providers/product_provider.dart"
+      - "lib/features/settings/presentation/pages/settings_screen.dart"
+      - "lib/features/home/presentation/pages/home_screen.dart"
+      - "lib/features/scanner/presentation/pages/scanner_screen.dart"
+    
+    firestore_collections:
+      categories:
+        path: "categories"
+        fields:
+          - "categoryId: String"
+          - "householdId: String"
+          - "name: String"
+          - "color: String"
+          - "icon: String"
+          - "order: int"
+          - "isDefault: bool"
+          - "isActive: bool"
+          - "createdAt: Timestamp"
+          - "updatedAt: Timestamp"
+
+  user_experience_improvements:
+    category_selection:
+      - "視覚的なカテゴリ選択UI"
+      - "カテゴリの色・アイコン表示"
+      - "検索・フィルタリング機能"
+      - "最近使用したカテゴリの表示"
+    
+    category_management:
+      - "直感的なドラッグ&ドロップ操作"
+      - "リアルタイムプレビュー"
+      - "一括操作機能"
+      - "カテゴリの使用状況表示"
+    
+    safety_features:
+      - "カテゴリ削除時の確認ダイアログ"
+      - "既存商品への影響の警告"
+      - "デフォルトカテゴリの保護"
+      - "操作の取り消し機能"
+
+  integration_points:
+    product_creation:
+      - "スキャナー画面でのカテゴリ選択"
+      - "手動商品追加でのカテゴリ選択"
+      - "カテゴリの自動提案機能"
+    
+    product_filtering:
+      - "ホーム画面でのカテゴリフィルタ"
+      - "カテゴリ別商品表示"
+      - "複数カテゴリの選択"
+    
+    settings_integration:
+      - "設定画面からのカテゴリ管理アクセス"
+      - "カテゴリ管理画面のナビゲーション"
+      - "設定の保存・同期"
+

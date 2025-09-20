@@ -1,0 +1,70 @@
+current_implementation:
+  title: "現在のGemini API実装"
+  description: "カテゴリ分類と賞味期限予測で2回のAPI呼び出しを行っている実装"
+  
+  services:
+    jan_code_service:
+      location: "lib/core/services/jan_code_service.dart"
+      methods:
+        - name: "_getCategoryFromAPI"
+          description: "JAN Code APIから取得した商品情報を基にカテゴリを判定"
+          gemini_call: true
+          prompt: |
+            商品名: {itemName}
+            ブランド: {brandName}
+            メーカー: {makerName}
+            
+            この商品のカテゴリを以下の選択肢から1つ選んでください：
+            [飲料, 乳製品, 肉類, 魚類, 野菜, 果物, 加工食品, 即席麺, その他]
+            
+            JSON形式で回答: {"category": "カテゴリ名"}
+          
+        - name: "_fallbackCategoryDetermination"
+          description: "Gemini失敗時のフォールバック判定"
+          gemini_call: false
+          logic: "キーワードマッチングによるカテゴリ判定"
+    
+    scanner_provider:
+      location: "lib/features/scanner/presentation/providers/scanner_provider.dart"
+      methods:
+        - name: "_predictExpiryDate"
+          description: "商品名とカテゴリから賞味期限を予測"
+          gemini_call: true
+          prompt: |
+            商品名: {productName}
+            カテゴリ: {category}
+            
+            この商品の一般的な賞味期限を日数で教えてください。
+            冷蔵保存を前提として、以下の形式で回答してください：
+            
+            {"expiryDays": 数字}
+            
+            例：
+            - 牛乳: 7日
+            - 野菜: 3-5日
+            - 肉類: 2-3日
+            - 加工食品: 30-90日
+        
+        - name: "_getDefaultExpiryDate"
+          description: "カテゴリに基づくデフォルト賞味期限"
+          gemini_call: false
+          logic: "カテゴリ別の固定日数設定"
+  
+  api_calls_per_scan:
+    count: 2
+    sequence:
+      1. "JAN Code Service: カテゴリ分類"
+      2. "Scanner Provider: 賞味期限予測"
+  
+  issues:
+    - "API呼び出し回数が2回で非効率"
+    - "コストが2倍"
+    - "レスポンス時間が長い"
+    - "同じ商品情報を2回送信"
+  
+  data_flow:
+    barcode_scan:
+      - "JAN Code API → 商品基本情報取得"
+      - "Gemini API #1 → カテゴリ分類"
+      - "Gemini API #2 → 賞味期限予測"
+      - "Product オブジェクト作成"

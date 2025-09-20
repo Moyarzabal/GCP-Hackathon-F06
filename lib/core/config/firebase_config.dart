@@ -76,9 +76,9 @@ class FirebaseConfig {
   static Future<void> initialize() async {
     // Ensure EnvConfig is initialized first
     await EnvConfig.initialize();
-    
+
     FirebaseOptions? options;
-    
+
     if (kIsWeb) {
       options = webOptions;
     } else if (Platform.isIOS) {

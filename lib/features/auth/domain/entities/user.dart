@@ -62,7 +62,7 @@ class User extends Equatable {
       displayName: json['displayName'] as String?,
       photoUrl: json['photoUrl'] as String?,
       isEmailVerified: json['isEmailVerified'] as bool? ?? false,
-      createdAt: json['createdAt'] != null 
+      createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : null,
       lastSignInTime: json['lastSignInTime'] != null

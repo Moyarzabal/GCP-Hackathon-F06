@@ -1,0 +1,100 @@
+current_implementation:
+  file_path: "lib/features/products/presentation/pages/product_detail_screen.dart"
+  description: "商品詳細画面の現在の実装状況"
+  
+  layout_structure:
+    main_container:
+      type: "SingleChildScrollView"
+      padding: "EdgeInsets.all(16)"
+      children:
+        - character_image_section
+        - product_name_section
+        - product_details_card
+        - recommended_recipes_section
+  
+  character_image_section:
+    position: "Center widget"
+    container_size:
+      width: 120
+      height: 120
+    decoration:
+      background_color: "currentProduct.statusColor.withOpacity(0.1)"
+      border_radius: "BorderRadius.circular(20)"
+    content:
+      - type: "ClipRRect with conditional content"
+      - condition: "currentImageUrl exists and not empty"
+      - true_case: "_buildImageWidget(currentProduct)"
+      - false_case: "Text with emotionState (fontSize: 64)"
+  
+  product_name_section:
+    spacing_before: "SizedBox(height: 24)"
+    widget: "Text"
+    properties:
+      text: "currentProduct.name"
+      style:
+        fontSize: 24
+        fontWeight: "FontWeight.bold"
+      textAlign: "TextAlign.center"
+  
+  product_details_card:
+    spacing_before: "SizedBox(height: 24)"
+    widget: "Card"
+    content:
+      padding: "EdgeInsets.all(16)"
+      rows:
+        - category: "Icons.category, 'カテゴリ', currentProduct.category"
+        - jan_code: "Icons.qr_code, 'JANコード', janCode ?? '未設定'"
+        - expiry_date: "Icons.calendar_today, '賞味期限', formatted date"
+        - days_until_expiry: "Icons.access_time, '残り日数', days + '日'"
+        - registration_date: "Icons.add_circle, '登録日', formatted scannedAt"
+  
+  recommended_recipes_section:
+    spacing_before: "SizedBox(height: 24)"
+    widget: "_buildRecipeSection()"
+    description: "おすすめレシピの横スクロールリスト"
+    header:
+      icon: "Icons.restaurant"
+      title: "${product.category}を使ったおすすめレシピ"
+    content:
+      height: 280
+      scroll_direction: "Axis.horizontal"
+      item_width: 200
+      margin: "EdgeInsets.only(right: 16)"
+  
+  image_widget_implementation:
+    method: "_buildImageWidget"
+    parameters: "Product product"
+    logic:
+      - base64_check: "product.currentImageUrl!.startsWith('data:image/')"
+      - base64_case:
+          widget: "Image.memory"
+          size: "width: 120, height: 120"
+          fit: "BoxFit.cover"
+      - network_case:
+          widget: "Image.network"
+          size: "width: 120, height: 120"
+          fit: "BoxFit.cover"
+          loading_builder: "CircularProgressIndicator with '画像生成中...'"
+      - error_fallback: "Text with emotionState (fontSize: 64)"
+  
+  imports:
+    - "package:flutter/material.dart"
+    - "package:flutter_riverpod/flutter_riverpod.dart"
+    - "dart:convert"
+    - "package:table_calendar/table_calendar.dart"
+    - "../../../../shared/models/product.dart"
+    - "../../../../shared/providers/app_state_provider.dart"
+    - "../../../scanner/presentation/pages/scanner_screen.dart"
+    - "../../../../core/services/recipe_service.dart"
+    - "../widgets/recipe_card.dart"
+    - "../providers/product_provider.dart"
+  
+  current_issues:
+    - "おすすめレシピセクションが画面スペースを占有している"
+    - "キャラクター画像が120x120と小さい"
+    - "レシピ関連のimportが不要になる予定"
+  
+  dependencies:
+    recipe_service: "../../../../core/services/recipe_service.dart"
+    recipe_card: "../widgets/recipe_card.dart"
+    recipe_model: "Recipe class from recipe_service"

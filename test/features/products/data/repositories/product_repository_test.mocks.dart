@@ -34,57 +34,74 @@ class MockProductDataSource extends _i1.Mock implements _i2.ProductDataSource {
   }
 
   @override
-  _i3.Future<List<_i4.Product>> getAllProducts() =>
-      (super.noSuchMethod(
-            Invocation.method(#getAllProducts, []),
-            returnValue: _i3.Future<List<_i4.Product>>.value(<_i4.Product>[]),
-          )
-          as _i3.Future<List<_i4.Product>>);
+  _i3.Future<List<_i4.Product>> getAllProducts() => (super.noSuchMethod(
+        Invocation.method(
+          #getAllProducts,
+          [],
+        ),
+        returnValue: _i3.Future<List<_i4.Product>>.value(<_i4.Product>[]),
+      ) as _i3.Future<List<_i4.Product>>);
 
   @override
-  _i3.Future<_i4.Product?> getProduct(String? id) =>
+  _i3.Future<List<_i4.Product>> getAllProductsIncludingDeleted() =>
       (super.noSuchMethod(
-            Invocation.method(#getProduct, [id]),
-            returnValue: _i3.Future<_i4.Product?>.value(),
-          )
-          as _i3.Future<_i4.Product?>);
+        Invocation.method(
+          #getAllProductsIncludingDeleted,
+          [],
+        ),
+        returnValue: _i3.Future<List<_i4.Product>>.value(<_i4.Product>[]),
+      ) as _i3.Future<List<_i4.Product>>);
 
   @override
-  _i3.Future<String> addProduct(_i4.Product? product) =>
-      (super.noSuchMethod(
-            Invocation.method(#addProduct, [product]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
-                this,
-                Invocation.method(#addProduct, [product]),
-              ),
-            ),
-          )
-          as _i3.Future<String>);
+  _i3.Future<_i4.Product?> getProduct(String? id) => (super.noSuchMethod(
+        Invocation.method(
+          #getProduct,
+          [id],
+        ),
+        returnValue: _i3.Future<_i4.Product?>.value(),
+      ) as _i3.Future<_i4.Product?>);
 
   @override
-  _i3.Future<void> updateProduct(_i4.Product? product) =>
-      (super.noSuchMethod(
-            Invocation.method(#updateProduct, [product]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
+  _i3.Future<String> addProduct(_i4.Product? product) => (super.noSuchMethod(
+        Invocation.method(
+          #addProduct,
+          [product],
+        ),
+        returnValue: _i3.Future<String>.value(_i5.dummyValue<String>(
+          this,
+          Invocation.method(
+            #addProduct,
+            [product],
+          ),
+        )),
+      ) as _i3.Future<String>);
 
   @override
-  _i3.Future<void> deleteProduct(String? id) =>
-      (super.noSuchMethod(
-            Invocation.method(#deleteProduct, [id]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
+  _i3.Future<void> updateProduct(_i4.Product? product) => (super.noSuchMethod(
+        Invocation.method(
+          #updateProduct,
+          [product],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
 
   @override
-  _i3.Stream<List<_i4.Product>> watchProducts() =>
-      (super.noSuchMethod(
-            Invocation.method(#watchProducts, []),
-            returnValue: _i3.Stream<List<_i4.Product>>.empty(),
-          )
-          as _i3.Stream<List<_i4.Product>>);
+  _i3.Future<void> deleteProduct(String? id) => (super.noSuchMethod(
+        Invocation.method(
+          #deleteProduct,
+          [id],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Stream<List<_i4.Product>> watchProducts() => (super.noSuchMethod(
+        Invocation.method(
+          #watchProducts,
+          [],
+        ),
+        returnValue: _i3.Stream<List<_i4.Product>>.empty(),
+      ) as _i3.Stream<List<_i4.Product>>);
 }
