@@ -1,0 +1,30 @@
+name: FridgeRealisticUI
+version: 0.1.0
+as_of: 2025-09-11
+
+changes:
+  - add: lib/features/fridge/presentation/widgets/realistic_fridge_painter.dart
+    desc: 冷蔵庫筐体（メタリック質感/棚/室）を描画するCustomPainter
+  - add: lib/features/fridge/presentation/widgets/realistic_fridge_widget.dart
+    desc: 扉回転/引き出しスライドのアニメーション付き俯瞰ウィジェット
+  - modify: lib/features/home/presentation/pages/home_screen.dart
+    desc: FridgeOverviewWidget を RealisticFridgeWidget へ置換
+
+final_ux:
+  overview:
+    widget: RealisticFridgeWidget
+    interactions:
+      - 左右ドア: タップで開閉、ダブルタップで該当ポケットへフォーカス
+      - 野菜室/冷凍庫: タップでスライド、ダブルタップでフォーカス
+      - 冷蔵室棚: タップで該当棚へ遷移
+    badges: sectionCountsProvider の件数を表示
+  section_view:
+    unchanged: FridgeSectionView（ProductCard リスト）
+
+non_functional:
+  performance: RepaintBoundary + 軽量Transformで60fps目標
+  accessibility: Semantics値（開/閉）を付与
+
+acceptance:
+  - ホームの冷蔵庫ビューが実機様の見た目/動きに更新
+  - 既存の検索/詳細動線を維持

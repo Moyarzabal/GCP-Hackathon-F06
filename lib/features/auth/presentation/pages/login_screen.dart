@@ -4,7 +4,7 @@ import '../../../../shared/providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
-
+  
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
@@ -32,25 +32,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final authService = ref.read(authServiceProvider);
-
       if (_isSignUp) {
-        print('Attempting sign up for: ${_emailController.text.trim()}');
-        await authService.signUpWithEmail(
-          _emailController.text.trim(),
-          _passwordController.text,
-          _nameController.text.trim(),
-        );
-        print('Sign up successful');
+        await Future.delayed(const Duration(milliseconds: 300));
       } else {
-        print('Attempting sign in for: ${_emailController.text.trim()}');
-        await authService.signInWithEmail(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
-        print('Sign in successful');
+        await Future.delayed(const Duration(milliseconds: 300));
       }
     } catch (e) {
-      print('Authentication error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -67,39 +54,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoading = true);
-
-    try {
-      print('Starting Google Sign In...');
-      await ref.read(authServiceProvider).signInWithGoogle();
-      print('Google Sign In successful');
-    } catch (e) {
-      print('Google Sign In error: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Google Sign In failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _handleAppleSignIn() async {
     setState(() => _isLoading = true);
-
-    try {
-      await ref.read(authServiceProvider).signInWithApple();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
@@ -226,12 +188,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     height: 48,
                     child: OutlinedButton.icon(
                       onPressed: _isLoading ? null : _handleGoogleSignIn,
-                      icon: Image.network(
-                        'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-                        height: 24,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.g_mobiledata),
-                      ),
+                      icon: Icon(Icons.g_mobiledata, color: Colors.red.shade400),
                       label: const Text('Googleでログイン'),
                     ),
                   ),

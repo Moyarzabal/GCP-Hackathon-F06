@@ -8,6 +8,12 @@ import '../../../products/presentation/widgets/product_search_delegate.dart';
 import '../../../products/presentation/providers/product_provider.dart';
 import '../../../products/presentation/providers/product_selection_provider.dart';
 import '../../../../shared/widgets/common/error_widget.dart';
+import '../../../fridge/presentation/providers/fridge_view_provider.dart';
+// import '../../../fridge/presentation/widgets/fridge_overview_widget.dart';
+import '../../../fridge/presentation/pages/fridge_section_view.dart';
+// import '../../../fridge/presentation/widgets/realistic_fridge_widget.dart';
+// import '../../../fridge/presentation/widgets/tesla_style_fridge_widget.dart';
+import '../../../fridge/presentation/widgets/layered_3d_fridge_widget.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -35,6 +41,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final availableCategoriesAsync = ref.watch(availableCategoriesProvider);
     final selectionState = ref.watch(productSelectionProvider);
     final selectionNotifier = ref.watch(productSelectionProvider.notifier);
+
+    final fridgeState = ref.watch(fridgeViewProvider);
+    final fridgeNotifier = ref.watch(fridgeViewProvider.notifier);
 
     // ソート済みの商品リストを使用
     final products = productState.filteredProducts;
@@ -135,6 +144,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       body: Column(
         children: [
+          // 表示モード切替（リスト | 冷蔵庫）
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SegmentedButton<FridgeViewMode>(
+              segments: const [
+                ButtonSegment(value: FridgeViewMode.list, label: Text('リスト')),
+                ButtonSegment(value: FridgeViewMode.fridge, label: Text('冷蔵庫')),
+              ],
+              selected: {fridgeState.mode},
+              onSelectionChanged: (selection) {
+                final mode = selection.first;
+                fridgeNotifier.setMode(mode);
+              },
+            ),
+          ),
           // エラー表示
           if (appState.error != null)
             InlineErrorWidget(
@@ -159,25 +183,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onDismiss: () => productNotifier.clearError(),
             ),
 
-          // 商品リスト
+          // 表示切替（AnimatedSwitcher）
           Expanded(
-            child: products.isEmpty
-                ? _buildEmptyState(context)
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: products.length,
-                    itemBuilder: (context, index) {
-                      final product = products[index];
-                      return ProductCard(
-                        product: product,
-                        isSelectionMode: selectionState.isSelectionMode,
-                        isSelected: selectionState.isSelected(product.id ?? ''),
-                        onTap: () => _showProductDetail(context, product),
-                        onLongPress: () => selectionNotifier.toggleSelectionMode(),
-                        onSelectionToggle: () => selectionNotifier.toggleProductSelection(product.id ?? ''),
-                      );
-                    },
-                  ),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: fridgeState.mode == FridgeViewMode.list
+                  ? _buildProductList(context, productState, products, selectionState, selectionNotifier)
+                  : _buildFridgeView(context, fridgeState, fridgeNotifier),
+            ),
           ),
         ],
       ),
@@ -189,6 +204,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: const Icon(Icons.delete, color: Colors.black),
             )
           : null,
+    );
+  }
+
+  Widget _buildProductList(BuildContext context, ProductState productState, List<Product> products, ProductSelectionState selectionState, ProductSelectionNotifier selectionNotifier) {
+    if (products.isEmpty) {
+      return _buildEmptyState(context);
+    }
+    return ListView.builder(
+      key: const ValueKey('listView'),
+      padding: const EdgeInsets.all(16),
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return ProductCard(
+          product: product,
+          isSelectionMode: selectionState.isSelectionMode,
+          isSelected: selectionState.isSelected(product.id ?? ''),
+          onTap: () => _showProductDetail(context, product),
+          onLongPress: () => selectionNotifier.toggleSelectionMode(),
+          onSelectionToggle: () => selectionNotifier.toggleProductSelection(product.id ?? ''),
+        );
+      },
+    );
+  }
+
+  Widget _buildFridgeView(BuildContext context, FridgeViewState state, FridgeViewNotifier notifier) {
+    return Column(
+      key: const ValueKey('fridgeView'),
+      children: [
+        if (state.selectedSection == null)
+          Expanded(
+            child: Layered3DFridgeWidget(
+              onSectionTap: (compartment, level) {
+                notifier.selectSection(SelectedFridgeSection(compartment: compartment, level: level));
+              },
+            ),
+          )
+        else
+          const Expanded(child: FridgeSectionView()),
+      ],
     );
   }
 

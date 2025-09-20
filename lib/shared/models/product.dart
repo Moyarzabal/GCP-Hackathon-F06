@@ -1,6 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// 冷蔵庫の区画を表す列挙
+enum FridgeCompartment {
+  refrigerator,
+  vegetableDrawer,
+  freezer,
+  doorLeft,
+  doorRight,
+}
+
+/// 商品の物理配置（室/段/座標）
+class ProductLocation {
+  final FridgeCompartment compartment;
+  final int level; // 0 = 最上段
+  final Offset? position; // 0..1 の相対座標
+
+  const ProductLocation({
+    required this.compartment,
+    required this.level,
+    this.position,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'compartment': compartment.name,
+      'level': level,
+      if (position != null) 'position': {'x': position!.dx, 'y': position!.dy},
+    };
+  }
+
+  static ProductLocation? fromMap(Map<String, dynamic>? map) {
+    if (map == null) return null;
+    final compartmentStr = map['compartment'] as String?;
+    final level = map['level'] as int? ?? 0;
+    final pos = map['position'];
+
+    FridgeCompartment? compartment;
+    if (compartmentStr != null) {
+      compartment = FridgeCompartment.values.firstWhere(
+        (e) => e.name == compartmentStr,
+        orElse: () => FridgeCompartment.refrigerator,
+      );
+    } else {
+      compartment = FridgeCompartment.refrigerator;
+    }
+
+    Offset? position;
+    if (pos is Map) {
+      final x = (pos['x'] as num?)?.toDouble();
+      final y = (pos['y'] as num?)?.toDouble();
+      if (x != null && y != null) {
+        position = Offset(x, y);
+      }
+    }
+
+    return ProductLocation(
+      compartment: compartment,
+      level: level,
+      position: position,
+    );
+  }
+}
+
 /// 商品の画像段階を表す列挙型
 enum ImageStage {
   veryFresh,    // 7日以上
@@ -24,6 +86,7 @@ class Product {
   final String? manufacturer;
   final int quantity;
   final String unit;
+  final ProductLocation? location;
   final DateTime? deletedAt; // 論理削除用フィールド
 
   Product({
@@ -40,6 +103,7 @@ class Product {
     this.manufacturer,
     this.quantity = 1,
     this.unit = 'piece',
+    this.location,
     this.deletedAt,
   });
 
@@ -102,6 +166,7 @@ class Product {
       'manufacturer': manufacturer,
       'quantity': quantity,
       'unit': unit,
+      if (location != null) 'location': location!.toMap(),
       'deletedAt': deletedAt?.millisecondsSinceEpoch,
     };
   }
@@ -154,6 +219,9 @@ class Product {
       manufacturer: data['manufacturer'] as String?,
       quantity: data['quantity'] as int? ?? 1,
       unit: data['unit'] as String? ?? 'piece',
+      location: ProductLocation.fromMap(
+        (data['location'] as Map?)?.cast<String, dynamic>(),
+      ),
       deletedAt: _parseDateTime(data['deletedAt']),
     );
   }
@@ -172,6 +240,7 @@ class Product {
     String? manufacturer,
     int? quantity,
     String? unit,
+    ProductLocation? location,
     DateTime? deletedAt,
   }) {
     return Product(
@@ -188,6 +257,7 @@ class Product {
       manufacturer: manufacturer ?? this.manufacturer,
       quantity: quantity ?? this.quantity,
       unit: unit ?? this.unit,
+      location: location ?? this.location,
       deletedAt: deletedAt ?? this.deletedAt,
     );
   }
