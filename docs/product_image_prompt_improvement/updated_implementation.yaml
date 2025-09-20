@@ -1,0 +1,173 @@
+name: 商品画像生成プロンプト - 更新実装
+description: 文字表示問題の解決と賞味期限表現の改善を実装した最終版
+version: "1.0"
+date: "2025-09-20"
+
+updated_implementation:
+  location: lib/core/services/imagen_service.dart
+  methods:
+    - _createPrompt: "改善されたプロンプト生成メソッド"
+    - _getCategoryTraits: "新規追加：カテゴリ特徴マッピングメソッド"
+
+  key_improvements:
+    text_prevention:
+      implementation: "明示的なテキスト禁止指示の追加"
+      directive: "NO text, letters, words, or product names visible in the image, focus purely on character design and visual representation"
+      approach: "商品名に基づく画像生成を維持しつつ、文字表示のみを防ぐ"
+      
+    enhanced_product_representation:
+      method: "_getCategoryTraits"
+      purpose: "商品名とカテゴリ特徴を組み合わせた豊かな表現"
+      mappings:
+        dairy: "creamy white appearance, soft rounded features, gentle curves"
+        meat: "rich reddish-brown coloring, hearty robust features, sturdy build"
+        vegetable: "fresh green tones, leafy or rounded natural features, organic shapes"
+        fruit: "bright vibrant colors, sweet cheerful features, round appealing form"
+        grain: "warm golden-brown tones, wholesome sturdy features, comforting appearance"
+        seafood: "silvery-blue tones, sleek streamlined features, aquatic essence"
+        snack: "colorful playful appearance, fun cheerful features, delightful charm"
+        beverage: "refreshing translucent qualities, flowing smooth features, liquid-like grace"
+        default: "generic food characteristics, balanced proportions, appealing design"
+
+    enhanced_haze_progression:
+      happy_state:
+        emoji: "😊"
+        atmosphere: "clear bright atmosphere with no haze, sparkling clean air around character"
+        character: "happy and fresh, bright vibrant colors, big smiling face, energetic pose"
+        
+      neutral_state:
+        emoji: "😐"
+        atmosphere: "light misty atmosphere, subtle haze around character, slightly cloudy background"
+        character: "neutral expression with slight concern, gentle pastel colors, thoughtful pose"
+        
+      worried_state:
+        emoji: "😟"
+        atmosphere: "moderate haze surrounding character, cloudy atmosphere, foggy environment"
+        character: "worried anxious expression, muted colors, nervous gestures, sweat drops"
+        
+      panicking_state:
+        emoji: "😰"
+        atmosphere: "thick dense haze enveloping character, heavy fog atmosphere, ominous misty surroundings"
+        character: "very worried panicking expression, darker colors, frantic movements, urgent expression"
+        
+      expired_state:
+        emoji: "💀"
+        atmosphere: "extremely thick ominous haze, supernatural fog, eerie mist completely surrounding character, haunting atmospheric effects"
+        character: "zombie-like expired appearance, dark spooky colors, ghost-like transparency, deteriorated look"
+
+  new_prompt_structure:
+    base_template: "Cute kawaii Japanese mascot character representing {productName} ({category} food item) with {categoryTraits} characteristics"
+    text_prevention: "NO text, letters, words, or product names visible in the image, focus purely on character design and visual representation"
+    emotion_expression: "{specific emotion and character details}"
+    atmospheric_effects: "{haze and environmental description}"
+    style_specification: "chibi style, simple design"
+    additional_details: "{context-specific appearance details}"
+
+  implementation_details:
+    method_signature: "_createPrompt(String productName, String emotionState, String category)"
+    parameter_usage:
+      productName: "キャラクター表現の基盤として使用（文字表示は明示的に禁止）"
+      emotionState: "感情状態ともや表現の決定に使用"
+      category: "視覚的特徴の決定に使用"
+      
+    flow:
+      1. "カテゴリから視覚的特徴を取得"
+      2. "商品名とカテゴリを組み合わせたベースプロンプトの構築"
+      3. "テキスト防止指示の追加"
+      4. "感情状態に基づく詳細な表現の追加"
+      5. "完成したプロンプトの返却"
+
+improvements_achieved:
+  text_elimination:
+    success_factors:
+      - explicit_directive: "明示的なテキスト禁止指示"
+      - visual_focus_instruction: "視覚的表現とキャラクターデザインに焦点を当てる指示"
+      - product_based_character: "商品名に基づくキャラクター生成を維持"
+      
+    expected_results:
+      - zero_text_rendering: "画像内のテキスト表示ゼロ"
+      - product_based_character: "商品名に基づく適切なキャラクター表現"
+      - cleaner_visuals: "よりクリーンな視覚表現"
+      - consistent_character_focus: "キャラクターに集中した画像"
+
+  haze_progression_enhancement:
+    gradation_levels:
+      level_1_happy: "もやなし - クリアで明るい"
+      level_2_neutral: "軽いもや - 微細な霧"
+      level_3_worried: "中程度のもや - 明らかな曇り"
+      level_4_panicking: "濃いもや - 重い霧"
+      level_5_expired: "極厚のもや - 不気味な霧"
+      
+    visual_impact:
+      - clear_expiry_indication: "賞味期限状態の明確な視覚的表現"
+      - atmospheric_storytelling: "雰囲気による感情表現"
+      - progressive_urgency: "段階的な緊急度の表現"
+
+  character_appeal_maintenance:
+    preserved_elements:
+      - kawaii_aesthetic: "かわいい日本風の美学"
+      - chibi_style: "ちびキャラクタースタイル"
+      - simple_design: "シンプルなデザイン"
+      - mascot_character: "マスコットキャラクター性"
+      
+    enhanced_elements:
+      - category_representation: "カテゴリ特徴の表現"
+      - emotional_depth: "感情表現の深化"
+      - atmospheric_integration: "雰囲気との統合"
+
+technical_specifications:
+  api_compatibility:
+    maintained: "Vertex AI Imagen API との互換性を維持"
+    parameters: "既存のAPIパラメータをそのまま使用"
+    
+  performance_impact:
+    minimal_overhead: "最小限のオーバーヘッド"
+    cache_compatibility: "既存のキャッシュシステムと互換"
+    
+  fallback_system:
+    preserved: "既存のフォールバック機能を保持"
+    enhanced: "新しいプロンプト構造に対応"
+
+validation_criteria:
+  text_prevention_test:
+    test_cases:
+      - "りんご" → "文字表示なし"
+      - "牛乳" → "文字表示なし"
+      - "パン" → "文字表示なし"
+    success_metric: "100%テキスト除去率"
+    
+  haze_progression_test:
+    test_scenarios:
+      - happy_to_expired: "段階的なもや濃度の変化確認"
+      - visual_consistency: "視覚的一貫性の確認"
+      - emotion_correlation: "感情状態との相関確認"
+    success_metric: "明確な5段階の視覚的差異"
+    
+  character_appeal_test:
+    evaluation_points:
+      - kawaii_factor: "かわいさレベルの維持"
+      - recognition: "キャラクター認識性"
+      - category_representation: "カテゴリ特徴の表現度"
+    success_metric: "既存レベル以上の魅力度"
+
+future_enhancements:
+  potential_improvements:
+    - seasonal_variations: "季節による表現変化"
+    - cultural_adaptations: "文化的適応"
+    - dynamic_backgrounds: "動的背景要素"
+    - advanced_emotions: "より細かい感情表現"
+    
+  scalability_considerations:
+    - new_categories: "新カテゴリの容易な追加"
+    - emotion_expansion: "感情状態の拡張"
+    - localization: "多言語対応"
+
+implementation_notes:
+  breaking_changes: "なし（既存インターフェース保持）"
+  backward_compatibility: "完全な後方互換性"
+  migration_required: "不要"
+  
+  deployment_considerations:
+    - immediate_effect: "デプロイ後即座に効果を発揮"
+    - cache_refresh: "既存キャッシュのクリアを推奨"
+    - monitoring: "生成結果の品質監視を推奨"
