@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:crypto/crypto.dart';
 
 /// Exception thrown when secure storage operations fail
 class SecureStorageException implements Exception {
@@ -165,12 +163,6 @@ class SecureStorage {
     }
   }
 
-  /// Generate a secure hash for data integrity
-  String _generateHash(String data) {
-    final bytes = utf8.encode(data);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
 
   /// Check if all required data is present
   Future<bool> hasRequiredData() async {
