@@ -7,6 +7,7 @@ import '../../../products/presentation/pages/product_detail_screen.dart';
 import '../../../products/presentation/widgets/product_search_delegate.dart';
 import '../../../products/presentation/providers/product_provider.dart';
 import '../../../products/presentation/providers/product_selection_provider.dart';
+import '../../../products/presentation/states/product_selection_state.dart';
 import '../../../../shared/widgets/common/error_widget.dart';
 import '../../../fridge/presentation/providers/fridge_view_provider.dart';
 // import '../../../fridge/presentation/widgets/fridge_overview_widget.dart';
