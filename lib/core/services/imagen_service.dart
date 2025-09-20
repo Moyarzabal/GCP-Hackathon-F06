@@ -69,21 +69,79 @@ class ImagenService {
   }
 
   String _createPrompt(String productName, String emotionState, String category) {
-    final basePrompt = 'Cute kawaii Japanese mascot character representing $productName ($category food item), ';
+    // 商品名に基づくキャラクター生成（文字表示は防ぐ）
+    final categoryTraits = _getCategoryTraits(category);
+    final basePrompt = 'Cute kawaii Japanese mascot character representing $productName ($category food item) with $categoryTraits characteristics, ';
+    
+    // テキスト表示防止の明示的な指示
+    final textPreventionDirective = 'NO text, letters, words, or product names visible in the image, focus purely on character design and visual representation, ';
 
     switch (emotionState) {
       case '😊':
-        return basePrompt + 'happy and fresh, bright colors, smiling face, sparkles around, chibi style, simple design';
+        return basePrompt + textPreventionDirective +
+               'happy and fresh, bright vibrant colors, big smiling face, energetic pose, '
+               'clear bright atmosphere with no fog, sparkling clean air around character, '
+               'chibi style, simple design, wholesome healthy appearance';
       case '😐':
-        return basePrompt + 'neutral expression, slightly concerned, pastel colors, chibi style, simple design';
+        return basePrompt + textPreventionDirective +
+               'neutral expression with slight concern, gentle pastel colors, thoughtful pose, '
+               'light misty atmosphere, subtle fog around character, gentle worry in eyes, '
+               'chibi style, simple design, slightly cloudy background';
       case '😟':
-        return basePrompt + 'worried expression, sweat drops, muted colors, looking anxious, chibi style, simple design';
+        return basePrompt + textPreventionDirective +
+               'worried anxious expression, muted colors, nervous gestures, sweat drops, '
+               'moderate fog surrounding character, cloudy atmosphere, visible concern, '
+               'chibi style, simple design, foggy environment';
       case '😰':
-        return basePrompt + 'very worried and panicking, dark shadows, urgent expression, chibi style, simple design';
+        return basePrompt + textPreventionDirective +
+               'very worried panicking expression, darker colors, frantic movements, urgent expression, '
+               'thick dense fog enveloping character, heavy fog atmosphere, intense worry, '
+               'chibi style, simple design, ominous misty surroundings';
       case '💀':
-        return basePrompt + 'zombie-like appearance, expired and spooky, dark colors, ghost-like, chibi style, simple design';
+        return basePrompt + textPreventionDirective +
+               'zombie-like expired appearance, dark spooky colors, ghost-like transparency, deteriorated look, '
+               'extremely thick ominous fog, supernatural fog, eerie mist completely surrounding character, '
+               'chibi style, simple design, haunting atmospheric effects';
       default:
-        return basePrompt + 'neutral kawaii expression, chibi style, simple design';
+        return basePrompt + textPreventionDirective +
+               'neutral kawaii expression, gentle colors, light atmosphere, '
+               'chibi style, simple design, clear background';
+    }
+  }
+
+  String _getCategoryTraits(String category) {
+    // カテゴリに基づく視覚的特徴マッピング（商品名と組み合わせて使用）
+    switch (category.toLowerCase()) {
+      case 'dairy':
+      case 'milk':
+      case 'cheese':
+        return 'creamy white appearance, soft rounded features, gentle curves';
+      case 'meat':
+      case 'beef':
+      case 'pork':
+      case 'chicken':
+        return 'rich reddish-brown coloring, hearty robust features, sturdy build';
+      case 'vegetable':
+      case 'vegetables':
+        return 'fresh green tones, leafy or rounded natural features, organic shapes';
+      case 'fruit':
+      case 'fruits':
+        return 'bright vibrant colors, sweet cheerful features, round appealing form';
+      case 'grain':
+      case 'bread':
+      case 'rice':
+        return 'warm golden-brown tones, wholesome sturdy features, comforting appearance';
+      case 'seafood':
+      case 'fish':
+        return 'silvery-blue tones, sleek streamlined features, aquatic essence';
+      case 'snack':
+      case 'sweets':
+        return 'colorful playful appearance, fun cheerful features, delightful charm';
+      case 'beverage':
+      case 'drink':
+        return 'refreshing translucent qualities, flowing smooth features, liquid-like grace';
+      default:
+        return 'generic food characteristics, balanced proportions, appealing design';
     }
   }
 
