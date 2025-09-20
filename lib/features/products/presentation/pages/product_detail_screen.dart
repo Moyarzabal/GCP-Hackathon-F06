@@ -5,8 +5,6 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../../../shared/models/product.dart';
 import '../../../../shared/providers/app_state_provider.dart';
 import '../../../scanner/presentation/pages/scanner_screen.dart';
-import '../../../../core/services/recipe_service.dart';
-import '../widgets/recipe_card.dart';
 import '../providers/product_provider.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
@@ -49,8 +47,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           children: [
             Center(
               child: Container(
-                width: 120,
-                height: 120,
+                width: 200,
+                height: 200,
                 decoration: BoxDecoration(
                   color: currentProduct.statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -62,7 +60,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               : Center(
                   child: Text(
                     currentProduct.emotionState,
-                    style: const TextStyle(fontSize: 64),
+                    style: const TextStyle(fontSize: 96),
                   ),
                 ),
         ),
@@ -124,9 +122,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            // おすすめレシピセクション
-            _buildRecipeSection(),
           ],
         ),
       ),
@@ -141,15 +136,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         final bytes = base64Decode(base64String);
         return Image.memory(
           bytes,
-          width: 120,
-          height: 120,
+          width: 200,
+          height: 200,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             print('❌ Base64画像デコードエラー: $error');
             return Center(
               child: Text(
                 product.emotionState,
-                style: const TextStyle(fontSize: 64),
+                style: const TextStyle(fontSize: 96),
               ),
             );
           },
@@ -158,15 +153,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         // 通常のURLの場合
         return Image.network(
           product.currentImageUrl!,
-          width: 120,
-          height: 120,
+          width: 200,
+          height: 200,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             print('❌ ネットワーク画像読み込みエラー: $error');
             return Center(
               child: Text(
                 product.emotionState,
-                style: const TextStyle(fontSize: 64),
+                style: const TextStyle(fontSize: 96),
               ),
             );
           },
@@ -199,220 +194,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       return Center(
         child: Text(
           product.emotionState,
-          style: const TextStyle(fontSize: 64),
+          style: const TextStyle(fontSize: 96),
         ),
       );
     }
   }
-  /// おすすめレシピセクションを構築
-  Widget _buildRecipeSection() {
-    final appState = ref.watch(appStateProvider);
-    final currentProduct = appState.products.firstWhere(
-      (p) => p.id == widget.product.id,
-      orElse: () => widget.product,
-    );
-    final recipes = RecipeService.getRandomRecipes(currentProduct.category);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.restaurant,
-              color: Color(0xFF4A90C2),
-              size: 24,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '${widget.product.category}を使ったおすすめレシピ',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2C5F8A),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 280,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: recipes.length,
-            itemBuilder: (context, index) {
-              final recipe = recipes[index];
-              return Container(
-                width: 200,
-                margin: const EdgeInsets.only(right: 16),
-                child: RecipeCard(
-                  title: recipe.title,
-                  description: recipe.description,
-                  imageUrl: recipe.imageUrl,
-                  cookingTime: recipe.cookingTime,
-                  onTap: () => _showRecipeDetail(context, recipe),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
 
-  /// レシピ詳細を表示
-  void _showRecipeDetail(BuildContext context, Recipe recipe) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: Text(
-          recipe.title,
-          style: const TextStyle(
-            color: Color(0xFF2C5F8A),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // レシピ画像
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  height: 150,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                  ),
-                  child: recipe.imageUrl.isNotEmpty
-                      ? Image.network(
-                          recipe.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[300],
-                              child: const Icon(
-                                Icons.restaurant,
-                                size: 48,
-                                color: Colors.grey,
-                              ),
-                            );
-                          },
-                        )
-                      : Container(
-                          color: Colors.grey[300],
-                          child: const Icon(
-                            Icons.restaurant,
-                            size: 48,
-                            color: Colors.grey,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              // 調理時間
-              Row(
-                children: [
-                  Icon(
-                    Icons.access_time,
-                    size: 16,
-                    color: Colors.grey[600],
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '調理時間: ${recipe.cookingTime}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // 材料
-              Text(
-                '材料',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C5F8A),
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...recipe.ingredients.map((ingredient) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  '• $ingredient',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF4A90C2),
-                  ),
-                ),
-              )              ),
-              const SizedBox(height: 16),
-              // 作り方
-              Text(
-                '作り方',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C5F8A),
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...recipe.steps.asMap().entries.map((entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4A90C2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${entry.key + 1}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        entry.value,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF4A90C2),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              '閉じる',
-              style: TextStyle(color: Color(0xFF2C5F8A)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   /// 編集ダイアログを表示
   void _showEditDialog(BuildContext context) {
