@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math' as math;
 import '../../../../shared/models/product.dart';
@@ -28,18 +29,42 @@ class Layered3DFridgeWidget extends ConsumerStatefulWidget {
 
 class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
     with TickerProviderStateMixin {
-  // ドアのアニメーションコントローラー
+  // 1段目: 大扉のアニメーションコントローラー（固定・変更禁止）
   late AnimationController _leftDoorController;
   late AnimationController _rightDoorController;
   Animation<double>? _leftDoorAnimation;
   Animation<double>? _rightDoorAnimation;
-  
+
+  // 2段目: 左右分割セクションのアニメーションコントローラー
+  late AnimationController _secondLeftController;
+  late AnimationController _secondRightController;
+  Animation<double>? _secondLeftAnimation;
+  Animation<double>? _secondRightAnimation;
+
+  // 3-4段目: 引き出しのアニメーションコントローラー
+  late AnimationController _vegetableDrawerController;
+  late AnimationController _freezerDrawerController;
+  Animation<double>? _vegetableDrawerAnimation;
+  Animation<double>? _freezerDrawerAnimation;
+
+  // 開閉状態管理
   bool _leftDoorOpen = false;
   bool _rightDoorOpen = false;
+  bool _secondLeftOpen = false;
+  bool _secondRightOpen = false;
+  bool _vegetableDrawerOpen = false;
+  bool _freezerDrawerOpen = false;
+
+  // アクティブな引き出しを追跡（最前面に表示するため）
+  String? _activeDrawer;
 
   // アニメーションのゲッター（null安全）
   Animation<double> get leftDoorAnimation => _leftDoorAnimation ?? _createDefaultAnimation(_leftDoorController);
   Animation<double> get rightDoorAnimation => _rightDoorAnimation ?? _createDefaultAnimation(_rightDoorController);
+  Animation<double> get secondLeftAnimation => _secondLeftAnimation ?? _createDefaultAnimation(_secondLeftController);
+  Animation<double> get secondRightAnimation => _secondRightAnimation ?? _createDefaultAnimation(_secondRightController);
+  Animation<double> get vegetableDrawerAnimation => _vegetableDrawerAnimation ?? _createDefaultAnimation(_vegetableDrawerController);
+  Animation<double> get freezerDrawerAnimation => _freezerDrawerAnimation ?? _createDefaultAnimation(_freezerDrawerController);
 
   Animation<double> _createDefaultAnimation(AnimationController controller) {
     return Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -69,20 +94,41 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
   @override
   void initState() {
     super.initState();
-    
-    // 左扉のアニメーション設定 - より長いリアルな時間
+
+    // 1段目: 大扉のアニメーション設定（固定・変更禁止）
     _leftDoorController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200), // リアルな冷蔵庫扉の開閉時間
     );
-    
-    // 右扉のアニメーション設定 - より長いリアルな時間
+
     _rightDoorController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200), // リアルな冷蔵庫扉の開閉時間
     );
+
+    // 2段目: 左右分割セクションのアニメーション設定
+    _secondLeftController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800), // より軽快な小扉
+    );
+
+    _secondRightController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800), // より軽快な小扉
+    );
+
+    // 3-4段目: 引き出しのアニメーション設定
+    _vegetableDrawerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600), // 引き出しの滑らか動作
+    );
+
+    _freezerDrawerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600), // 引き出しの滑らか動作
+    );
     
-    // デフォルトのアニメーション（レスポンシブ対応は didChangeDependencies で処理）
+    // 1段目: 大扉のデフォルトアニメーション（レスポンシブ対応は didChangeDependencies で処理）
     _leftDoorAnimation = Tween<double>(
       begin: 0.0,
       end: 2.1, // デフォルト値（120度 = 2.1ラジアン）
@@ -93,7 +139,7 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
         curve: Cubic(0.25, 0.46, 0.45, 0.94), // リアルな冷蔵庫扉の抵抗感
       ),
     ));
-    
+
     _rightDoorAnimation = Tween<double>(
       begin: 0.0,
       end: 2.1, // デフォルト値（120度 = 2.1ラジアン）
@@ -103,6 +149,40 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
         0.0, 1.0,
         curve: Cubic(0.25, 0.46, 0.45, 0.94), // リアルな冷蔵庫扉の抵抗感
       ),
+    ));
+
+    // 2段目: 左右分割セクションのアニメーション（引き出し）
+    _secondLeftAnimation = Tween<double>(
+      begin: 0.0,
+      end: 100.0, // 引き出し距離（ピクセル）
+    ).animate(CurvedAnimation(
+      parent: _secondLeftController,
+      curve: Curves.easeInOutCubic,
+    ));
+
+    _secondRightAnimation = Tween<double>(
+      begin: 0.0,
+      end: 100.0, // 引き出し距離（ピクセル）
+    ).animate(CurvedAnimation(
+      parent: _secondRightController,
+      curve: Curves.easeInOutCubic,
+    ));
+
+    // 3-4段目: 引き出しアニメーション
+    _vegetableDrawerAnimation = Tween<double>(
+      begin: 0.0,
+      end: 120.0, // 引き出し距離（ピクセル）
+    ).animate(CurvedAnimation(
+      parent: _vegetableDrawerController,
+      curve: Curves.easeInOutCubic,
+    ));
+
+    _freezerDrawerAnimation = Tween<double>(
+      begin: 0.0,
+      end: 120.0, // 引き出し距離（ピクセル）
+    ).animate(CurvedAnimation(
+      parent: _freezerDrawerController,
+      curve: Curves.easeInOutCubic,
     ));
   }
   
@@ -137,6 +217,10 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
   void dispose() {
     _leftDoorController.dispose();
     _rightDoorController.dispose();
+    _secondLeftController.dispose();
+    _secondRightController.dispose();
+    _vegetableDrawerController.dispose();
+    _freezerDrawerController.dispose();
     super.dispose();
   }
 
@@ -159,7 +243,7 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
     setState(() {
       _rightDoorOpen = !_rightDoorOpen;
     });
-    
+
     if (_rightDoorOpen) {
       // 扉が開く時の微小な抵抗感をシミュレート
       await Future.delayed(const Duration(milliseconds: 50));
@@ -167,6 +251,64 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
     } else {
       // 扉が閉まる時はより素早く
       _rightDoorController.reverse();
+    }
+  }
+
+  // 2段目: 左分割セクション開閉メソッド
+  void _toggleSecondLeft() async {
+    setState(() {
+      _secondLeftOpen = !_secondLeftOpen;
+      // タップされた引き出しをアクティブに設定
+      _activeDrawer = _secondLeftOpen ? 'secondLeft' : null;
+    });
+
+    if (_secondLeftOpen) {
+      await Future.delayed(const Duration(milliseconds: 30));
+      _secondLeftController.forward();
+    } else {
+      _secondLeftController.reverse();
+    }
+  }
+
+  // 2段目: 右分割セクション開閉メソッド
+  void _toggleSecondRight() async {
+    setState(() {
+      _secondRightOpen = !_secondRightOpen;
+    });
+
+    if (_secondRightOpen) {
+      await Future.delayed(const Duration(milliseconds: 30));
+      _secondRightController.forward();
+    } else {
+      _secondRightController.reverse();
+    }
+  }
+
+  // 3段目: 野菜室引き出し開閉メソッド
+  void _toggleVegetableDrawer() async {
+    setState(() {
+      _vegetableDrawerOpen = !_vegetableDrawerOpen;
+    });
+
+    if (_vegetableDrawerOpen) {
+      await Future.delayed(const Duration(milliseconds: 20));
+      _vegetableDrawerController.forward();
+    } else {
+      _vegetableDrawerController.reverse();
+    }
+  }
+
+  // 4段目: 冷凍庫引き出し開閉メソッド
+  void _toggleFreezerDrawer() async {
+    setState(() {
+      _freezerDrawerOpen = !_freezerDrawerOpen;
+    });
+
+    if (_freezerDrawerOpen) {
+      await Future.delayed(const Duration(milliseconds: 20));
+      _freezerDrawerController.forward();
+    } else {
+      _freezerDrawerController.reverse();
     }
   }
 
@@ -247,8 +389,8 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
               ),
             ),
             
-            // 引き出しレイヤー（下部）
-            _buildDrawersLayer(),
+            // 新しい4段構成レイヤー（2-4段目）
+            _buildUnifiedSectionsLayer(),
           ],
         ),
       ),
@@ -331,102 +473,486 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
     );
   }
 
-  Widget _buildDrawersLayer() {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        height: 150, // 高さを調整
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFFF5F5F5), // 本体と統一した色調
-              const Color(0xFFEDEDED),
-              const Color(0xFFE8E8E8),
-            ],
-          ),
-          // 引き出しレイヤーの影も削除
-        ),
-        child: Column(
+  /// 新しい統一された4段構成レイヤー（2-4段目）
+  Widget _buildUnifiedSectionsLayer() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 冷蔵庫本体のサイズと位置（FridgeBodyPainterと同じ比率）
+        final double fridgeBodyLeft = constraints.maxWidth * 0.1;
+        final double fridgeBodyWidth = constraints.maxWidth * 0.8;
+        final double fridgeBodyTop = constraints.maxHeight * 0.02;
+        final double fridgeBodyHeight = constraints.maxHeight * 0.75;
+
+        // 1段目の高さ（扉領域、50%）
+        final double topSectionHeight = fridgeBodyHeight * 0.5;
+
+        // 2-4段目の開始位置（1段目の下）
+        final double sectionsStartY = fridgeBodyTop + topSectionHeight;
+        final double sectionsHeight = fridgeBodyHeight * 0.5;
+
+        // 各段の高さ配分
+        final double section2Height = sectionsHeight * 0.4;  // 2段目: 40%
+        final double section3Height = sectionsHeight * 0.3;  // 3段目: 30%
+        final double section4Height = sectionsHeight * 0.3;  // 4段目: 30%
+
+        return Stack(
           children: [
-            // 野菜室
-            Expanded(
-              child: GestureDetector(
-                onTap: () => widget.onSectionTap(FridgeCompartment.vegetableDrawer, 0),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFFFAFAFA),
-                        const Color(0xFFF5F5F5),
-                        const Color(0xFFEFEFEF),
-                        const Color(0xFFF2F2F2),
-                      ],
-                      stops: const [0.0, 0.3, 0.7, 1.0],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.grey[350]!.withOpacity(0.8),
-                      width: 1.5,
-                    ),
-                    // 引き出しの影も削除
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '野菜室',
-                      style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                ),
-              ),
+            // 2段目: 左右分割セクション
+            _buildSecondSection(
+              left: fridgeBodyLeft,
+              top: sectionsStartY,
+              width: fridgeBodyWidth,
+              height: section2Height,
             ),
-            // 冷凍庫
-            Expanded(
-              child: GestureDetector(
-                onTap: () => widget.onSectionTap(FridgeCompartment.freezer, 0),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFFFAFAFA),
-                        const Color(0xFFF5F5F5),
-                        const Color(0xFFEFEFEF),
-                        const Color(0xFFF2F2F2),
-                      ],
-                      stops: const [0.0, 0.3, 0.7, 1.0],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.grey[350]!.withOpacity(0.8),
-                      width: 1.5,
-                    ),
-                    // 引き出しの影も削除
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '冷凍庫',
-                      style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                ),
-              ),
+
+            // 3段目: 野菜室
+            _buildThirdSection(
+              left: fridgeBodyLeft,
+              top: sectionsStartY + section2Height,
+              width: fridgeBodyWidth,
+              height: section3Height,
+            ),
+
+            // 4段目: 冷凍庫
+            _buildFourthSection(
+              left: fridgeBodyLeft,
+              top: sectionsStartY + section2Height + section3Height,
+              width: fridgeBodyWidth,
+              height: section4Height,
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
-  // _buildControlPanelメソッドを削除
+  /// 2段目: 左右分割セクション（引き出し）
+  Widget _buildSecondSection({
+    required double left,
+    required double top,
+    required double width,
+    required double height,
+  }) {
+    return Stack(
+      children: [
+        // 左セクション（冷凍庫引き出し）
+        _buildDrawerSection(
+          left: left,
+          top: top,
+          width: width / 2,
+          height: height,
+          animation: secondLeftAnimation,
+          label: '冷凍庫',
+          backgroundColor: Colors.white,
+          onTap: _toggleSecondLeft,
+          onDoubleTap: () => widget.onSectionTap(FridgeCompartment.freezer, 1),
+        ),
 
-  // _buildControlButtonメソッドを削除
+        // 右セクション（冷蔵室引き出し）
+        _buildDrawerSection(
+          left: left + width / 2,
+          top: top,
+          width: width / 2,
+          height: height,
+          animation: secondRightAnimation,
+          label: '冷蔵室',
+          backgroundColor: Colors.white,
+          onTap: _toggleSecondRight,
+          onDoubleTap: () => widget.onSectionTap(FridgeCompartment.refrigerator, 1),
+        ),
+      ],
+    );
+  }
+
+  /// 3段目: 野菜室（引き出しスタイル）
+  Widget _buildThirdSection({
+    required double left,
+    required double top,
+    required double width,
+    required double height,
+  }) {
+    return _buildDrawerSection(
+      left: left,
+      top: top,
+      width: width,
+      height: height,
+      animation: vegetableDrawerAnimation,
+      label: '野菜室',
+      backgroundColor: Colors.white,
+      onTap: _toggleVegetableDrawer,
+      onDoubleTap: () => widget.onSectionTap(FridgeCompartment.vegetableDrawer, 0),
+    );
+  }
+
+  /// 4段目: 冷凍庫（引き出しスタイル）
+  Widget _buildFourthSection({
+    required double left,
+    required double top,
+    required double width,
+    required double height,
+  }) {
+    return _buildDrawerSection(
+      left: left,
+      top: top,
+      width: width,
+      height: height,
+      animation: freezerDrawerAnimation,
+      label: '冷凍庫',
+      backgroundColor: Colors.white,
+      onTap: _toggleFreezerDrawer,
+      onDoubleTap: () => widget.onSectionTap(FridgeCompartment.freezer, 0),
+    );
+  }
+
+  /// 引き出し用アニメーションセクション（3D引き出し）
+  Widget _buildDrawerSection({
+    required double left,
+    required double top,
+    required double width,
+    required double height,
+    required Animation<double> animation,
+    required String label,
+    required Color backgroundColor,
+    required VoidCallback onTap,
+    required VoidCallback onDoubleTap,
+  }) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        final double pullDistance = animation.value;
+
+        return Positioned(
+          left: left,
+          top: top,
+          width: width,
+          height: height,
+          child: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.002) // 強めのパースペクティブ
+              ..translate(0.0, 0.0, -pullDistance) // Z軸方向を逆に（手前に引き出し）
+              ..scale(1.0 + (pullDistance * 0.002)), // 引き出すと少し大きくなる
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onTap();
+              },
+              onDoubleTap: () {
+                HapticFeedback.mediumImpact();
+                onDoubleTap();
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white,
+                      Colors.grey[50]!,
+                      Colors.grey[100]!,
+                      Colors.grey[50]!,
+                      Colors.white,
+                    ],
+                    stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
+                  ),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: Colors.grey[400]!.withOpacity(_safeOpacity(0.6 + pullDistance * 0.01)),
+                    width: 2,
+                  ),
+                  // 引き出し時の影効果（手前に出てくる影）
+                  boxShadow: pullDistance > 0 ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(_safeOpacity(0.3 * (pullDistance / 100))),
+                      offset: Offset(0, pullDistance * 0.15), // 下向きの影
+                      blurRadius: pullDistance * 0.3,
+                      spreadRadius: pullDistance * 0.05,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(_safeOpacity(0.1 * (pullDistance / 100))),
+                      offset: Offset(pullDistance * 0.05, pullDistance * 0.05), // 右下の影
+                      blurRadius: pullDistance * 0.5,
+                      spreadRadius: 0,
+                    ),
+                  ] : null,
+                ),
+                child: Stack(
+                  children: [
+                    // リアルな扉パネル効果
+                    Positioned(
+                      left: 8,
+                      top: 8,
+                      right: 8,
+                      bottom: 8,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: Colors.grey[300]!.withOpacity(0.6),
+                            width: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // 扉のゴムガスケット
+                    Positioned(
+                      left: 2,
+                      top: 2,
+                      right: 2,
+                      bottom: 2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.grey[600]!.withOpacity(0.8),
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Container(
+                          margin: const EdgeInsets.all(1),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.grey[500]!.withOpacity(0.6),
+                              width: 0.5,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // 引き出し用水平ハンドル
+                    Positioned(
+                      left: width / 2 - 30,
+                      top: height - 20,
+                      child: Container(
+                        width: 60,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.grey[200]!, // ハイライト
+                              Colors.grey[400]!, // メイン
+                              Colors.grey[600]!, // シャドウ
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
+                          ),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Container(
+                          margin: const EdgeInsets.all(1),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.grey[300]!,
+                                Colors.grey[200]!,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// 2段目: アニメーション付きセクション（扉開閉）
+  Widget _buildAnimatedSection({
+    required double left,
+    required double top,
+    required double width,
+    required double height,
+    required Animation<double> animation,
+    required bool isLeft,
+    required String label,
+    required Color backgroundColor,
+    required VoidCallback onTap,
+    required VoidCallback onDoubleTap,
+  }) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        final double rotationAngle = animation.value;
+
+        return Positioned(
+          left: left,
+          top: top,
+          width: width,
+          height: height,
+          child: Transform(
+            alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.001) // パースペクティブ
+              ..rotateY(isLeft ? rotationAngle : -rotationAngle),
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onTap();
+              },
+              onDoubleTap: () {
+                HapticFeedback.mediumImpact();
+                onDoubleTap();
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white,
+                      Colors.grey[50]!,
+                      Colors.grey[100]!,
+                      Colors.grey[50]!,
+                      Colors.white,
+                    ],
+                    stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
+                  ),
+                  borderRadius: BorderRadius.circular(6), // 上部扉と同じ角丸
+                  border: Border.all(
+                    color: Colors.grey[400]!.withOpacity(0.6 + rotationAngle.abs() * 0.2),
+                    width: 2,
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    // リアルな扉パネル効果（上部扉と同じ）
+                    Positioned(
+                      left: 8,
+                      top: 8,
+                      right: 8,
+                      bottom: 8,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: Colors.grey[300]!.withOpacity(0.6),
+                            width: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // 扉のゴムガスケット（上部扉と同じ）
+                    Positioned(
+                      left: 2,
+                      top: 2,
+                      right: 2,
+                      bottom: 2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.grey[600]!.withOpacity(0.8),
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Container(
+                          margin: const EdgeInsets.all(1),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.grey[500]!.withOpacity(0.6),
+                              width: 0.5,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // 扉のハンドル - リアルな3Dメタリック（上部扉と同じ）
+                    Positioned(
+                      left: isLeft ? width - 20 : 5, // 左扉は右端、右扉は左端にハンドル
+                      top: height / 2 - 35,
+                      child: Container(
+                        width: 15,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.grey[200]!, // ハイライト
+                              Colors.grey[400]!, // メイン
+                              Colors.grey[600]!, // シャドウ
+                              Colors.grey[300]!, // リフレクション
+                            ],
+                            stops: const [0.0, 0.3, 0.7, 1.0],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Container(
+                          margin: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                Colors.grey[300]!,
+                                Colors.grey[200]!,
+                                Colors.grey[300]!,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // 扉のガラス効果（上部扉と同じ）
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withOpacity(_safeOpacity(0.15 * (1.0 - rotationAngle.abs()))),
+                            Colors.transparent,
+                            Colors.white.withOpacity(_safeOpacity(0.1 * (1.0 - rotationAngle.abs()))),
+                            Colors.transparent,
+                            Colors.white.withOpacity(_safeOpacity(0.05 * (1.0 - rotationAngle.abs()))),
+                          ],
+                          stops: const [0.0, 0.3, 0.5, 0.7, 1.0],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    // 反射光効果 - 白い扉用（上部扉と同じ）
+                    if (rotationAngle.abs() > 0.3)
+                      Positioned(
+                        top: height * 0.2,
+                        left: isLeft ? width * 0.3 : width * 0.1,
+                        child: Container(
+                          width: width * 0.4,
+                          height: height * 0.3,
+                          decoration: BoxDecoration(
+                            gradient: RadialGradient(
+                              colors: [
+                                Colors.white.withOpacity(_safeOpacity(0.6 * rotationAngle.abs())),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
 }
 
 /// 冷蔵庫本体の描画
