@@ -1,0 +1,96 @@
+name: 商品画像生成プロンプト - 現在の実装
+description: 商品画像生成における現在のプロンプト実装の詳細分析
+version: "1.0"
+date: "2025-09-20"
+
+current_implementation:
+  location: lib/core/services/imagen_service.dart
+  method: _createPrompt
+  
+  base_prompt_structure:
+    template: "Cute kawaii Japanese mascot character representing $productName ($category food item), "
+    issues:
+      - product_name_inclusion: "商品名が直接プロンプトに含まれ、画像内に文字として表示される可能性"
+      - text_rendering_risk: "商品名やカテゴリが画像内にテキストとして描画される問題"
+  
+  emotion_states:
+    happy:
+      emoji: "😊"
+      current_prompt: "happy and fresh, bright colors, smiling face, sparkles around, chibi style, simple design"
+      expiry_context: "新鮮な状態"
+      
+    neutral:
+      emoji: "😐"
+      current_prompt: "neutral expression, slightly concerned, pastel colors, chibi style, simple design"
+      expiry_context: "やや心配な状態"
+      
+    worried:
+      emoji: "😟"
+      current_prompt: "worried expression, sweat drops, muted colors, looking anxious, chibi style, simple design"
+      expiry_context: "心配な状態"
+      
+    panicking:
+      emoji: "😰"
+      current_prompt: "very worried and panicking, dark shadows, urgent expression, chibi style, simple design"
+      expiry_context: "パニック状態"
+      
+    expired:
+      emoji: "💀"
+      current_prompt: "zombie-like appearance, expired and spooky, dark colors, ghost-like, chibi style, simple design"
+      expiry_context: "期限切れ状態"
+
+  identified_problems:
+    text_appearance:
+      issue: "商品名がプロンプトに直接含まれることで画像内に文字として表示される"
+      impact: "画像の見た目が損なわれ、キャラクターの魅力が低下"
+      examples:
+        - "りんご"
+        - "牛乳"
+        - "パン"
+      
+    insufficient_haze_expression:
+      issue: "賞味期限の短縮に伴うもやの表現が不十分"
+      current_state: "dark shadows のみで、濃いもやの段階的表現がない"
+      missing_elements:
+        - "軽いもや (😐)"
+        - "中程度のもや (😟)"
+        - "濃いもや (😰)"
+        - "非常に濃いもや (💀)"
+
+  technical_context:
+    api: "Vertex AI Imagen API"
+    model: "imagen-3.0-generate-001"
+    parameters:
+      aspect_ratio: "1:1"
+      sample_count: 1
+      add_watermark: false
+      safety_filter_level: "block_none"
+      person_generation: "dont_allow"
+
+  fallback_mechanism:
+    when_api_fails: "フォールバック画像を使用"
+    fallback_images:
+      - "assets/images/happy_food.png"
+      - "assets/images/neutral_food.png"
+      - "assets/images/worried_food.png"
+      - "assets/images/panicking_food.png"
+      - "assets/images/expired_food.png"
+
+  cache_system:
+    implementation: "メモリベースのキャッシュ"
+    cache_key: "${productName}_$emotionState"
+    methods:
+      - getCachedOrGenerateImage
+      - clearCache
+
+strengths:
+  - emotion_based_generation: "感情状態に基づく適切な画像生成"
+  - kawaii_aesthetic: "かわいい日本のマスコットキャラクター風"
+  - fallback_system: "API失敗時の適切なフォールバック"
+  - caching: "効率的なキャッシュシステム"
+
+weaknesses:
+  - text_rendering: "商品名の文字表示問題"
+  - limited_haze_progression: "もやの段階的表現の不足"
+  - generic_character: "商品固有の特徴表現の不足"
+  - static_prompts: "固定的なプロンプト構造"
