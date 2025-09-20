@@ -34,7 +34,7 @@ class AdaptiveScaffold extends StatelessWidget {
       navigationBar: appBar is CupertinoNavigationBar ? appBar as CupertinoNavigationBar : null,
       child: Column(
         children: [
-          if (appBar != null && appBar is! CupertinoNavigationBar) 
+          if (appBar != null && appBar is! CupertinoNavigationBar)
             appBar!,
           Expanded(
             child: body ?? const SizedBox.shrink(),
@@ -78,7 +78,7 @@ class AdaptiveAppBar extends StatelessWidget implements PreferredSizeWidget {
       return CupertinoNavigationBar(
         middle: title,
         leading: leading,
-        trailing: actions != null && actions!.isNotEmpty 
+        trailing: actions != null && actions!.isNotEmpty
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: actions!,

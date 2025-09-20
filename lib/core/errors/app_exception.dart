@@ -49,9 +49,9 @@ class ScannerException extends AppException {
 /// API関連の例外
 class ApiException extends AppException {
   final int? statusCode;
-  
+
   const ApiException(super.message, {this.statusCode, super.details, super.stackTrace, super.errorCode});
-  
+
   @override
   String toString() {
     final parts = ['ApiException: $message'];

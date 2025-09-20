@@ -1,5 +1,4 @@
 import 'package:barcode_scanner/core/utils/result.dart';
-import 'package:barcode_scanner/core/errors/failures.dart';
 import '../repositories/auth_repository.dart';
 
 /// サインアウトのユースケース

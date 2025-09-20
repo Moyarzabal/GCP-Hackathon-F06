@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 /// Simple logger with different levels
 class Logger {
   static const String _prefix = '[BarcodeScanner]';
-  
+
   /// Log debug message (only in debug mode)
   static void debug(String message, [Object? error, StackTrace? stackTrace]) {
     if (kDebugMode) {
