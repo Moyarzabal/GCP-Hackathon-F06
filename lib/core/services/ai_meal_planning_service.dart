@@ -232,7 +232,27 @@ JSON形式で回答（簡潔に）：
     "ingredients": [
       {"name": "豚こま肉", "quantity": 150, "unit": "g", "available": true, "priority": "urgent"},
       {"name": "玉ねぎ", "quantity": 0.5, "unit": "個", "available": true, "priority": "urgent"}
-    ]
+    ],
+    "recipe": {
+      "steps": [
+        "豚こま肉を一口大に切る",
+        "玉ねぎを薄切りにする",
+        "フライパンに油を熱し、豚肉を炒める",
+        "玉ねぎを加えてさらに炒める",
+        "醤油とみりんで味付けする"
+      ],
+      "tips": [
+        "豚肉は強火で一気に炒める",
+        "玉ねぎはしんなりするまで炒める"
+      ]
+    },
+    "nutritionInfo": {
+      "calories": 320,
+      "protein": 25.5,
+      "carbs": 8.2,
+      "fat": 18.3,
+      "fiber": 2.1
+    }
   },
   "alternativeMainDish": {
     "name": "鶏むね肉の照り焼き",
@@ -241,7 +261,26 @@ JSON形式で回答（簡潔に）：
     "difficulty": "easy",
     "ingredients": [
       {"name": "鶏むね肉", "quantity": 200, "unit": "g", "available": false, "priority": "fresh"}
-    ]
+    ],
+    "recipe": {
+      "steps": [
+        "鶏むね肉を一口大に切る",
+        "醤油、みりん、砂糖でタレを作る",
+        "フライパンで鶏肉を焼く",
+        "タレを加えて絡める"
+      ],
+      "tips": [
+        "鶏肉は中火でじっくり焼く",
+        "タレは煮詰めすぎないよう注意"
+      ]
+    },
+    "nutritionInfo": {
+      "calories": 280,
+      "protein": 28.0,
+      "carbs": 12.5,
+      "fat": 12.8,
+      "fiber": 0.8
+    }
   },
   "sideDish": {
     "name": "キャベツの塩昆布和え",
@@ -250,7 +289,25 @@ JSON形式で回答（簡潔に）：
     "difficulty": "easy",
     "ingredients": [
       {"name": "キャベツ", "quantity": 0.25, "unit": "個", "available": true, "priority": "urgent"}
-    ]
+    ],
+    "recipe": {
+      "steps": [
+        "キャベツを千切りにする",
+        "塩昆布と混ぜ合わせる",
+        "少し時間をおいて味をなじませる"
+      ],
+      "tips": [
+        "キャベツは細く切ると食感が良い",
+        "塩昆布の量はお好みで調整"
+      ]
+    },
+    "nutritionInfo": {
+      "calories": 45,
+      "protein": 2.1,
+      "carbs": 8.5,
+      "fat": 0.3,
+      "fiber": 3.2
+    }
   },
   "alternativeSideDish": {
     "name": "じゃがいものバター炒め",
@@ -259,7 +316,26 @@ JSON形式で回答（簡潔に）：
     "difficulty": "easy",
     "ingredients": [
       {"name": "じゃがいも", "quantity": 2, "unit": "個", "available": true, "priority": "urgent"}
-    ]
+    ],
+    "recipe": {
+      "steps": [
+        "じゃがいもを薄切りにする",
+        "フライパンでバターを溶かす",
+        "じゃがいもを炒める",
+        "塩コショウで味付けする"
+      ],
+      "tips": [
+        "じゃがいもは水にさらしてから炒める",
+        "バターは焦がさないよう注意"
+      ]
+    },
+    "nutritionInfo": {
+      "calories": 180,
+      "protein": 3.2,
+      "carbs": 28.5,
+      "fat": 6.8,
+      "fiber": 2.5
+    }
   },
   "soup": {
     "name": "豆腐とわかめの味噌汁",
@@ -268,7 +344,26 @@ JSON形式で回答（簡潔に）：
     "difficulty": "easy",
     "ingredients": [
       {"name": "豆腐", "quantity": 0.5, "unit": "丁", "available": true, "priority": "urgent"}
-    ]
+    ],
+    "recipe": {
+      "steps": [
+        "だし汁を沸騰させる",
+        "豆腐を一口大に切って入れる",
+        "わかめを加える",
+        "味噌を溶き入れて完成"
+      ],
+      "tips": [
+        "味噌は最後に入れて沸騰させない",
+        "わかめは戻しすぎないよう注意"
+      ]
+    },
+    "nutritionInfo": {
+      "calories": 85,
+      "protein": 6.8,
+      "carbs": 4.2,
+      "fat": 4.1,
+      "fiber": 1.8
+    }
   },
   "alternativeSoup": {
     "name": "野菜たっぷりコンソメスープ",
@@ -277,7 +372,26 @@ JSON形式で回答（簡潔に）：
     "difficulty": "easy",
     "ingredients": [
       {"name": "にんじん", "quantity": 0.5, "unit": "本", "available": true, "priority": "urgent"}
-    ]
+    ],
+    "recipe": {
+      "steps": [
+        "野菜を一口大に切る",
+        "コンソメスープを沸騰させる",
+        "野菜を加えて煮込む",
+        "塩コショウで味を整える"
+      ],
+      "tips": [
+        "野菜は火の通りにくいものから入れる",
+        "煮込みすぎないよう注意"
+      ]
+    },
+    "nutritionInfo": {
+      "calories": 65,
+      "protein": 2.1,
+      "carbs": 12.8,
+      "fat": 1.2,
+      "fiber": 3.5
+    }
   },
   "rice": {
     "name": "白米",
@@ -286,7 +400,26 @@ JSON形式で回答（簡潔に）：
     "difficulty": "easy",
     "ingredients": [
       {"name": "米", "quantity": 2, "unit": "合", "available": false, "priority": "fresh"}
-    ]
+    ],
+    "recipe": {
+      "steps": [
+        "米を研ぐ",
+        "水加減を調整する",
+        "炊飯器で炊く",
+        "蒸らして完成"
+      ],
+      "tips": [
+        "米は優しく洗う",
+        "炊き上がり後はしっかり蒸らす"
+      ]
+    },
+    "nutritionInfo": {
+      "calories": 320,
+      "protein": 6.0,
+      "carbs": 68.0,
+      "fat": 0.8,
+      "fiber": 1.2
+    }
   },
   "alternativeRice": {
     "name": "チャーハン",
@@ -295,7 +428,27 @@ JSON形式で回答（簡潔に）：
     "difficulty": "easy",
     "ingredients": [
       {"name": "ご飯", "quantity": 2, "unit": "合", "available": false, "priority": "fresh"}
-    ]
+    ],
+    "recipe": {
+      "steps": [
+        "ご飯をほぐしておく",
+        "卵を炒める",
+        "野菜を炒める",
+        "ご飯を加えて炒め合わせる",
+        "調味料で味付けする"
+      ],
+      "tips": [
+        "ご飯は冷たいものを使う",
+        "強火で手早く炒める"
+      ]
+    },
+    "nutritionInfo": {
+      "calories": 380,
+      "protein": 12.5,
+      "carbs": 58.0,
+      "fat": 10.2,
+      "fiber": 2.8
+    }
   },
   "shoppingList": {
     "requiredIngredients": [
@@ -316,6 +469,7 @@ JSON形式で回答（簡潔に）：
 - 具体的な料理名を提案してください
 - 必ずshoppingListフィールドを含めてください
 - 冷蔵庫にない食材は全てshoppingListに含めてください
+- 各メニュー項目には必ずrecipe（調理手順とコツ）とnutritionInfo（栄養情報）を含めてください
 ''';
   }
 
