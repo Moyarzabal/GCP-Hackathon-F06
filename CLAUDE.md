@@ -4,11 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Flutter iOS/Android native application** (with Web support) for refrigerator management with barcode scanning and AI features. The app is primarily targeted for **iOS App Store** and Google Play Store distribution, focusing on food waste reduction through gamified expiry date tracking.
+This is a **Flutter iOS/Android native application** for refrigerator management with barcode scanning and AI features. The app is primarily targeted for **iOS App Store** and Google Play Store distribution, focusing on food waste reduction through gamified expiry date tracking with character-based visualization.
 
-**Primary Platform**: iOS (App Store)  
-**Secondary Platform**: Android (Google Play)  
-**Tertiary Platform**: Web (Firebase Hosting)
+**Primary Platform**: iOS (App Store)
+**Secondary Platform**: Android (Google Play)
+**Web Support**: Deprecated (maintenance only)
+
+### Key Features
+- 📸 **Barcode Scanning**: ML Kit barcode scanner for product registration
+- 🤖 **AI OCR**: Automatic expiry date reading with ML Kit text recognition
+- 🎨 **3D Fridge Visualization**: Interactive 3D refrigerator UI with layered sections
+- 🍳 **AI Meal Planning**: Gemini-powered recipe suggestions based on expiring items
+- 👨‍👩‍👧‍👦 **Household Management**: Multi-user family sharing functionality
+- 📊 **Product Management**: Complete CRUD operations with Firestore backend
+- 🛒 **Shopping List**: Smart shopping list generation based on consumption patterns
 
 ## Common Development Commands
 
@@ -121,34 +130,56 @@ flutter test integration_test
 
 ## Architecture & Code Structure
 
-### Platform-Aware Architecture
+### Current Project Architecture
 ```
 lib/
-├── app.dart                    # Main application widget & navigation
-├── main.dart                   # Entry point with platform detection
+├── app.dart                    # Main application with adaptive navigation
+├── main.dart                   # Entry point with Firebase initialization
 ├── core/                       # Foundation layer
-│   ├── constants/             # App-wide constants (colors, themes)
-│   ├── config/                # Firebase & platform-specific configs
-│   ├── services/              # Service integrations
-│   └── platform/              # Platform-specific implementations
-│       ├── ios/              # iOS-specific code
-│       ├── android/          # Android-specific code
-│       └── web/              # Web-specific code
+│   ├── constants/             # App colors, themes, constants
+│   ├── config/                # Firebase configuration
+│   ├── errors/                # Error handling & global exception management
+│   ├── platform/              # Platform detection utilities
+│   ├── security/              # API key management & secure storage
+│   ├── services/              # Core service integrations
+│   │   ├── firestore_service.dart
+│   │   ├── auth_service.dart
+│   │   ├── gemini_service.dart
+│   │   ├── ocr_service.dart
+│   │   ├── imagen_service.dart
+│   │   └── multi_agent_meal_planning_service.dart
+│   └── utils/                 # Logging & helper utilities
 ├── features/                   # Feature modules (vertical slices)
-│   ├── auth/                  # Authentication (biometric for mobile)
-│   ├── home/                  # Home screen with product list
-│   ├── scanner/               # Barcode scanning (optimized for mobile)
-│   ├── products/              # Product management
-│   ├── household/             # Family sharing
-│   ├── history/               # Scan history
-│   └── settings/              # App settings (platform-specific)
-└── shared/                     # Cross-feature shared code
-    ├── models/                # Domain models
-    ├── widgets/               # Reusable UI components
-    │   ├── adaptive/         # Platform-adaptive widgets
-    │   └── common/           # Common widgets
-    ├── utils/                 # Helper functions
-    └── providers/             # State management (Riverpod)
+│   ├── auth/                  # Firebase authentication
+│   ├── home/                  # Home screen with 3D fridge view
+│   ├── fridge/                # 3D refrigerator visualization
+│   │   ├── providers/         # Fridge state management
+│   │   └── widgets/           # 3D fridge components
+│   │       ├── layered_3d_fridge_widget.dart
+│   │       ├── tesla_style_fridge_widget.dart
+│   │       ├── realistic_fridge_widget.dart
+│   │       └── futuristic_3d_fridge_widget.dart
+│   ├── scanner/               # ML Kit barcode scanner
+│   ├── products/              # Product CRUD operations
+│   ├── meal_planning/         # AI-powered meal planning
+│   │   ├── providers/         # Meal plan state management
+│   │   └── widgets/           # Meal plan UI components
+│   ├── household/             # Family sharing functionality
+│   ├── history/               # Scan & usage history
+│   └── settings/              # App configuration
+├── shared/                     # Cross-feature shared code
+│   ├── models/                # Domain models
+│   │   ├── product.dart
+│   │   ├── meal_plan.dart
+│   │   ├── shopping_item.dart
+│   │   └── category.dart
+│   ├── providers/             # Global state management (Riverpod)
+│   ├── widgets/               # Reusable UI components
+│   │   ├── adaptive/         # Platform-adaptive widgets
+│   │   └── common/           # Common widgets
+│   └── utils/                 # Helper functions
+├── routes/                     # App routing configuration
+└── simple/                     # Legacy/simple UI components
 ```
 
 ### Key Platform Differences
@@ -164,13 +195,20 @@ lib/
 
 ## Current Features & Implementation Status
 
-### ✅ Implemented (All Platforms)
-- Firebase Authentication (Google/Apple/Email)
-- Cloud Firestore data persistence
-- ML Kit barcode scanning
-- Open Food Facts API integration
-- Gemini API for recipe suggestions
-- Family sharing functionality
+### ✅ Implemented Features
+- **Authentication**: Firebase Auth with Google/Apple/Email login
+- **Database**: Cloud Firestore for product & user data persistence
+- **Barcode Scanning**: ML Kit barcode scanning with mobile_scanner
+- **OCR**: ML Kit text recognition for expiry date extraction
+- **Product Database**: Open Food Facts API integration
+- **AI Services**: Google Gemini API for recipe & meal planning
+- **3D Visualization**: Multiple 3D fridge UI styles (Tesla, Realistic, Futuristic)
+- **Meal Planning**: AI-powered meal suggestions with shopping lists
+- **Family Sharing**: Household management with multi-user support
+- **Product Management**: Complete CRUD with expiry tracking
+- **History Tracking**: Scan history and product usage analytics
+- **Error Handling**: Global error management with secure logging
+- **Security**: Secure API key management with encrypted storage
 
 ### 🚧 iOS-Specific Features (Priority)
 - [ ] Face ID/Touch ID authentication
@@ -221,48 +259,79 @@ class FirebaseConfig {
 }
 ```
 
-## Dependencies (Updated for Mobile)
+## Dependencies (Current Implementation)
 
 Key packages from `pubspec.yaml`:
 ```yaml
 dependencies:
-  # Core
+  # Core Framework
   flutter:
     sdk: flutter
-  
-  # Platform Detection
-  universal_platform: ^1.1.0
-  
-  # Firebase (all platforms)
+  cupertino_icons: ^1.0.8
+  material_design_icons_flutter: ^7.0.7296
+
+  # Firebase Stack
   firebase_core: ^3.15.2
   firebase_auth: ^5.3.3
   cloud_firestore: ^5.5.1
   firebase_storage: ^12.3.7
-  firebase_messaging: ^15.1.5
-  
+
   # State Management
   flutter_riverpod: ^2.6.1
-  
-  # Camera & ML (optimized for mobile)
+
+  # Camera & ML Kit
   mobile_scanner: ^7.0.1
-  google_mlkit_text_recognition: ^0.15.0
-  google_mlkit_barcode_scanning: ^0.14.0
-  
-  # iOS Specific
-  cupertino_icons: ^1.0.8
-  
-  # Biometric Auth
-  local_auth: ^2.3.0
-  
-  # Local Storage
-  sqflite: ^2.4.2
+
+  # HTTP & API Integration
+  http: ^1.2.2
+  dio: ^5.4.0
+
+  # Google AI Services
+  google_generative_ai: ^0.4.0
+
+  # Utilities
+  intl: ^0.19.0
+  uuid: ^4.5.1
   path_provider: ^2.1.5
-  
-  # Permissions
+  shared_preferences: ^2.3.3
+  url_launcher: ^6.3.1
+  flutter_dotenv: ^5.1.0
+  equatable: ^2.0.5
+
+  # Platform & Device Info
+  universal_platform: ^1.1.0
+  device_info_plus: ^10.1.2
+
+  # Local Database
+  sqflite: ^2.4.0
+
+  # Security & Permissions
   permission_handler: ^11.3.1
-  
-  # Platform UI
-  flutter_platform_widgets: ^7.0.1
+  flutter_secure_storage: ^9.2.2
+  crypto: ^3.0.5
+
+  # UI Components
+  table_calendar: ^3.1.3
+
+  # Logging
+  logging: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+  # Testing
+  mockito: ^5.4.4
+  build_runner: ^2.4.9
+  fake_cloud_firestore: ^3.0.3
+  firebase_auth_mocks: ^0.14.1
+
+  # Integration Testing
+  integration_test:
+    sdk: flutter
+  flutter_driver:
+    sdk: flutter
 ```
 
 ## Development Methodology (Mobile-First)
@@ -312,49 +381,39 @@ flutter test --update-goldens
 - [ ] Data safety form
 - [ ] Internal testing track
 
-## Available Subagents (Updated for Mobile)
+## Specialized Development Areas
 
-### 🤖 Configured Subagents
+### 🎨 3D Fridge Visualization
+The app features multiple 3D refrigerator visualization styles:
+- **Tesla Style**: Modern, minimalist 3D fridge with clean lines
+- **Realistic Style**: Photorealistic refrigerator rendering
+- **Futuristic Style**: Sci-fi inspired 3D visualization
+- **Layered 3D**: Interactive layered fridge with door/shelf animations
 
-1. **ios-app-developer** - iOS開発専門家
-   - Swift/Objective-C bridge実装
-   - iOS固有機能の実装
-   - App Store最適化
-   - TestFlight配信管理
+### 🤖 AI Integration
+- **Gemini API**: Recipe generation and meal planning
+- **Multi-Agent System**: Enhanced meal planning with specialized AI agents
+- **OCR Service**: ML Kit text recognition for expiry dates
+- **Image Generation**: Product visualization and character creation
 
-2. **android-app-developer** - Android開発専門家
-   - Kotlin/Java実装
-   - Material Design 3対応
-   - Google Play最適化
-   - Play Console管理
+### 🏗 Architecture Patterns
+- **Clean Architecture**: Separation of concerns with clear layer boundaries
+- **Riverpod State Management**: Reactive state management across features
+- **Repository Pattern**: Data abstraction with Firebase integration
+- **Service Locator**: Dependency injection for core services
+- **Error Handling**: Global error management with user-friendly messaging
 
-3. **flutter-mobile-optimizer** - モバイル最適化
-   - パフォーマンスチューニング
-   - バッテリー消費最適化
-   - オフライン対応実装
-   - プラットフォーム別UI実装
+### 📱 Mobile-Specific Features
+- **Adaptive UI**: Platform-aware navigation and styling
+- **Camera Integration**: Native camera access for barcode scanning
+- **Secure Storage**: Encrypted API key and sensitive data storage
+- **Offline Support**: Local database with sync capabilities
+- **Performance Optimization**: 60fps animations and efficient rendering
 
-4. **app-store-publisher** - ストア公開支援
-   - ASO (App Store Optimization)
-   - スクリーンショット生成
-   - メタデータ管理
-   - 審査対策アドバイス
+## Testing & Development
 
-5. **mobile-test-engineer** - モバイルテスト
-   - デバイステスト自動化
-   - UI/UXテスト
-   - パフォーマンステスト
-   - クラッシュ分析
-
-6. **firebase-mobile-specialist** - Firebase Mobile SDK
-   - Crashlytics設定
-   - Performance Monitoring
-   - Remote Config
-   - A/Bテスト設定
-
-## Testing Barcode Values
-
-Supported JANs for testing (works on all platforms):
+### Test Barcode Values
+Supported JANs for testing:
 - 4901777018888: コカ・コーラ 500ml
 - 4902220770199: ポカリスエット 500ml
 - 4901005202078: カップヌードル
@@ -363,6 +422,30 @@ Supported JANs for testing (works on all platforms):
 - 4901005200074: どん兵衛
 - 4901551354313: カルピスウォーター
 - 4901777018871: ファンタオレンジ
+
+### Test Coverage
+- **Unit Tests**: Core services and business logic
+- **Widget Tests**: UI component functionality
+- **Integration Tests**: End-to-end user flows
+- **Mock Testing**: Firebase services and external APIs
+
+### Development Commands
+```bash
+# Run all tests
+flutter test
+
+# Run integration tests
+flutter test integration_test
+
+# Generate mocks
+flutter packages pub run build_runner build
+
+# Check for linting issues
+flutter analyze
+
+# Format code
+flutter format .
+```
 
 ## Platform-Specific Features Priority
 
