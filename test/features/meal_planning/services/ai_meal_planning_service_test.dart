@@ -5,14 +5,14 @@ import '../../../../lib/core/services/ai_meal_planning_service.dart';
 import '../../../../lib/shared/models/product.dart';
 import '../../../../lib/shared/models/meal_plan.dart';
 
-import 'ai_meal_planning_service_test.mocks.dart';
+// import 'ai_meal_planning_service_test.mocks.dart';
 
 @GenerateMocks([AIMealPlanningService])
 void main() {
   group('AIMealPlanningService', () {
     late AIMealPlanningService service;
     late List<Product> mockProducts;
-    late UserPreferences mockPreferences;
+    // late UserPreferences mockPreferences;
 
     setUp(() {
       service = AIMealPlanningService(
