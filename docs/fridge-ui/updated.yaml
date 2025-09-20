@@ -1,0 +1,32 @@
+name: InteractiveFridgeUI
+version: 0.1.0
+updated_at: 2025-09-11
+
+summary:
+  phase: 1+2 部分
+  scope: 俯瞰図 + セクション遷移 + location(メモリのみ) + 俯瞰図バッジ
+
+changes:
+  models:
+    - Product.location を追加（compartment/level/position）
+    - 列挙 FridgeCompartment を導入
+  providers:
+    - fridgeViewProvider: 表示モード（list|fridge）、選択セクション管理、選択セクションの商品抽出
+  ui:
+    - HomeScreen: SegmentedButtonで表示モード切替、AnimatedSwitcher導入
+    - FridgeOverviewWidget: 4段+両開きポケットのタップ領域、件数バッジ表示、LayoutBuilder対応
+    - FridgeSectionView: 選択セクションの商品一覧 + 件数
+
+acceptance_criteria:
+  - リスト⇄冷蔵庫を切替できる
+  - セクションをタップすると該当商品のみが表示される
+  - 既存の詳細への遷移が動作する
+
+next:
+  phase2:
+    - ドラッグ&ドロップ移動
+    - InteractiveViewerでパン/ズーム
+    - 期限の警告色バッジ（件数に加え）
+  phase3:
+    - Firestoreへのlocation永続化
+    - 家族共有との整合

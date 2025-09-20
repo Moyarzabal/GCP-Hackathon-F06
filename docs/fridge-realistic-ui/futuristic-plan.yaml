@@ -1,0 +1,90 @@
+name: FuturisticFridgeUI
+version: 2.0.0-futuristic
+goal: 3D遠近法とホログラム風エフェクトを駆使した近未来的冷蔵庫UIを実装し、SF映画のような没入感を提供する
+
+vision:
+  theme: サイバーパンク × ミニマル
+  colors:
+    - primary: 電子ブルー (#00E5FF)
+    - accent: ネオングリーン (#64FFDA)
+    - surface: ダークメタル (#263238)
+    - glow: ホログラムシアン (#18FFFF)
+  materials:
+    - 透明ガラス風パネル
+    - 発光エッジライン
+    - 浮遊ホログラム表示
+    - パーティクルエフェクト
+
+user_stories:
+  - id: FRIDGE-3D-01
+    as: ユーザー
+    want: 3D遠近法で奥行きのある冷蔵庫を見たい
+    so_that: 実際の冷蔵庫以上にリアルで未来的な体験ができる
+  - id: FRIDGE-3D-02
+    as: ユーザー
+    want: 扉が光って開き、内部が光る
+    so_that: SF映画のような演出で楽しめる
+  - id: FRIDGE-3D-03
+    as: ユーザー
+    want: ホログラム風のUI要素とパーティクル
+    so_that: 近未来感を味わえる
+  - id: FRIDGE-3D-04
+    as: ユーザー
+    want: 音響効果とハプティクス
+    so_that: 五感で未来的な操作感を体験できる
+
+3d_architecture:
+  perspective:
+    fov: 45度
+    vanishing_point: 中央下部
+    depth_layers: [背景, 本体, 扉, ホログラムUI, パーティクル]
+  lighting:
+    ambient: 暗めの環境光
+    point_lights:
+      - 内部LED (白/青)
+      - エッジライト (シアン)
+      - ホログラム発光 (緑/青)
+  materials:
+    glass_shader: 透明度 + 反射 + 屈折
+    metal_shader: アニソトロピック反射
+    hologram_shader: 発光 + ノイズ + 透明度
+
+animations:
+  door_opening:
+    duration: 400ms
+    curve: elasticOut
+    effects:
+      - 3D回転 (Y軸)
+      - エッジ発光強化
+      - 内部照明フェードイン
+      - パーティクル放出
+  drawer_slide:
+    duration: 350ms
+    curve: bounceOut
+    effects:
+      - 3D平行移動 (Z軸)
+      - ガラス面反射
+      - 蒸気エフェクト
+  hologram_ui:
+    duration: continuous
+    effects:
+      - スキャンライン
+      - グリッチノイズ
+      - 浮遊アニメーション
+
+components:
+  - Futuristic3DFridgePainter: 3D遠近法レンダリング
+  - HologramUIOverlay: ホログラム風UI要素
+  - ParticleSystem: パーティクルエフェクト
+  - AudioManager: SF音響効果
+  - HapticsController: 触覚フィードバック
+
+performance_targets:
+  fps: 60fps (3Dエフェクト込み)
+  battery: 通常使用時の1.2倍以下
+  memory: 追加50MB以下
+
+accessibility:
+  high_contrast: ホログラム色を調整可能
+  reduced_motion: エフェクト簡略化モード
+  audio_cues: 視覚効果の音声説明
