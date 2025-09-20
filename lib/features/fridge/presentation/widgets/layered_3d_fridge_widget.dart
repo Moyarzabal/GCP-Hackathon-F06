@@ -224,34 +224,35 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
     super.dispose();
   }
 
-  void _toggleLeftDoor() async {
+  void _toggleBothDoors() async {
+    // どちらか一方でも開いている場合は閉じる、両方閉じている場合は開く
+    final bool shouldOpen = !_leftDoorOpen && !_rightDoorOpen;
+
     setState(() {
-      _leftDoorOpen = !_leftDoorOpen;
+      _leftDoorOpen = shouldOpen;
+      _rightDoorOpen = shouldOpen;
     });
-    
-    if (_leftDoorOpen) {
+
+    if (shouldOpen) {
       // 扉が開く時の微小な抵抗感をシミュレート
       await Future.delayed(const Duration(milliseconds: 50));
+      // 左右の扉を同時に開く
       _leftDoorController.forward();
+      _rightDoorController.forward();
     } else {
-      // 扉が閉まる時はより素早く
+      // 扉が閉まる時はより素早く、同時に閉める
       _leftDoorController.reverse();
+      _rightDoorController.reverse();
     }
   }
 
-  void _toggleRightDoor() async {
-    setState(() {
-      _rightDoorOpen = !_rightDoorOpen;
-    });
+  // 後方互換性のため残しておく（統一されたハンドラーを呼び出す）
+  void _toggleLeftDoor() {
+    _toggleBothDoors();
+  }
 
-    if (_rightDoorOpen) {
-      // 扉が開く時の微小な抵抗感をシミュレート
-      await Future.delayed(const Duration(milliseconds: 50));
-      _rightDoorController.forward();
-    } else {
-      // 扉が閉まる時はより素早く
-      _rightDoorController.reverse();
-    }
+  void _toggleRightDoor() {
+    _toggleBothDoors();
   }
 
   // 2段目: 左分割セクション開閉メソッド
