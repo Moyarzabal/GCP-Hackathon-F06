@@ -14,7 +14,7 @@ import '../../../fridge/presentation/providers/fridge_view_provider.dart';
 import '../../../fridge/presentation/pages/fridge_section_view.dart';
 // import '../../../fridge/presentation/widgets/realistic_fridge_widget.dart';
 // import '../../../fridge/presentation/widgets/tesla_style_fridge_widget.dart';
-import '../../../fridge/presentation/widgets/layered_3d_fridge_widget.dart';
+import '../../../fridge/presentation/widgets/enhanced_fridge_widget.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -236,7 +236,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       children: [
         if (state.selectedSection == null)
           Expanded(
-            child: Layered3DFridgeWidget(
+            child: EnhancedFridgeWidget(
               onSectionTap: (compartment, level) {
                 notifier.selectSection(SelectedFridgeSection(compartment: compartment, level: level));
               },
