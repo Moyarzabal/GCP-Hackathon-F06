@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/models/product.dart';
 import '../../presentation/providers/fridge_view_provider.dart';
+import '../providers/drawer_state_provider.dart';
 import '../../../products/presentation/pages/product_detail_screen.dart';
 import '../../../home/presentation/widgets/product_card.dart';
 
@@ -25,7 +26,12 @@ class FridgeSectionView extends ConsumerWidget {
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => notifier.clearSelection(),
+                onPressed: () {
+                  // 冷蔵庫セクション選択をクリア
+                  notifier.clearSelection();
+                  // 引き出し状態を正面ビューにリセット
+                  ref.read(drawerStateProvider.notifier).backToFrontView();
+                },
               ),
               Text(title, style: Theme.of(context).textTheme.titleMedium),
               const Spacer(),

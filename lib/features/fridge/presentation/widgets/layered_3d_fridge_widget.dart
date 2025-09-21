@@ -644,6 +644,8 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
       await Future.delayed(const Duration(milliseconds: 20));
       _vegetableDrawerController.forward();
     } else {
+      // 引き出しを閉じる時は正面ビューに戻る
+      ref.read(drawerStateProvider.notifier).backToFrontView();
       _vegetableDrawerController.reverse();
     }
   }
@@ -662,6 +664,8 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
       await Future.delayed(const Duration(milliseconds: 20));
       _freezerDrawerController.forward();
     } else {
+      // 引き出しを閉じる時は正面ビューに戻る
+      ref.read(drawerStateProvider.notifier).backToFrontView();
       _freezerDrawerController.reverse();
     }
   }
