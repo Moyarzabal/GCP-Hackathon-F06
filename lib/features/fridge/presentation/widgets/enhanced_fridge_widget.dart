@@ -32,6 +32,8 @@ class EnhancedFridgeWidget extends ConsumerWidget {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (drawerState.openDrawer != null) {
             onSectionTap(drawerState.openDrawer!.compartment, drawerState.openDrawer!.level);
+            // innerView状態をクリアして、次回の正常な遷移のため
+            ref.read(drawerStateProvider.notifier).backToFrontView();
           }
         });
         return Container(); // 即座にリスト画面に遷移するので空コンテナ
