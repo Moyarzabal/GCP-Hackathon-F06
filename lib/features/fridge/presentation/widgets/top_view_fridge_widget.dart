@@ -95,15 +95,27 @@ class _TopViewFridgeWidgetState extends ConsumerState<TopViewFridgeWidget>
             ),
             // 戻るボタン
             Positioned(
-              top: 40,
+              top: MediaQuery.of(context).padding.top + 10,
               left: 20,
-              child: FloatingActionButton(
-                mini: true,
-                onPressed: () {
-                  ref.read(drawerStateProvider.notifier).backToFrontView();
-                },
-                backgroundColor: Colors.white.withOpacity(0.9),
-                child: const Icon(Icons.arrow_back, color: Colors.black87),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    ref.read(drawerStateProvider.notifier).backToFrontView();
+                  },
+                  icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                  iconSize: 24,
+                ),
               ),
             ),
           ],
@@ -161,9 +173,9 @@ class _TopViewFridgeWidgetState extends ConsumerState<TopViewFridgeWidget>
 
     // 下方向に引き出された引き出しの位置
     final drawerTop = isVegetableDrawer
-        ? drawerAreaTop + drawerAreaHeight * 0.1  // 野菜室
-        : drawerAreaTop + drawerAreaHeight * 0.6; // 冷凍庫
-    final drawerHeight = drawerAreaHeight * 0.9; // 下に延びた引き出しの高さ
+        ? drawerAreaTop + drawerAreaHeight * 0.3  // 野菜室
+        : drawerAreaTop + drawerAreaHeight * 0.8; // 冷凍庫
+    final drawerHeight = drawerAreaHeight * 1.1; // 下に延びた引き出しの高さ
     final isHovered = _hoveredDrawer == drawerInfo;
 
     return Positioned(
@@ -513,12 +525,12 @@ class EnhancedTopViewFridgePainter extends CustomPainter {
     // 冷蔵庫本体から下に延びた引き出し
     final RRect drawerRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(
-        fridgeLeft + (fridgeWidth * 0.05),  // 冷蔵庫の内側マージン
-        drawerSlotTop + drawerSlotHeight * 0.2,  // 下方向に引き出された位置
-        fridgeWidth * 0.9,                  // 引き出しの幅
-        drawerSlotHeight * 1.8,             // 下に延びた引き出しの長さ
+        fridgeLeft + (fridgeWidth * 0.1),   // 冷蔵庫の内側マージン
+        drawerSlotTop + drawerSlotHeight * 0.3,  // 下方向に引き出された位置
+        fridgeWidth * 0.8,                  // 引き出しの幅
+        drawerSlotHeight * 2.2,             // 下に延びた引き出しの長さ（より長く）
       ),
-      const Radius.circular(6),
+      const Radius.circular(8),
     );
 
     // 下方向に引き出された引き出しの立体感を表現する影
@@ -529,12 +541,12 @@ class EnhancedTopViewFridgePainter extends CustomPainter {
 
     final RRect fridgeSlotRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(
-        fridgeLeft + (fridgeWidth * 0.05),
+        fridgeLeft + (fridgeWidth * 0.1),
         drawerSlotTop,
-        fridgeWidth * 0.9,
+        fridgeWidth * 0.8,
         drawerSlotHeight,
       ),
-      const Radius.circular(6),
+      const Radius.circular(8),
     );
 
     canvas.drawRRect(fridgeSlotRect, fridgeSlotShadowPaint);
@@ -555,11 +567,11 @@ class EnhancedTopViewFridgePainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Colors.white,              // 上部（冷蔵庫に近い部分）
-          Colors.grey[50]!,          // 中間上
-          Colors.grey[100]!,         // 中央
-          Colors.grey[150]!,         // 中間下
-          Colors.grey[200]!,         // 下部（奥行き感）
+          const Color(0xFFFAFAFA),   // 上部（明るい）
+          const Color(0xFFF0F0F0),   // 中間上
+          const Color(0xFFE5E5E5),   // 中央
+          const Color(0xFFD8D8D8),   // 中間下
+          const Color(0xFFCCCCCC),   // 下部（より濃い影）
         ],
         stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
       ).createShader(drawerRect.outerRect);
@@ -593,9 +605,9 @@ class EnhancedTopViewFridgePainter extends CustomPainter {
 
     // 外側境界線
     final Paint borderPaint = Paint()
-      ..color = Colors.grey[300]!.withOpacity(0.8)
+      ..color = Colors.grey[600]!.withOpacity(0.9)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 2.5;
 
     canvas.drawRRect(drawerRect, borderPaint);
 
