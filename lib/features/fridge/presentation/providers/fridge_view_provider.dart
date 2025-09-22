@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../shared/models/product.dart';
-import '../../../../shared/models/product.dart'
-    show ProductLocation, FridgeCompartment;
+import '../../../../shared/models/product.dart' show FridgeCompartment;
 import '../../../../shared/providers/app_state_provider.dart';
 
 /// 冷蔵庫内の選択セクション
@@ -25,8 +23,7 @@ class FridgeViewState {
 }
 
 class FridgeViewNotifier extends StateNotifier<FridgeViewState> {
-  final Ref _ref;
-  FridgeViewNotifier(this._ref) : super(const FridgeViewState());
+  FridgeViewNotifier() : super(const FridgeViewState());
 
   void selectSection(SelectedFridgeSection section) {
     state = FridgeViewState(selectedSection: section);
@@ -35,28 +32,11 @@ class FridgeViewNotifier extends StateNotifier<FridgeViewState> {
   void clearSelection() {
     state = const FridgeViewState();
   }
-
-  /// 選択中セクションの商品一覧を返す（Phase1: メモリ内）
-  List<Product> getProductsForSelectedSection() {
-    final all = _ref.read(productsProvider);
-    final section = state.selectedSection;
-    if (section == null) return all;
-    return all.where((p) {
-      final loc = p.location;
-      if (loc == null) {
-        // 位置未設定のプロダクトは冷蔵室 level 0 とみなす（初期互換）
-        return section.compartment == FridgeCompartment.refrigerator &&
-            section.level == 0;
-      }
-      return loc.compartment == section.compartment &&
-          loc.level == section.level;
-    }).toList();
-  }
 }
 
 final fridgeViewProvider =
     StateNotifierProvider<FridgeViewNotifier, FridgeViewState>((ref) {
-  return FridgeViewNotifier(ref);
+  return FridgeViewNotifier();
 });
 
 /// セクション別の件数を計算する派生プロバイダ

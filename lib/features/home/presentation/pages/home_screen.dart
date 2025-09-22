@@ -39,6 +39,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final fridgeState = ref.watch(fridgeViewProvider);
     final fridgeNotifier = ref.watch(fridgeViewProvider.notifier);
+    final isListViewActive = fridgeState.selectedSection != null;
 
     // ソート済みの商品リストを使用
     final products = productState.filteredProducts;
@@ -78,64 +79,62 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               );
             },
           ),
-          // カテゴリ選択アイコン
-          availableCategoriesAsync.when(
-            data: (availableCategories) => PopupMenuButton<String>(
-              icon: const Icon(Icons.filter_list),
-              onSelected: (category) {
-                productNotifier.filterByCategory(category);
+          if (isListViewActive)
+            availableCategoriesAsync.when(
+              data: (availableCategories) => PopupMenuButton<String>(
+                icon: const Icon(Icons.filter_list),
+                onSelected: (category) {
+                  productNotifier.filterByCategory(category);
+                },
+                itemBuilder: (context) => availableCategories.map((category) {
+                  final isSelected = category == productState.selectedCategory;
+                  return PopupMenuItem(
+                    value: category,
+                    child: Row(
+                      children: [
+                        if (isSelected) const Icon(Icons.check, size: 16),
+                        if (isSelected) const SizedBox(width: 8),
+                        Text(category == 'すべて' ? 'すべて' : category),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (error, stack) => const SizedBox.shrink(),
+            ),
+          if (isListViewActive)
+            PopupMenuButton<ProductSortType>(
+              icon: Icon(
+                productState.sortDirection == SortDirection.ascending
+                    ? MdiIcons.sortAscending
+                    : MdiIcons.sortDescending,
+              ),
+              onSelected: (sortType) {
+                productNotifier.setSortType(sortType);
               },
-              itemBuilder: (context) => availableCategories.map((category) {
-                final isSelected = category == productState.selectedCategory;
+              itemBuilder: (context) => ProductSortType.values.map((sortType) {
+                final isSelected = sortType == productState.sortType;
                 return PopupMenuItem(
-                  value: category,
+                  value: sortType,
                   child: Row(
                     children: [
                       if (isSelected) const Icon(Icons.check, size: 16),
                       if (isSelected) const SizedBox(width: 8),
-                      Text(category == 'すべて' ? 'すべて' : category),
+                      Text(sortType.displayName),
+                      const Spacer(),
+                      if (isSelected)
+                        Icon(
+                          productState.sortDirection == SortDirection.ascending
+                              ? MdiIcons.sortAscending
+                              : MdiIcons.sortDescending,
+                          size: 16,
+                        ),
                     ],
                   ),
                 );
               }).toList(),
             ),
-            loading: () => const Icon(Icons.filter_list),
-            error: (error, stack) => const Icon(Icons.error),
-          ),
-          // Material Design Iconsのソートアイコン
-          PopupMenuButton<ProductSortType>(
-            icon: Icon(
-              productState.sortDirection == SortDirection.ascending
-                  ? MdiIcons.sortAscending
-                  : MdiIcons.sortDescending,
-              // color: Theme.of(context).colorScheme.primary,
-            ),
-            onSelected: (sortType) {
-              productNotifier.setSortType(sortType);
-            },
-            itemBuilder: (context) => ProductSortType.values.map((sortType) {
-              final isSelected = sortType == productState.sortType;
-              return PopupMenuItem(
-                value: sortType,
-                child: Row(
-                  children: [
-                    if (isSelected) const Icon(Icons.check, size: 16),
-                    if (isSelected) const SizedBox(width: 8),
-                    Text(sortType.displayName),
-                    const Spacer(),
-                    if (isSelected)
-                      Icon(
-                        productState.sortDirection == SortDirection.ascending
-                            ? MdiIcons.sortAscending
-                            : MdiIcons.sortDescending,
-                        size: 16,
-                        // color: Theme.of(context).colorScheme.primary,
-                      ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
         ],
       ),
       body: Column(
