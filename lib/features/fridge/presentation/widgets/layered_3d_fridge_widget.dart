@@ -6,6 +6,11 @@ import '../../../../shared/models/product.dart';
 import '../../../../shared/providers/app_state_provider.dart';
 import '../providers/fridge_view_provider.dart';
 import '../providers/drawer_state_provider.dart';
+import '../providers/product_position_provider.dart';
+import '../utils/section_bounds_calculator.dart';
+import 'characters/drawer_characters_layer.dart';
+import 'characters/door_characters_layer.dart';
+import 'characters/shelf_characters_layer.dart';
 import 'fridge_shelf_layer.dart';
 import 'fridge_door_layer.dart';
 
@@ -25,7 +30,8 @@ class Layered3DFridgeWidget extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   @override
-  ConsumerState<Layered3DFridgeWidget> createState() => _Layered3DFridgeWidgetState();
+  ConsumerState<Layered3DFridgeWidget> createState() =>
+      _Layered3DFridgeWidgetState();
 }
 
 class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
@@ -52,22 +58,27 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
   String? _activeDrawer;
 
   // アニメーションのゲッター（null安全）
-  Animation<double> get leftDoorAnimation => _leftDoorAnimation ?? _createDefaultAnimation(_leftDoorController);
-  Animation<double> get rightDoorAnimation => _rightDoorAnimation ?? _createDefaultAnimation(_rightDoorController);
-  Animation<double> get vegetableDrawerAnimation => _vegetableDrawerAnimation ?? _createDefaultAnimation(_vegetableDrawerController);
-  Animation<double> get freezerDrawerAnimation => _freezerDrawerAnimation ?? _createDefaultAnimation(_freezerDrawerController);
+  Animation<double> get leftDoorAnimation =>
+      _leftDoorAnimation ?? _createDefaultAnimation(_leftDoorController);
+  Animation<double> get rightDoorAnimation =>
+      _rightDoorAnimation ?? _createDefaultAnimation(_rightDoorController);
+  Animation<double> get vegetableDrawerAnimation =>
+      _vegetableDrawerAnimation ??
+      _createDefaultAnimation(_vegetableDrawerController);
+  Animation<double> get freezerDrawerAnimation =>
+      _freezerDrawerAnimation ??
+      _createDefaultAnimation(_freezerDrawerController);
 
   Animation<double> _createDefaultAnimation(AnimationController controller) {
     return Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOutCubic)
-    );
+        CurvedAnimation(parent: controller, curve: Curves.easeInOutCubic));
   }
 
   /// 画面サイズに基づいた扉の最大開き角度を計算
   double _calculateMaxDoorAngle(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     // スマホサイズ（幅414px以下）では120度開く
     if (screenWidth <= 414) {
       return 2.1; // 約120度 - スマホ用
@@ -108,8 +119,6 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
       duration: const Duration(milliseconds: 600), // 引き出しは扉より早め
     );
 
-
-    
     // 1段目: 大扉のデフォルトアニメーション（レスポンシブ対応は didChangeDependencies で処理）
     _leftDoorAnimation = Tween<double>(
       begin: 0.0,
@@ -149,14 +158,12 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
       parent: _freezerDrawerController,
       curve: Curves.easeOutCubic,
     ));
-
-
   }
-  
+
   /// 画面サイズに応じてアニメーションを初期化
   void _initializeAnimations(BuildContext context) {
     final maxAngle = _calculateMaxDoorAngle(context);
-    
+
     _leftDoorAnimation = Tween<double>(
       begin: 0.0,
       end: maxAngle,
@@ -167,7 +174,7 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
         curve: Cubic(0.25, 0.46, 0.45, 0.94), // リアルな冷蔵庫扉の抵抗感
       ),
     ));
-    
+
     _rightDoorAnimation = Tween<double>(
       begin: 0.0,
       end: maxAngle,
@@ -220,92 +227,153 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
     _toggleBothDoors();
   }
 
-
-
-  @override  
+  @override
   Widget build(BuildContext context) {
     final counts = ref.watch(sectionCountsProvider);
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     // 画面サイズに応じたコンテナサイズ調整
-    double containerPadding = screenWidth <= 414 ? 16.0 : (screenWidth <= 768 ? 24.0 : 32.0);
-    
+    double containerPadding =
+        screenWidth <= 414 ? 16.0 : (screenWidth <= 768 ? 24.0 : 32.0);
+
     return Padding(
       padding: EdgeInsets.all(containerPadding),
       child: Container(
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          center: const Alignment(-0.3, -0.4),
-          radius: 1.5,
-          colors: [
-            Colors.white,
-            const Color(0xFFFBFBFB),
-            Colors.grey[50]!,
-            Colors.grey[100]!.withOpacity(0.8),
-          ],
-          stops: const [0.0, 0.3, 0.7, 1.0],
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(-0.3, -0.4),
+            radius: 1.5,
+            colors: [
+              Colors.white,
+              const Color(0xFFFBFBFB),
+              Colors.grey[50]!,
+              Colors.grey[100]!.withOpacity(0.8),
+            ],
+            stops: const [0.0, 0.3, 0.7, 1.0],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          // 全ての影を削除
         ),
-        borderRadius: BorderRadius.circular(20),
-        // 全ての影を削除
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            // 背景レイヤー（最下層）
-            _buildBackgroundLayer(),
-            
-            // 冷蔵庫本体レイヤー
-            _buildFridgeBodyLayer(),
-            
-            // 棚レイヤー（扉の奥、Z軸で後ろ）
-            AnimatedBuilder(
-              animation: Listenable.merge([leftDoorAnimation, rightDoorAnimation]),
-              builder: (context, child) {
-                // 扉の開き具合に応じて棚の明るさを調整
-                final maxAngle = _calculateMaxDoorAngle(context);
-                final totalMaxAngle = maxAngle * 2; // 左右の扉の最大角度の合計
-                final brightness = (leftDoorAnimation.value + rightDoorAnimation.value) / totalMaxAngle;
-                return Transform(
-                  transform: Matrix4.identity()
-                    ..translate(0.0, 0.0, -50.0) // Z軸で奥に配置
-                    ..scale(1.0 - (0.02 * (1 - brightness))), // 奥行き感のためのスケール調整
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    // 暗くなるエフェクトを削除
-                    child: FridgeShelfLayer(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final fridgeSize =
+                  Size(constraints.maxWidth, constraints.maxHeight);
+              if (fridgeSize.width.isFinite && fridgeSize.height.isFinite) {
+                final notifier = ref.read(productPositionProvider.notifier);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  notifier
+                    ..updatePerspective(FridgeViewPerspective.front)
+                    ..updateFridgeSize(fridgeSize);
+                });
+              }
+              final placementMap = ref.watch(productPositionProvider);
+              final placements = placementMap.values.toList();
+
+              final maxDoorAngle = _calculateMaxDoorAngle(context);
+              final leftDoorProgress =
+                  (leftDoorAnimation.value / maxDoorAngle).clamp(0.0, 1.0);
+              final rightDoorProgress =
+                  (rightDoorAnimation.value / maxDoorAngle).clamp(0.0, 1.0);
+
+              return Stack(
+                children: [
+                  // 背景レイヤー（最下層）
+                  _buildBackgroundLayer(),
+
+                  // 冷蔵庫本体レイヤー
+                  _buildFridgeBodyLayer(),
+
+                  // 棚レイヤー（扉の奥、Z軸で後ろ）
+                  AnimatedBuilder(
+                    animation: Listenable.merge(
+                        [leftDoorAnimation, rightDoorAnimation]),
+                    builder: (context, child) {
+                      // 扉の開き具合に応じて棚の明るさを調整
+                      final totalMaxAngle = maxDoorAngle * 2; // 左右の扉の最大角度の合計
+                      final brightness =
+                          (leftDoorAnimation.value + rightDoorAnimation.value) /
+                              totalMaxAngle;
+                      return Transform(
+                        transform: Matrix4.identity()
+                          ..translate(0.0, 0.0, -50.0) // Z軸で奥に配置
+                          ..scale(1.0 -
+                              (0.02 * (1 - brightness))), // 奥行き感のためのスケール調整
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          // 暗くなるエフェクトを削除
+                          child: FridgeShelfLayer(
+                            onSectionTap: widget.onSectionTap,
+                            counts: counts,
+                            isVisible: _leftDoorOpen || _rightDoorOpen,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  if (placements.isNotEmpty)
+                    Positioned.fill(
+                      child: ShelfCharactersLayer(
+                        placements: placements,
+                        isVisible: _leftDoorOpen || _rightDoorOpen,
+                        onTapProduct: _handleProductTap,
+                      ),
+                    ),
+
+                  // 扉レイヤー（最前面、Z軸で手前）
+                  Transform(
+                    transform: Matrix4.identity()
+                      ..translate(0.0, 0.0, 100.0), // Z軸で大きく手前に配置して棚を確実にカバー
+                    child: FridgeDoorLayer(
+                      leftDoorAnimation: leftDoorAnimation,
+                      rightDoorAnimation: rightDoorAnimation,
+                      onLeftDoorTap: _toggleLeftDoor,
+                      onRightDoorTap: _toggleRightDoor,
                       onSectionTap: widget.onSectionTap,
                       counts: counts,
-                      isVisible: _leftDoorOpen || _rightDoorOpen,
                     ),
                   ),
-                );
-              },
-            ),
-            
-            // コントロールパネルを削除
-            
-            // 扉レイヤー（最前面、Z軸で手前）
-            Transform(
-              transform: Matrix4.identity()
-                ..translate(0.0, 0.0, 100.0), // Z軸で大きく手前に配置して棚を確実にカバー
-              child: FridgeDoorLayer(
-                leftDoorAnimation: leftDoorAnimation,
-                rightDoorAnimation: rightDoorAnimation,
-                onLeftDoorTap: _toggleLeftDoor,
-                onRightDoorTap: _toggleRightDoor,
-                onSectionTap: widget.onSectionTap,
-                counts: counts,
-              ),
-            ),
-            
-            // 新しい4段構成レイヤー（2-4段目）
-            _buildUnifiedSectionsLayer(),
-          ],
+
+                  if (placements.isNotEmpty)
+                    Positioned.fill(
+                      child: DoorCharactersLayer(
+                        placements: placements,
+                        leftDoorProgress: leftDoorProgress,
+                        rightDoorProgress: rightDoorProgress,
+                        onTapProduct: _handleProductTap,
+                      ),
+                    ),
+
+                  // 新しい4段構成レイヤー（2-4段目）
+                  _buildUnifiedSectionsLayer(),
+
+                  if (placements.isNotEmpty)
+                    Positioned.fill(
+                      child: DrawerCharactersLayer(
+                        placements: placements,
+                        vegetableDrawerOpen: _vegetableDrawerOpen,
+                        freezerDrawerOpen: _freezerDrawerOpen,
+                        onTapProduct: _handleProductTap,
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
         ),
       ),
-    ),
     );
+  }
+
+  void _handleProductTap(Product product) {
+    final location = product.location ??
+        const ProductLocation(
+          compartment: FridgeCompartment.refrigerator,
+          level: 0,
+        );
+    widget.onSectionTap(location.compartment, location.level);
   }
 
   Widget _buildBackgroundLayer() {
@@ -401,8 +469,8 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
         final double sectionsHeight = fridgeBodyHeight * 0.45;
 
         // 各段の高さ配分（2段構成に変更）
-        final double section2Height = sectionsHeight * 0.5;  // 2段目: 50%（野菜室）
-        final double section3Height = sectionsHeight * 0.5;  // 3段目: 50%（冷凍庫）
+        final double section2Height = sectionsHeight * 0.5; // 2段目: 50%（野菜室）
+        final double section3Height = sectionsHeight * 0.5; // 3段目: 50%（冷凍庫）
 
         return Stack(
           children: [
@@ -423,7 +491,6 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
       },
     );
   }
-
 
   /// 2段目: 野菜室（引き出しスタイル）
   Widget _buildVegetableSection({
@@ -475,15 +542,19 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
     required int level,
   }) {
     // 対応するアニメーションを取得
-    final Animation<double> animation = compartment == FridgeCompartment.vegetableDrawer
-        ? vegetableDrawerAnimation
-        : freezerDrawerAnimation;
+    final Animation<double> animation =
+        compartment == FridgeCompartment.vegetableDrawer
+            ? vegetableDrawerAnimation
+            : freezerDrawerAnimation;
 
     final bool isOpen = compartment == FridgeCompartment.vegetableDrawer
         ? _vegetableDrawerOpen
         : _freezerDrawerOpen;
 
-    final bool isActive = _activeDrawer == (compartment == FridgeCompartment.vegetableDrawer ? 'vegetable' : 'freezer');
+    final bool isActive = _activeDrawer ==
+        (compartment == FridgeCompartment.vegetableDrawer
+            ? 'vegetable'
+            : 'freezer');
 
     return AnimatedBuilder(
       animation: animation,
@@ -491,6 +562,8 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
         final double pullDistance = animation.value;
         final double perspective = -0.001;
         final double additionalZ = isActive ? 20.0 : 0.0;
+        final double scaleValue =
+            1.0 + (pullDistance * 0.002) + (isActive ? 0.05 : 0.0);
 
         return Positioned(
           left: left,
@@ -498,130 +571,136 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
           width: width,
           height: height,
           child: Transform(
+            alignment: Alignment.center,
             transform: Matrix4.identity()
               ..setEntry(3, 2, perspective)
-              ..translate(0.0, 0.0, -pullDistance - additionalZ)
-              ..scale(1.0 + (pullDistance * 0.002) + (isActive ? 0.05 : 0.0)),
-            child: GestureDetector(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                _toggleDrawer(compartment);
-              },
-              child: Container(
-                decoration: isOpen ? BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 15.0 + (pullDistance * 0.3),
-                      spreadRadius: 5.0 + (pullDistance * 0.1),
-                      offset: Offset(0, 8.0 + (pullDistance * 0.15)),
-                    ),
-                  ],
-                ) : null,
+              ..translate(0.0, 0.0, -pullDistance - additionalZ),
+            child: Transform.scale(
+              alignment: Alignment.center,
+              scale: scaleValue,
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _toggleDrawer(compartment);
+                },
                 child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Colors.grey[50]!,
-                Colors.grey[100]!,
-                Colors.grey[50]!,
-                Colors.white,
-              ],
-              stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
-            ),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: Colors.grey[400]!.withOpacity(0.6),
-              width: 2,
-            ),
-          ),
-          child: Stack(
-            children: [
-              // リアルな扉パネル効果
-              Positioned(
-                left: 8,
-                top: 8,
-                right: 8,
-                bottom: 8,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: Colors.grey[300]!.withOpacity(0.6),
-                      width: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-              // 扉のゴムガスケット
-              Positioned(
-                left: 2,
-                top: 2,
-                right: 2,
-                bottom: 2,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.grey[600]!.withOpacity(0.8),
-                      width: 1.5,
-                    ),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
+                  decoration: isOpen
+                      ? BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 15.0 + (pullDistance * 0.3),
+                              spreadRadius: 5.0 + (pullDistance * 0.1),
+                              offset: Offset(0, 8.0 + (pullDistance * 0.15)),
+                            ),
+                          ],
+                        )
+                      : null,
                   child: Container(
-                    margin: const EdgeInsets.all(1),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.grey[500]!.withOpacity(0.6),
-                        width: 0.5,
-                      ),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-              ),
-              // 引き出し用水平ハンドル
-              Positioned(
-                left: width / 2 - 30,
-                top: height - 20,
-                child: Container(
-                  width: 60,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.grey[200]!, // ハイライト
-                        Colors.grey[400]!, // メイン
-                        Colors.grey[600]!, // シャドウ
-                      ],
-                      stops: const [0.0, 0.5, 1.0],
-                    ),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Container(
-                    margin: const EdgeInsets.all(1),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                         colors: [
-                          Colors.grey[300]!,
-                          Colors.grey[200]!,
+                          Colors.white,
+                          Colors.grey[50]!,
+                          Colors.grey[100]!,
+                          Colors.grey[50]!,
+                          Colors.white,
                         ],
+                        stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
                       ),
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: Colors.grey[400]!.withOpacity(0.6),
+                        width: 2,
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        // リアルな扉パネル効果
+                        Positioned(
+                          left: 8,
+                          top: 8,
+                          right: 8,
+                          bottom: 8,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Colors.grey[300]!.withOpacity(0.6),
+                                width: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                        // 扉のゴムガスケット
+                        Positioned(
+                          left: 2,
+                          top: 2,
+                          right: 2,
+                          bottom: 2,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.grey[600]!.withOpacity(0.8),
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Container(
+                              margin: const EdgeInsets.all(1),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.grey[500]!.withOpacity(0.6),
+                                  width: 0.5,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // 引き出し用水平ハンドル
+                        Positioned(
+                          left: width / 2 - 30,
+                          top: height - 20,
+                          child: Container(
+                            width: 60,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.grey[200]!, // ハイライト
+                                  Colors.grey[400]!, // メイン
+                                  Colors.grey[600]!, // シャドウ
+                                ],
+                                stops: const [0.0, 0.5, 1.0],
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Container(
+                              margin: const EdgeInsets.all(1),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.grey[300]!,
+                                    Colors.grey[200]!,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
               ),
             ),
           ),
@@ -640,7 +719,9 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
 
     if (_vegetableDrawerOpen) {
       // ドロワーステートプロバイダーに引き出し開放を通知
-      ref.read(drawerStateProvider.notifier).openDrawer(FridgeCompartment.vegetableDrawer, 0);
+      ref
+          .read(drawerStateProvider.notifier)
+          .openDrawer(FridgeCompartment.vegetableDrawer, 0);
       await Future.delayed(const Duration(milliseconds: 20));
       _vegetableDrawerController.forward();
     } else {
@@ -660,7 +741,9 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
 
     if (_freezerDrawerOpen) {
       // ドロワーステートプロバイダーに引き出し開放を通知
-      ref.read(drawerStateProvider.notifier).openDrawer(FridgeCompartment.freezer, 0);
+      ref
+          .read(drawerStateProvider.notifier)
+          .openDrawer(FridgeCompartment.freezer, 0);
       await Future.delayed(const Duration(milliseconds: 20));
       _freezerDrawerController.forward();
     } else {
@@ -678,7 +761,6 @@ class _Layered3DFridgeWidgetState extends ConsumerState<Layered3DFridgeWidget>
       _toggleFreezerDrawer();
     }
   }
-
 }
 
 /// 冷蔵庫本体の描画
@@ -695,9 +777,9 @@ class FridgeBodyPainter extends CustomPainter {
       ),
       const Radius.circular(12), // より現実的な角丸
     );
-    
+
     // 複数レイヤーの影を削除
-    
+
     // 冷蔵庫本体 - リアルな家電素材
     final Paint bodyPaint = Paint()
       ..shader = LinearGradient(
@@ -714,9 +796,9 @@ class FridgeBodyPainter extends CustomPainter {
         ],
         stops: const [0.0, 0.15, 0.35, 0.5, 0.65, 0.85, 1.0],
       ).createShader(body.outerRect);
-    
+
     canvas.drawRRect(body, bodyPaint);
-    
+
     // 家電特有の表面テクスチャ（微細な凹凸感）
     final Paint texturePaint = Paint()
       ..shader = LinearGradient(
@@ -731,9 +813,9 @@ class FridgeBodyPainter extends CustomPainter {
         ],
         stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
       ).createShader(body.outerRect);
-    
+
     canvas.drawRRect(body, texturePaint);
-    
+
     // ブラシド仕上げ効果（縦方向の微細なライン）
     for (int i = 0; i < 40; i++) {
       final double x = body.left + (body.width / 40) * i;
@@ -741,14 +823,14 @@ class FridgeBodyPainter extends CustomPainter {
         ..color = Colors.grey[200]!.withOpacity(0.15)
         ..strokeWidth = 0.5
         ..style = PaintingStyle.stroke;
-      
+
       canvas.drawLine(
         Offset(x, body.top + 5),
         Offset(x, body.bottom - 5),
         brushPaint,
       );
     }
-    
+
     // 金属エッジ加工（ベゼル効果）
     final Paint bevelPaint = Paint()
       ..shader = LinearGradient(
@@ -762,21 +844,21 @@ class FridgeBodyPainter extends CustomPainter {
         ],
         stops: const [0.0, 0.3, 0.7, 1.0],
       ).createShader(body.outerRect);
-    
+
     // ベゼルエッジの描画（外側の枠）
     final Paint bevelStrokePaint = Paint()
       ..shader = bevelPaint.shader
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0;
-    
+
     canvas.drawRRect(body, bevelStrokePaint);
-    
+
     // 内側ボーダー（プラスチック成型ライン）
     final Paint innerBorderPaint = Paint()
       ..color = Colors.grey[300]!.withOpacity(0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
-    
+
     final RRect innerBorder = RRect.fromRectAndRadius(
       Rect.fromLTWH(
         body.left + 2,
@@ -786,9 +868,9 @@ class FridgeBodyPainter extends CustomPainter {
       ),
       const Radius.circular(10),
     );
-    
+
     canvas.drawRRect(innerBorder, innerBorderPaint);
-    
+
     // 高光沢仕上げ効果（光の反射）
     final Paint glossPaint = Paint()
       ..shader = LinearGradient(
@@ -807,7 +889,7 @@ class FridgeBodyPainter extends CustomPainter {
         body.width * 0.4,
         body.height * 0.3,
       ));
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(
@@ -820,7 +902,7 @@ class FridgeBodyPainter extends CustomPainter {
       ),
       glossPaint,
     );
-    
+
     // 内部の影（奥行き感） - より自然な陰影
     final Paint innerShadowPaint = Paint()
       ..shader = RadialGradient(
@@ -834,7 +916,7 @@ class FridgeBodyPainter extends CustomPainter {
         ],
         stops: const [0.0, 0.4, 0.8, 1.0],
       ).createShader(body.outerRect);
-    
+
     canvas.drawRRect(body, innerShadowPaint);
   }
 
@@ -869,12 +951,12 @@ class DepthShadowPainter extends CustomPainter {
           ],
           stops: const [0.0, 0.3, 0.6, 1.0],
         ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-      
+
       canvas.drawRect(
         Rect.fromLTWH(0, 0, size.width, size.height),
         mainLightPaint,
       );
-      
+
       // 棚ライト効果 - 各棚に小さなライト
       for (int i = 0; i < 3; i++) {
         final double shelfY = size.height * (0.15 + i * 0.2);
@@ -895,7 +977,7 @@ class DepthShadowPainter extends CustomPainter {
             size.width * 0.8,
             4,
           ));
-        
+
         canvas.drawRect(
           Rect.fromLTWH(
             size.width * 0.1,
@@ -906,7 +988,7 @@ class DepthShadowPainter extends CustomPainter {
           shelfLightPaint,
         );
       }
-      
+
       // 背面ライト効果
       final Paint backLightPaint = Paint()
         ..shader = LinearGradient(
@@ -923,7 +1005,7 @@ class DepthShadowPainter extends CustomPainter {
           size.width * 0.7,
           size.height * 0.6,
         ));
-      
+
       canvas.drawRect(
         Rect.fromLTWH(
           size.width * 0.15,
@@ -937,7 +1019,7 @@ class DepthShadowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(DepthShadowPainter oldDelegate) => 
-      oldDelegate.leftDoorOpen != leftDoorOpen || 
+  bool shouldRepaint(DepthShadowPainter oldDelegate) =>
+      oldDelegate.leftDoorOpen != leftDoorOpen ||
       oldDelegate.rightDoorOpen != rightDoorOpen;
 }

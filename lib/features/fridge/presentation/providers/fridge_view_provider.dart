@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../shared/models/product.dart';
-import '../../../../shared/models/product.dart' show ProductLocation, FridgeCompartment;
+import '../../../../shared/models/product.dart' show FridgeCompartment;
 import '../../../../shared/providers/app_state_provider.dart';
-
-/// 表示モード
-enum FridgeViewMode { list, fridge }
 
 /// 冷蔵庫内の選択セクション
 class SelectedFridgeSection {
@@ -19,59 +15,28 @@ class SelectedFridgeSection {
 }
 
 class FridgeViewState {
-  final FridgeViewMode mode;
   final SelectedFridgeSection? selectedSection;
 
   const FridgeViewState({
-    this.mode = FridgeViewMode.list,
     this.selectedSection,
   });
-
-  FridgeViewState copyWith({
-    FridgeViewMode? mode,
-    SelectedFridgeSection? selectedSection,
-  }) {
-    return FridgeViewState(
-      mode: mode ?? this.mode,
-      selectedSection: selectedSection,
-    );
-  }
 }
 
 class FridgeViewNotifier extends StateNotifier<FridgeViewState> {
-  final Ref _ref;
-  FridgeViewNotifier(this._ref) : super(const FridgeViewState());
-
-  void setMode(FridgeViewMode mode) {
-    state = state.copyWith(mode: mode, selectedSection: null);
-  }
+  FridgeViewNotifier() : super(const FridgeViewState());
 
   void selectSection(SelectedFridgeSection section) {
-    state = state.copyWith(selectedSection: section);
+    state = FridgeViewState(selectedSection: section);
   }
 
   void clearSelection() {
-    state = state.copyWith(selectedSection: null);
-  }
-
-  /// 選択中セクションの商品一覧を返す（Phase1: メモリ内）
-  List<Product> getProductsForSelectedSection() {
-    final all = _ref.read(productsProvider);
-    final section = state.selectedSection;
-    if (section == null) return all;
-    return all.where((p) {
-      final loc = p.location;
-      if (loc == null) {
-        // 位置未設定のプロダクトは冷蔵室 level 0 とみなす（初期互換）
-        return section.compartment == FridgeCompartment.refrigerator && section.level == 0;
-      }
-      return loc.compartment == section.compartment && loc.level == section.level;
-    }).toList();
+    state = const FridgeViewState();
   }
 }
 
-final fridgeViewProvider = StateNotifierProvider<FridgeViewNotifier, FridgeViewState>((ref) {
-  return FridgeViewNotifier(ref);
+final fridgeViewProvider =
+    StateNotifierProvider<FridgeViewNotifier, FridgeViewState>((ref) {
+  return FridgeViewNotifier();
 });
 
 /// セクション別の件数を計算する派生プロバイダ
@@ -82,6 +47,7 @@ final sectionCountsProvider = Provider<Map<String, int>>((ref) {
     final key = '${c.name}:$level';
     counts[key] = (counts[key] ?? 0) + 1;
   }
+
   for (final p in all) {
     final loc = p.location;
     if (loc == null) {
@@ -92,5 +58,3 @@ final sectionCountsProvider = Provider<Map<String, int>>((ref) {
   }
   return counts;
 });
-
-
