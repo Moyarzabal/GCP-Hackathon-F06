@@ -231,21 +231,21 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
       height: shelfHeight,
       child: GestureDetector(
         onTap: () => widget.onSectionTap(FridgeCompartment.refrigerator, level),
-        child: Container(
-          decoration: BoxDecoration(
-            color: color.surface.withOpacity(0.02),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Stack(children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text('冷蔵室 棚$level', style: TextStyle(color: color.onSurfaceVariant)),
-              ),
+        child: Semantics(
+          label: '冷蔵室 棚$level',
+          button: true,
+          child: Container(
+            decoration: BoxDecoration(
+              color: color.surface.withOpacity(0.02),
+              borderRadius: BorderRadius.circular(10),
             ),
-            Positioned.fill(child: _buildBadge(counts, FridgeCompartment.refrigerator, level, color)),
-          ]),
+            child: Stack(children: [
+              Positioned.fill(
+                child: _buildBadge(
+                    counts, FridgeCompartment.refrigerator, level, color),
+              ),
+            ]),
+          ),
         ),
       ),
     );
@@ -331,5 +331,4 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
     );
   }
 }
-
 
