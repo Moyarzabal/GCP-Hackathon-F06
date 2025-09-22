@@ -1,10 +1,10 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/models/product.dart';
 import '../../../../shared/providers/app_state_provider.dart';
-import '../utils/placement_algorithm.dart';
 import '../utils/section_bounds_calculator.dart';
 
 /// Result of the placement calculation for a single product.
@@ -42,8 +42,7 @@ class ProductCharacterPlacement {
 class ProductPositionNotifier
     extends StateNotifier<Map<String, ProductCharacterPlacement>> {
   ProductPositionNotifier(this._ref)
-      : _placementAlgorithm = PlacementAlgorithm(),
-        _boundsCalculator = const SectionBoundsCalculator(),
+      : _boundsCalculator = const SectionBoundsCalculator(),
         super(const {}) {
     _products = _ref.read(productsProvider);
 
@@ -56,7 +55,6 @@ class ProductPositionNotifier
   }
 
   final Ref _ref;
-  final PlacementAlgorithm _placementAlgorithm;
   final SectionBoundsCalculator _boundsCalculator;
 
   Size? _fridgeSize;
@@ -86,8 +84,7 @@ class ProductPositionNotifier
     }
 
     final size = _fridgeSize!;
-    final Map<String, ProductCharacterPlacement> placements = {};
-    final Map<String, List<Rect>> occupiedBySection = {};
+    final Map<String, _SectionLayoutContext> sections = {};
 
     for (final product in _products.where((p) => p.deletedAt == null)) {
       final location = product.location ??
@@ -96,45 +93,48 @@ class ProductPositionNotifier
             level: 0,
           );
 
-      final sectionKey = _sectionKey(location.compartment, location.level);
-      final existingCount = placements.values
-          .where((p) =>
-              p.compartment == location.compartment &&
-              p.level == location.level)
-          .length;
-      if (existingCount >= _sectionLimit) {
+      final key = _sectionKey(location.compartment, location.level);
+      final context = sections.putIfAbsent(
+        key,
+        () {
+          final bounds = _boundsCalculator.getBounds(
+            compartment: location.compartment,
+            level: location.level,
+            widgetSize: size,
+            perspective: _perspective,
+          );
+
+          return _SectionLayoutContext(
+            compartment: location.compartment,
+            level: location.level,
+            bounds: bounds,
+            baseItemSize: _characterSizeForCompartment(location.compartment),
+          );
+        },
+      );
+
+      if (context.products.length >= _sectionLimit) {
         continue;
       }
 
-      final sectionBounds = _boundsCalculator.getBounds(
-        compartment: location.compartment,
-        level: location.level,
-        widgetSize: size,
-        perspective: _perspective,
-      );
+      context.products.add(product);
+    }
 
-      final itemSize = _characterSizeForCompartment(location.compartment);
-      final occupied = occupiedBySection.putIfAbsent(sectionKey, () => []);
-      final preferred = location.position;
-      final position = _placementAlgorithm.placeProduct(
-        sectionBounds: sectionBounds,
-        itemSize: itemSize,
-        occupiedSpaces: occupied,
-        preferredNormalizedPosition: preferred,
-      );
+    final Map<String, ProductCharacterPlacement> placements = {};
 
-      final placementRect = Rect.fromLTWH(
-          position.dx, position.dy, itemSize.width, itemSize.height);
-      occupied.add(placementRect);
-
-      placements[product.id ?? product.name] = ProductCharacterPlacement(
-        product: product,
-        position: position,
-        size: itemSize,
-        sectionBounds: sectionBounds,
-        compartment: location.compartment,
-        level: location.level,
-      );
+    for (final context in sections.values) {
+      final arranged = _layoutSection(context);
+      for (final placed in arranged) {
+        placements[placed.product.id ?? placed.product.name] =
+            ProductCharacterPlacement(
+          product: placed.product,
+          position: placed.offset,
+          size: placed.size,
+          sectionBounds: context.bounds,
+          compartment: context.compartment,
+          level: context.level,
+        );
+      }
     }
 
     state = placements;
@@ -156,6 +156,193 @@ class ProductPositionNotifier
 
   String _sectionKey(FridgeCompartment compartment, int level) =>
       '${compartment.name}::$level';
+}
+
+List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
+  final products = List<Product>.of(context.products)
+    ..sort(_compareProductDisplayOrder);
+
+  if (products.isEmpty) {
+    return const [];
+  }
+
+  final Rect bounds = context.bounds;
+  final Size baseSize = context.baseItemSize;
+  final double availableWidth = bounds.width;
+  final double availableHeight = bounds.height;
+
+  const double minScale = 0.45;
+  const double scaleStep = 0.1;
+
+  for (double scale = 1.0; scale >= minScale; scale -= scaleStep) {
+    final Size itemSize = Size(baseSize.width * scale, baseSize.height * scale);
+    final double verticalGap = (itemSize.height * 0.28).clamp(6.0, 18.0);
+    final double minHorizontalGap = math.max(6.0, itemSize.width * 0.12);
+    final double maxHorizontalGap = math.max(minHorizontalGap + 6.0, itemSize.width * 0.35);
+
+    final int maxColumns = math.max(
+      1,
+      ((availableWidth + minHorizontalGap) /
+              (itemSize.width + minHorizontalGap))
+          .floor(),
+    );
+
+    for (int columns = math.min(products.length, maxColumns);
+        columns >= 1;
+        columns--) {
+      final int rows = (products.length / columns).ceil();
+      final double totalHeight =
+          rows * itemSize.height + (rows - 1) * verticalGap;
+      if (totalHeight > availableHeight + 0.1) {
+        continue;
+      }
+
+      final rowsList = _splitIntoRows(products, columns);
+      final List<_PlannedPlacement> placements = [];
+      final double baseTop = bounds.bottom - itemSize.height;
+
+      for (int rowIndex = 0; rowIndex < rowsList.length; rowIndex++) {
+        final List<Product> rowItems = rowsList[rowsList.length - 1 - rowIndex];
+        final double gap = _horizontalGapForRow(
+          availableWidth: availableWidth,
+          itemWidth: itemSize.width,
+          itemCount: rowItems.length,
+          minGap: minHorizontalGap,
+          maxGap: maxHorizontalGap,
+        );
+
+        final double top =
+            baseTop - rowIndex * (itemSize.height + verticalGap);
+
+        for (int columnIndex = 0; columnIndex < rowItems.length; columnIndex++) {
+          final Product product = rowItems[columnIndex];
+          final double left =
+              bounds.left + columnIndex * (itemSize.width + gap);
+
+          placements.add(
+            _PlannedPlacement(
+              product: product,
+              offset: Offset(left, top),
+              size: itemSize,
+            ),
+          );
+        }
+      }
+
+      return placements;
+    }
+  }
+
+  // Fallback: use the smallest scale and stack vertically with consistent spacing.
+  final Size fallbackSize = Size(
+    baseSize.width * minScale,
+    baseSize.height * minScale,
+  );
+  final double verticalGap = (fallbackSize.height * 0.2).clamp(6.0, 14.0);
+  final double baseTop = bounds.bottom - fallbackSize.height;
+
+  final List<_PlannedPlacement> placements = [];
+  for (int index = products.length - 1, row = 0; index >= 0; index--, row++) {
+    final double top = baseTop - row * (fallbackSize.height + verticalGap);
+    placements.add(
+      _PlannedPlacement(
+        product: products[index],
+        offset: Offset(bounds.left, top),
+        size: fallbackSize,
+      ),
+    );
+  }
+
+  return placements;
+}
+
+int _compareProductDisplayOrder(Product a, Product b) {
+  final Offset? posA = a.location?.position;
+  final Offset? posB = b.location?.position;
+
+  if (posA != null && posB != null) {
+    final int dy = posA.dy.compareTo(posB.dy);
+    if (dy != 0) {
+      return dy;
+    }
+    final int dx = posA.dx.compareTo(posB.dx);
+    if (dx != 0) {
+      return dx;
+    }
+  } else if (posA != null) {
+    return -1;
+  } else if (posB != null) {
+    return 1;
+  }
+
+  final DateTime aExpiry = a.expiryDate ?? DateTime(9999, 1, 1);
+  final DateTime bExpiry = b.expiryDate ?? DateTime(9999, 1, 1);
+  final int expiryCompare = aExpiry.compareTo(bExpiry);
+  if (expiryCompare != 0) {
+    return expiryCompare;
+  }
+
+  return (a.id ?? a.name).compareTo(b.id ?? b.name);
+}
+
+List<List<Product>> _splitIntoRows(List<Product> products, int columns) {
+  final List<List<Product>> rows = [];
+  for (int index = 0; index < products.length; index += columns) {
+    rows.add(
+      products.sublist(
+        index,
+        math.min(products.length, index + columns),
+      ),
+    );
+  }
+  return rows;
+}
+
+double _horizontalGapForRow({
+  required double availableWidth,
+  required double itemWidth,
+  required int itemCount,
+  required double minGap,
+  required double maxGap,
+}) {
+  if (itemCount <= 1) {
+    return 0.0;
+  }
+
+  final double remaining = availableWidth - itemCount * itemWidth;
+  if (remaining <= 0) {
+    return 0.0;
+  }
+
+  final double automaticGap = remaining / (itemCount - 1);
+  return math.min(maxGap, math.max(minGap, automaticGap));
+}
+
+class _SectionLayoutContext {
+  _SectionLayoutContext({
+    required this.compartment,
+    required this.level,
+    required this.bounds,
+    required this.baseItemSize,
+  });
+
+  final FridgeCompartment compartment;
+  final int level;
+  final Rect bounds;
+  final Size baseItemSize;
+  final List<Product> products = [];
+}
+
+class _PlannedPlacement {
+  const _PlannedPlacement({
+    required this.product,
+    required this.offset,
+    required this.size,
+  });
+
+  final Product product;
+  final Offset offset;
+  final Size size;
 }
 
 final productPositionProvider = StateNotifierProvider<ProductPositionNotifier,
