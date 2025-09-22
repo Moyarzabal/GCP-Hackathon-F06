@@ -1,0 +1,69 @@
+implementation_plan:
+  name: "商品追加時の画像読み込み問題修正計画"
+  date: "2025-09-19"
+  
+objective:
+  primary: "商品追加時に生成された画像URLsをFirestoreに正しく保存する"
+  secondary: "既存商品の画像読み込み問題を解決する"
+
+solution_approach:
+  core_fix:
+    description: "_updateProductInFirebaseメソッドの実装"
+    location: "lib/shared/providers/app_state_provider.dart"
+    implementation:
+      - "null チェックを追加（_dataSource, product.id）"
+      - "実際のFirestore更新処理を実装"
+      - "詳細なログ出力を追加"
+      - "エラーハンドリングを改善"
+
+  technical_details:
+    method_signature: "Future<void> _updateProductInFirebase(Product product)"
+    key_changes:
+      - "await _dataSource!.updateProduct(product)を実行"
+      - "imageUrls情報をログ出力"
+      - "Firebase更新完了ログを追加"
+    
+    error_handling:
+      - "dataSourceがnullの場合の早期リターン"
+      - "product.idがnullの場合の早期リターン"
+      - "Firebase更新エラーのキャッチとログ出力"
+
+expected_behavior:
+  after_fix:
+    1: "商品追加時に画像生成が完了"
+    2: "商品がFirestoreに初期保存される"
+    3: "updateProductImagesが呼ばれる"
+    4: "_updateProductInFirebaseが実際にFirestore更新を実行"
+    5: "imageUrlsがFirestoreに保存される"
+    6: "次回読み込み時にimageUrlsが正常に取得される"
+
+validation_criteria:
+  success_indicators:
+    - "🔥 Firebaseに商品を更新中ログが表示される"
+    - "✅ Firebase更新完了ログが表示される"
+    - "Product.fromFirestore時にimageUrlsが見つかる"
+    - "'no imageUrls'ログが出力されなくなる"
+  
+  test_scenarios:
+    - scenario: "新規商品の手動追加"
+      steps:
+        1: "手動で商品を追加"
+        2: "画像生成完了を確認"
+        3: "アプリを再起動"
+        4: "商品一覧で画像が表示されることを確認"
+
+implementation_priority:
+  critical: "_updateProductInFirebaseメソッドの実装"
+  high: "ログ出力の改善"
+  medium: "エラーハンドリングの強化"
+
+risk_assessment:
+  low_risk:
+    - "既存の動作に影響しない"
+    - "空実装を実装に変更するだけ"
+    - "後方互換性を維持"
+  
+  mitigation:
+    - "null チェックによる安全性確保"
+    - "try-catch による例外処理"
+    - "詳細なログによるデバッグ支援"

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超ミニマムMVP実装プラン | バーコードスキャンアプリ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #00BCD4 0%, #00ACC1 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        nav {
+            background: #f5f5f5;
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            padding: 0.5rem 1rem;
+            background: white;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        nav a:hover {
+            border-color: #00BCD4;
+            transform: translateY(-2px);
+        }
+
+        nav a.active {
+            background: #00BCD4;
+            color: white;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .phase {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s;
+        }
+
+        .phase:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .phase-number {
+            background: linear-gradient(135deg, #00BCD4, #00ACC1);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .phase-title {
+            flex: 1;
+        }
+
+        .phase-duration {
+            background: #f5f5f5;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .tasks {
+            margin-left: 65px;
+        }
+
+        .task {
+            background: #f9f9f9;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #00BCD4;
+            position: relative;
+        }
+
+        .task-status {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-pending { background: #ffeb3b; color: #333; }
+        .status-in-progress { background: #2196f3; color: white; }
+        .status-completed { background: #4caf50; color: white; }
+
+        .command-box {
+            background: #1e1e1e;
+            color: #4ec9b0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .tech-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .timeline-dot {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border: 3px solid #00BCD4;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .timeline-item.completed .timeline-dot {
+            background: #00BCD4;
+            color: white;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #4caf50;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .timeline {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .timeline::before {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 超ミニマムMVP実装プラン</h1>
+            <p>最小限の機能でまず動くものを作る</p>
+        </header>
+
+        <nav>
+            <a href="../index.html">🏠 メインページ</a>
+            <a href="../requirements.html">📊 詳細要件定義書</a>
+            <a href="../roadmap.html">🗺️ 開発ロードマップ</a>
+            <a href="#" class="active">🎯 超MVP実装プラン</a>
+        </nav>
+
+        <div class="content">
+            <div class="summary-card">
+                <h2>🎯 超MVP目標</h2>
+                <p style="font-size: 1.2rem; margin: 1rem 0;">
+                    <strong>「バーコードをスキャンして商品名を表示するだけ」</strong>
+                </p>
+                <ul class="feature-list">
+                    <li>カメラでバーコードを読み取る</li>
+                    <li>JANコードを取得・表示</li>
+                    <li>固定の商品データから商品名を表示</li>
+                    <li>Firebase Hostingにデプロイ</li>
+                </ul>
+            </div>
+
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot">1</div>
+                    <div>環境構築</div>
+                    <small>30分</small>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot">2</div>
+                    <div>Flutter開発</div>
+                    <small>1時間</small>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot">3</div>
+                    <div>Firebase設定</div>
+                    <small>30分</small>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot">4</div>
+                    <div>デプロイ</div>
+                    <small>30分</small>
+                </div>
+            </div>
+
+            <!-- Phase 1: 環境構築 -->
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">1</div>
+                    <h2 class="phase-title">環境構築フェーズ</h2>
+                    <span class="phase-duration">30分</span>
+                </div>
+                <div class="tasks">
+                    <div class="task">
+                        <h3>Flutter環境セットアップ</h3>
+                        <div class="command-box">
+# Flutter SDKの確認
+flutter doctor
+
+# 必要なツールのインストール
+flutter pub global activate flutterfire_cli
+                        </div>
+                        <span class="task-status status-pending">準備中</span>
+                    </div>
+                    <div class="task">
+                        <h3>プロジェクト作成</h3>
+                        <div class="command-box">
+# Flutterプロジェクトを作成
+flutter create barcode_scanner_mvp
+cd barcode_scanner_mvp
+
+# 必要なパッケージを追加
+flutter pub add mobile_scanner
+flutter pub add firebase_core
+                        </div>
+                        <span class="task-status status-pending">準備中</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2: 最小限のFlutter実装 -->
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">2</div>
+                    <h2 class="phase-title">Flutter最小実装フェーズ</h2>
+                    <span class="phase-duration">1時間</span>
+                </div>
+                <div class="tasks">
+                    <div class="task">
+                        <h3>メイン画面の実装</h3>
+                        <p>lib/main.dart に以下を実装：</p>
+                        <ul style="margin: 1rem 0; padding-left: 2rem;">
+                            <li>シンプルなMaterialAppセットアップ</li>
+                            <li>スキャンボタンのみの画面</li>
+                            <li>MobileScannerの基本実装</li>
+                        </ul>
+                        <span class="task-status status-pending">準備中</span>
+                    </div>
+                    <div class="task">
+                        <h3>バーコードスキャン機能</h3>
+                        <p>mobile_scannerパッケージを使用：</p>
+                        <ul style="margin: 1rem 0; padding-left: 2rem;">
+                            <li>カメラ権限の取得</li>
+                            <li>バーコード読み取り</li>
+                            <li>結果をダイアログで表示</li>
+                        </ul>
+                        <span class="task-status status-pending">準備中</span>
+                    </div>
+                    <div class="task">
+                        <h3>ハードコードされた商品データ</h3>
+                        <div class="command-box">
+// 固定の商品データマップ
+final products = {
+  '4901777018888': 'コカ・コーラ 500ml',
+  '4902220770199': 'ポカリスエット 500ml',
+  '4901005202078': 'カップヌードル',
+  // 他の商品を追加
+};
+                        </div>
+                        <span class="task-status status-pending">準備中</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 3: Firebase設定 -->
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">3</div>
+                    <h2 class="phase-title">Firebase設定フェーズ</h2>
+                    <span class="phase-duration">30分</span>
+                </div>
+                <div class="tasks">
+                    <div class="task">
+                        <h3>Firebaseプロジェクト作成</h3>
+                        <div class="command-box">
+# Firebase CLIでプロジェクトを初期化
+firebase login
+firebase init hosting
+
+# FlutterFire CLIで設定
+flutterfire configure
+                        </div>
+                        <span class="task-status status-pending">準備中</span>
+                    </div>
+                    <div class="task">
+                        <h3>Web用ビルド設定</h3>
+                        <div class="command-box">
+# index.htmlにカメラ権限の設定を追加
+# web/index.html を編集
+
+# Webビルド
+flutter build web --web-renderer html
+                        </div>
+                        <span class="task-status status-pending">準備中</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 4: デプロイ -->
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">4</div>
+                    <h2 class="phase-title">デプロイフェーズ</h2>
+                    <span class="phase-duration">30分</span>
+                </div>
+                <div class="tasks">
+                    <div class="task">
+                        <h3>Firebase Hostingへデプロイ</h3>
+                        <div class="command-box">
+# Webアプリをビルド
+flutter build web
+
+# Firebase Hostingにデプロイ
+firebase deploy --only hosting
+
+# デプロイ完了後、URLが表示される
+# https://[project-id].web.app
+                        </div>
+                        <span class="task-status status-pending">準備中</span>
+                    </div>
+                    <div class="task">
+                        <h3>動作確認</h3>
+                        <ul style="margin: 1rem 0; padding-left: 2rem;">
+                            <li>デプロイされたURLにアクセス</li>
+                            <li>カメラ権限を許可</li>
+                            <li>バーコードをスキャン</li>
+                            <li>商品名が表示されることを確認</li>
+                        </ul>
+                        <span class="task-status status-pending">準備中</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 技術スタック -->
+            <div class="phase">
+                <h2>🛠️ 使用技術（超最小限）</h2>
+                <div class="tech-stack">
+                    <span class="tech-badge">Flutter Web</span>
+                    <span class="tech-badge">mobile_scanner</span>
+                    <span class="tech-badge">Firebase Hosting</span>
+                </div>
+            </div>
+
+            <!-- ファイル構成 -->
+            <div class="phase">
+                <h2>📁 最小限のファイル構成</h2>
+                <div class="command-box">
+barcode_scanner_mvp/
+├── lib/
+│   └── main.dart        # メインアプリ（1ファイルのみ）
+├── web/
+│   └── index.html       # カメラ権限設定を追加
+├── pubspec.yaml         # パッケージ設定
+├── firebase.json        # Firebase設定
+└── .firebaserc         # Firebaseプロジェクト設定
+                </div>
+            </div>
+
+            <!-- 実装コード例 -->
+            <div class="phase">
+                <h2>💻 main.dart 実装例（超シンプル版）</h2>
+                <div class="command-box">
+import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'バーコードスキャナー MVP',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: ScannerScreen(),
+    );
+  }
+}
+
+class ScannerScreen extends StatefulWidget {
+  @override
+  _ScannerScreenState createState() => _ScannerScreenState();
+}
+
+class _ScannerScreenState extends State&lt;ScannerScreen&gt; {
+  final products = {
+    '4901777018888': 'コカ・コーラ 500ml',
+    '4902220770199': 'ポカリスエット 500ml',
+    '4901005202078': 'カップヌードル',
+  };
+
+  String? lastScanned;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('バーコードスキャナー')),
+      body: Column(
+        children: [
+          Expanded(
+            child: MobileScanner(
+              onDetect: (capture) {
+                final List&lt;Barcode&gt; barcodes = capture.barcodes;
+                for (final barcode in barcodes) {
+                  if (barcode.rawValue != null && barcode.rawValue != lastScanned) {
+                    lastScanned = barcode.rawValue;
+                    final productName = products[barcode.rawValue] ?? '不明な商品';
+                    
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('スキャン結果'),
+                        content: Text('商品: $productName\nコード: ${barcode.rawValue}'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              setState(() {
+                                lastScanned = null;
+                              });
+                            },
+                            child: Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'カメラをバーコードに向けてください',
+              style: TextStyle(fontSize: 18),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+                </div>
+            </div>
+
+            <!-- 次のステップ -->
+            <div class="phase" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">
+                <h2>🚀 次のステップ（MVP完成後）</h2>
+                <ol style="margin: 1rem 0; padding-left: 2rem; line-height: 2;">
+                    <li><strong>Firestore連携</strong> - 商品データをクラウドに移動</li>
+                    <li><strong>認証機能</strong> - Firebase Authでユーザー管理</li>
+                    <li><strong>商品登録機能</strong> - スキャンした商品を保存</li>
+                    <li><strong>API連携</strong> - Open Food Facts APIから商品情報取得</li>
+                    <li><strong>UI改善</strong> - デザインの向上と使いやすさの改善</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

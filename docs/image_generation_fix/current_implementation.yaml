@@ -1,0 +1,56 @@
+image_generation_system:
+  overview: "商品追加時の画像生成機能の現在の実装状況"
+  
+  services:
+    imagen_service:
+      file: "lib/core/services/imagen_service.dart"
+      purpose: "Vertex AI Imagen APIを使用したキャラクター画像生成"
+      issues:
+        - "access_tokenがプレースホルダー('YOUR_ACCESS_TOKEN')のまま"
+        - "認証が実装されていない"
+        - "API呼び出しが失敗する"
+      
+    image_generation_service:
+      file: "lib/core/services/image_generation_service.dart"
+      purpose: "商品の多段階画像生成（OpenAI API使用）"
+      issues:
+        - "generateMultiStageProductIconsメソッドが画像生成を無効化"
+        - "常にnullを返す実装になっている"
+        - "実際の画像生成処理がコメントアウトされている"
+  
+  integration_points:
+    scanner_screen:
+      file: "lib/features/scanner/presentation/pages/scanner_screen.dart"
+      method: "_generateImageAsync"
+      flow:
+        - "商品追加後に_generateImageAsyncを呼び出し"
+        - "ImageGenerationService.generateMultiStageProductIconsを実行"
+        - "結果がnullのため画像が生成されない"
+  
+  authentication_issues:
+    vertex_ai:
+      problem: "Vertex AI Imagen APIの認証が未実装"
+      current: "プレースホルダートークンを使用"
+      required: "Application Default CredentialsまたはService Account認証"
+    
+    openai_api:
+      problem: "OpenAI APIキーが設定されていない可能性"
+      current: "ADKApiClientを使用しているが、APIキーが不明"
+      required: "有効なOpenAI APIキーの設定"
+  
+  fallback_mechanisms:
+    imagen_service:
+      method: "_getFallbackImage"
+      status: "実装済み（アセット画像を返す）"
+      issue: "アセット画像が存在しない可能性"
+    
+    image_generation_service:
+      method: "generateMultiStageProductIcons"
+      status: "無効化されている"
+      issue: "フォールバック機能が動作しない"
+  
+  error_handling:
+    current: "try-catchでエラーをキャッチしているが、ユーザーに通知されない"
+    issue: "画像生成失敗が静かに無視される"
+    impact: "ユーザーは画像が生成されないことを知らない"
+

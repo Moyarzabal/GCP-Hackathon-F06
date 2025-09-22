@@ -1,0 +1,137 @@
+name: 商品画像生成プロンプト - 修正計画
+description: 文字表示問題の解決と賞味期限表現の改善計画
+version: "1.0"
+date: "2025-09-20"
+
+modification_objectives:
+  primary_goals:
+    - prevent_text_rendering: "商品名が画像内に文字として表示されることを防ぐ"
+    - enhance_haze_expression: "賞味期限の短縮に応じて濃いもやの段階的表現を追加"
+    - maintain_character_appeal: "キャラクターの魅力を保持"
+    - improve_visual_consistency: "視覚的な一貫性を向上"
+
+  secondary_goals:
+    - enhance_food_representation: "商品の視覚的特徴を文字以外の方法で表現"
+    - improve_emotion_gradation: "感情表現の段階的な変化を強化"
+    - optimize_prompt_efficiency: "プロンプトの効率性を向上"
+
+modification_strategy:
+  text_prevention:
+    approach: "抽象的な表現への変更"
+    methods:
+      - remove_product_names: "商品名の直接的な記載を除去"
+      - use_visual_attributes: "色、形、質感などの視覚的属性を使用"
+      - emphasize_character_traits: "キャラクターの特徴を強調"
+      - add_text_prevention_directive: "明示的なテキスト禁止指示を追加"
+
+  haze_enhancement:
+    approach: "段階的なもや表現の導入"
+    progression:
+      happy: "クリアな状態（もやなし）"
+      neutral: "軽いもや、わずかな曇り"
+      worried: "中程度のもや、明らかな曇り"
+      panicking: "濃いもや、重い霧"
+      expired: "非常に濃いもや、不気味な霧"
+
+  character_enhancement:
+    focus_areas:
+      - food_category_representation: "食品カテゴリの視覚的表現"
+      - emotional_depth: "感情表現の深化"
+      - atmospheric_effects: "雰囲気効果の強化"
+
+detailed_changes:
+  base_prompt_restructure:
+    old_structure: "Cute kawaii Japanese mascot character representing $productName ($category food item)"
+    new_structure: "Cute kawaii Japanese food mascot character with $categoryTraits characteristics"
+    
+    category_traits_mapping:
+      dairy: "creamy white appearance, soft rounded features"
+      meat: "rich reddish-brown coloring, hearty robust features"
+      vegetable: "fresh green tones, leafy or rounded natural features"
+      fruit: "bright vibrant colors, sweet cheerful features"
+      grain: "warm golden-brown tones, wholesome sturdy features"
+      seafood: "silvery-blue tones, sleek streamlined features"
+
+  emotion_state_enhancements:
+    happy_state:
+      base_expression: "happy and fresh, bright colors, smiling face"
+      atmospheric_addition: "clear bright atmosphere, no haze, sparkling clean air"
+      character_details: "energetic pose, vibrant healthy appearance"
+      
+    neutral_state:
+      base_expression: "neutral expression, slightly concerned, pastel colors"
+      atmospheric_addition: "light misty atmosphere, subtle haze around character"
+      character_details: "thoughtful pose, gentle worry in eyes"
+      
+    worried_state:
+      base_expression: "worried expression, sweat drops, muted colors, looking anxious"
+      atmospheric_addition: "moderate haze surrounding character, cloudy atmosphere"
+      character_details: "nervous gestures, visible concern"
+      
+    panicking_state:
+      base_expression: "very worried and panicking, urgent expression"
+      atmospheric_addition: "thick dense haze enveloping character, heavy fog atmosphere"
+      character_details: "frantic movements, intense worry"
+      
+    expired_state:
+      base_expression: "zombie-like appearance, expired and spooky, dark colors, ghost-like"
+      atmospheric_addition: "extremely thick ominous haze, supernatural fog, eerie mist"
+      character_details: "deteriorated appearance, ghostly transparency"
+
+  text_prevention_directives:
+    explicit_instructions:
+      - "NO text, letters, or words visible in the image"
+      - "NO product names or labels shown"
+      - "Focus purely on character design and atmosphere"
+      - "Avoid any written elements or typography"
+
+  prompt_optimization:
+    structure_improvements:
+      - modular_design: "モジュラー設計でプロンプト構成要素を分離"
+      - consistent_ordering: "一貫した要素の順序付け"
+      - clear_directives: "明確な指示の追加"
+
+implementation_approach:
+  phase_1_preparation:
+    - analyze_current_prompts: "現在のプロンプトの詳細分析"
+    - design_new_structure: "新しいプロンプト構造の設計"
+    - create_category_mapping: "カテゴリ特徴マッピングの作成"
+
+  phase_2_implementation:
+    - modify_createPrompt_method: "_createPromptメソッドの修正"
+    - add_category_traits: "カテゴリ特徴の追加"
+    - enhance_emotion_descriptions: "感情描写の強化"
+
+  phase_3_validation:
+    - test_text_prevention: "文字表示防止の検証"
+    - validate_haze_progression: "もや表現の段階的変化の確認"
+    - assess_character_appeal: "キャラクターの魅力度評価"
+
+expected_outcomes:
+  text_elimination:
+    success_metrics:
+      - zero_text_appearance: "画像内のテキスト表示ゼロ"
+      - maintained_recognition: "商品認識性の維持"
+      - enhanced_visual_appeal: "視覚的魅力の向上"
+
+  haze_progression:
+    success_metrics:
+      - clear_gradation: "明確な段階的変化"
+      - atmospheric_consistency: "雰囲気の一貫性"
+      - emotion_correlation: "感情状態との適切な相関"
+
+  overall_improvement:
+    - better_user_experience: "ユーザー体験の向上"
+    - increased_character_appeal: "キャラクターの魅力向上"
+    - improved_expiry_awareness: "賞味期限認識の改善"
+
+risks_and_mitigations:
+  potential_risks:
+    - character_recognition_loss: "キャラクター認識性の低下"
+    - over_abstraction: "過度な抽象化"
+    - inconsistent_generation: "一貫性のない生成結果"
+
+  mitigation_strategies:
+    - gradual_implementation: "段階的な実装"
+    - extensive_testing: "広範囲なテスト"
+    - fallback_preservation: "フォールバック機能の保持"

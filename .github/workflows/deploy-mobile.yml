@@ -1,0 +1,423 @@
+name: Deploy Mobile Apps
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'lib/**'
+      - 'ios/**'
+      - 'android/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to deploy'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - ios
+          - android
+          - both
+      track:
+        description: 'Release track'
+        required: true
+        default: 'beta'
+        type: choice
+        options:
+          - beta
+          - production
+
+env:
+  FLUTTER_VERSION: '3.24.0'
+  JAVA_VERSION: '17'
+  XCODE_VERSION: '15.0'
+  RUBY_VERSION: '3.2'
+
+jobs:
+  determine-deployment:
+    name: Determine Deployment Strategy
+    runs-on: ubuntu-latest
+    outputs:
+      deploy-ios: ${{ steps.determine.outputs.deploy-ios }}
+      deploy-android: ${{ steps.determine.outputs.deploy-android }}
+      track: ${{ steps.determine.outputs.track }}
+      version: ${{ steps.determine.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine deployment targets
+        id: determine
+        run: |
+          # デプロイ対象の決定
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            PLATFORM="${{ github.event.inputs.platform }}"
+            TRACK="${{ github.event.inputs.track }}"
+          else
+            PLATFORM="both"
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              TRACK="production"
+            else
+              TRACK="beta"
+            fi
+          fi
+          
+          # プラットフォーム別のデプロイフラグ
+          if [[ "$PLATFORM" == "ios" ]] || [[ "$PLATFORM" == "both" ]]; then
+            echo "deploy-ios=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy-ios=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "$PLATFORM" == "android" ]] || [[ "$PLATFORM" == "both" ]]; then
+            echo "deploy-android=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy-android=false" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "track=$TRACK" >> $GITHUB_OUTPUT
+          
+          # バージョン番号の生成
+          VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: //')
+          BUILD_NUMBER=$(date +%Y%m%d%H%M)
+          echo "version=$VERSION+$BUILD_NUMBER" >> $GITHUB_OUTPUT
+
+  build-ios:
+    name: Build & Deploy iOS
+    runs-on: macos-latest
+    needs: determine-deployment
+    if: needs.determine-deployment.outputs.deploy-ios == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install Fastlane
+        run: |
+          cd ios
+          bundle init || true
+          echo 'gem "fastlane"' >> Gemfile
+          bundle install
+
+      - name: Setup iOS certificates
+        env:
+          IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # キーチェーンの作成
+          KEYCHAIN_NAME="ios-build.keychain"
+          KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD:-temp123}"
+          
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security set-keychain-settings -t 3600 -l "$KEYCHAIN_NAME"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security list-keychains -d user -s "$KEYCHAIN_NAME" $(security list-keychains -d user | sed 's/"//g')
+          
+          # 証明書のインポート
+          echo "$IOS_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+          security import certificate.p12 -k "$KEYCHAIN_NAME" -P "$IOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          
+          # プロビジョニングプロファイルのインストール
+          echo "$IOS_PROVISION_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+          
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build iOS
+        run: |
+          flutter build ios --release \
+            --build-number=$(date +%Y%m%d%H%M) \
+            --dart-define=ENVIRONMENT=${{ needs.determine-deployment.outputs.track }}
+
+      - name: Archive iOS app
+        working-directory: ios
+        run: |
+          xcodebuild -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/Runner.xcarchive \
+            archive
+
+      - name: Export iOS app
+        working-directory: ios
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/Runner.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ExportOptions.plist
+
+      - name: Upload to TestFlight
+        if: needs.determine-deployment.outputs.track == 'beta' || needs.determine-deployment.outputs.track == 'production'
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_API_ISSUER: ${{ secrets.APP_STORE_CONNECT_API_ISSUER }}
+        run: |
+          cd ios
+          
+          # Fastfile作成
+          mkdir -p fastlane
+          cat > fastlane/Fastfile << 'EOF'
+          default_platform(:ios)
+          
+          platform :ios do
+            desc "Upload to TestFlight"
+            lane :beta do
+              upload_to_testflight(
+                ipa: "build/ipa/Runner.ipa",
+                skip_waiting_for_build_processing: true,
+                changelog: "Version ${{ needs.determine-deployment.outputs.version }}"
+              )
+            end
+            
+            desc "Release to App Store"
+            lane :release do
+              upload_to_app_store(
+                ipa: "build/ipa/Runner.ipa",
+                skip_metadata: false,
+                skip_screenshots: false,
+                submit_for_review: false,
+                automatic_release: false
+              )
+            end
+          end
+          EOF
+          
+          # App Store Connect API Key設定
+          echo "$APP_STORE_CONNECT_API_KEY" > fastlane/AuthKey.p8
+          
+          # デプロイ実行
+          if [[ "${{ needs.determine-deployment.outputs.track }}" == "production" ]]; then
+            bundle exec fastlane release
+          else
+            bundle exec fastlane beta
+          fi
+
+      - name: Upload iOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-${{ needs.determine-deployment.outputs.track }}
+          path: ios/build/ipa/
+          retention-days: 30
+
+  build-android:
+    name: Build & Deploy Android
+    runs-on: ubuntu-latest
+    needs: determine-deployment
+    if: needs.determine-deployment.outputs.deploy-android == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+
+      - name: Install Fastlane
+        run: |
+          cd android
+          bundle init || true
+          echo 'gem "fastlane"' >> Gemfile
+          echo 'gem "fastlane-plugin-firebase_app_distribution"' >> Gemfile
+          bundle install
+
+      - name: Setup Android signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          # Keystoreのデコードと保存
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          
+          # key.propertiesファイルの作成
+          cat > android/key.properties << EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build Android App Bundle
+        run: |
+          flutter build appbundle --release \
+            --build-number=$(date +%Y%m%d%H%M) \
+            --dart-define=ENVIRONMENT=${{ needs.determine-deployment.outputs.track }}
+
+      - name: Build Android APK (for testing)
+        run: |
+          flutter build apk --release \
+            --split-per-abi \
+            --build-number=$(date +%Y%m%d%H%M) \
+            --dart-define=ENVIRONMENT=${{ needs.determine-deployment.outputs.track }}
+
+      - name: Setup Google Play credentials
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+        run: |
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT" > android/play-store-credentials.json
+
+      - name: Deploy to Google Play
+        if: needs.determine-deployment.outputs.track == 'beta' || needs.determine-deployment.outputs.track == 'production'
+        working-directory: android
+        run: |
+          # Fastfile作成
+          mkdir -p fastlane
+          cat > fastlane/Fastfile << 'EOF'
+          default_platform(:android)
+          
+          platform :android do
+            desc "Deploy to Internal Testing"
+            lane :beta do
+              upload_to_play_store(
+                track: 'internal',
+                aab: '../build/app/outputs/bundle/release/app-release.aab',
+                json_key: 'play-store-credentials.json',
+                skip_upload_metadata: true,
+                skip_upload_images: true,
+                skip_upload_screenshots: true
+              )
+            end
+            
+            desc "Deploy to Production"
+            lane :production do
+              upload_to_play_store(
+                track: 'production',
+                aab: '../build/app/outputs/bundle/release/app-release.aab',
+                json_key: 'play-store-credentials.json',
+                skip_upload_metadata: false,
+                skip_upload_images: false,
+                skip_upload_screenshots: false,
+                rollout: '0.1' # 10% rollout initially
+              )
+            end
+          end
+          EOF
+          
+          # デプロイ実行
+          if [[ "${{ needs.determine-deployment.outputs.track }}" == "production" ]]; then
+            bundle exec fastlane production
+          else
+            bundle exec fastlane beta
+          fi
+
+      - name: Deploy to Firebase App Distribution (Beta)
+        if: needs.determine-deployment.outputs.track == 'beta'
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}
+          groups: testers
+          file: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          releaseNotes: |
+            Version: ${{ needs.determine-deployment.outputs.version }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-${{ needs.determine-deployment.outputs.track }}
+          path: |
+            build/app/outputs/bundle/release/
+            build/app/outputs/flutter-apk/
+          retention-days: 30
+
+  post-deployment:
+    name: Post Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [determine-deployment, build-ios, build-android]
+    if: always() && (needs.build-ios.result == 'success' || needs.build-android.result == 'success')
+    steps:
+      - name: Create Release Notes
+        id: release-notes
+        run: |
+          NOTES="## 📱 Mobile App Deployment\n\n"
+          NOTES+="**Version:** ${{ needs.determine-deployment.outputs.version }}\n"
+          NOTES+="**Track:** ${{ needs.determine-deployment.outputs.track }}\n"
+          NOTES+="**Commit:** ${{ github.sha }}\n\n"
+          
+          if [[ "${{ needs.build-ios.result }}" == "success" ]]; then
+            NOTES+="✅ **iOS:** Successfully deployed to TestFlight\n"
+          fi
+          
+          if [[ "${{ needs.build-android.result }}" == "success" ]]; then
+            NOTES+="✅ **Android:** Successfully deployed to Play Store\n"
+          fi
+          
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: needs.determine-deployment.outputs.track == 'production'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.determine-deployment.outputs.version }}
+          release_name: Release v${{ needs.determine-deployment.outputs.version }}
+          body: ${{ steps.release-notes.outputs.notes }}
+          draft: false
+          prerelease: ${{ needs.determine-deployment.outputs.track == 'beta' }}
+
+      - name: Notify Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "attachments": [{
+                "color": "good",
+                "title": "📱 Mobile App Deployed",
+                "text": "${{ steps.release-notes.outputs.notes }}",
+                "footer": "GitHub Actions",
+                "footer_icon": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+              }]
+            }'
