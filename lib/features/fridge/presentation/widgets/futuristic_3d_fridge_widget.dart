@@ -316,31 +316,22 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
           _playFuturisticSound();
           widget.onSectionTap(FridgeCompartment.refrigerator, level);
         },
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '冷蔵室 棚$level',
-                    style: TextStyle(
-                      color: const Color(0xFF64FFDA),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
+        child: Semantics(
+          label: '冷蔵室 棚$level',
+          button: true,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: _buildHologramBadge(
+                      counts, FridgeCompartment.refrigerator, level),
                 ),
-              ),
-              Positioned.fill(
-                child: _buildHologramBadge(counts, FridgeCompartment.refrigerator, level),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
