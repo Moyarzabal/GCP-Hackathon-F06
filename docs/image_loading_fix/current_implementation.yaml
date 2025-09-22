@@ -1,0 +1,60 @@
+implementation:
+  name: "商品追加時の画像読み込み問題の現状"
+  date: "2025-09-19"
+  
+problem_analysis:
+  issue: "商品追加時に画像が読み込めていない"
+  symptoms:
+    - "画像生成は成功している（Firebase Storageにアップロード完了）"
+    - "商品はFirestoreに正常に保存されている"
+    - "Product.fromFirestore時にimageUrlsが見つからない"
+    - "大量の'no imageUrls for product'ログが出力される"
+  
+  log_evidence:
+    successful_image_generation:
+      - "🎨 画像生成開始: にんじん"
+      - "🎉 複数段階画像生成完了: 5個の画像"
+      - "✅ Firebase Storageアップロード完了"
+    successful_product_saving:
+      - "💾 商品をFirestoreに保存中..."
+      - "✅ Firebase商品追加完了: にんじん"
+    missing_images_on_load:
+      - "🔍 Product.fromFirestore: no imageUrls for product [ID]"
+      - "複数の既存商品でも同様の問題が発生"
+
+root_cause_analysis:
+  primary_issue:
+    description: "_updateProductInFirebaseメソッドが実装されていない"
+    location: "lib/shared/providers/app_state_provider.dart"
+    details:
+      - "updateProductImagesメソッドが呼ばれる"
+      - "_updateProductInFirebaseが呼ばれるが実装が空"
+      - "imageUrlsがFirestoreに保存されない"
+      - "次回読み込み時にimageUrlsが存在しない"
+  
+  code_flow:
+    steps:
+      1: "商品追加開始"
+      2: "画像生成（成功）"
+      3: "Firebase Storageアップロード（成功）"
+      4: "商品をFirestoreに保存（imageUrlsなし）"
+      5: "updateProductImagesメソッド呼び出し"
+      6: "_updateProductInFirebase呼び出し（空実装）"
+      7: "imageUrlsがFirestoreに保存されない"
+      8: "次回読み込み時にimageUrlsが見つからない"
+
+affected_files:
+  - path: "lib/shared/providers/app_state_provider.dart"
+    method: "_updateProductInFirebase"
+    issue: "空実装でFirestoreに更新を送信していない"
+  
+  - path: "lib/shared/models/product.dart"
+    method: "fromFirestore"
+    behavior: "imageUrlsフィールドが存在しない場合の警告ログ出力"
+
+current_state:
+  image_generation: "正常動作"
+  firebase_storage: "正常動作"
+  firestore_initial_save: "正常動作"
+  firestore_image_update: "動作していない（空実装）"
+  image_loading: "失敗（データが存在しない）"

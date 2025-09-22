@@ -1,0 +1,152 @@
+product_image_generation_service:
+  overview: "商品追加専用の画像生成サービス（Gemini 2.5 Flash Image Preview使用）"
+  
+  service_file: "lib/core/services/product_image_generation_service.dart"
+  
+  features:
+    multi_stage_generation:
+      method: "generateMultiStageProductIcons"
+      description: "5つの感情状態のキャラクター画像を一括生成"
+      stages:
+        - "veryFresh: とても新鮮（7日以上）"
+        - "fresh: 新鮮（3-7日）"
+        - "warning: 注意（1-3日）"
+        - "urgent: 緊急（0-1日）"
+        - "expired: 期限切れ（0日未満）"
+    
+    single_icon_generation:
+      method: "generateProductIcon"
+      description: "賞味期限に基づく単一キャラクター画像生成"
+      compatibility: "後方互換性のため保持"
+  
+  gemini_integration:
+    api: "Gemini 2.5 Flash Image Preview"
+    endpoint: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:streamGenerateContent"
+    response_format: "ストリーミング応答（複数JSONオブジェクト）"
+    image_format: "Base64エンコードされたPNG画像"
+    
+    prompt_structure:
+      character_design: "kawaii anime/manga style character"
+      background: "TRANSPARENT BACKGROUND (PNG format)"
+      size: "512x512 pixels, square format"
+      personality: "friendly, approachable personality"
+      setting: "designed to live in a refrigerator"
+  
+  emotion_prompts:
+    veryFresh:
+      style: "Bright, vibrant colors, sparkling effects, energetic pose"
+      emotion: "Big, bright smile, sparkling eyes, bouncing pose"
+      colors: "bright greens, yellows, blues"
+    
+    fresh:
+      style: "Clean, bright colors, polished appearance, relaxed pose"
+      emotion: "Warm, friendly smile, bright eyes, comfortable pose"
+      colors: "light greens, whites, soft blues"
+    
+    warning:
+      style: "Muted, pastel colors, cautious appearance, defensive pose"
+      emotion: "Small, worried smile, alert eyes, cautious pose"
+      colors: "soft yellows, oranges, light browns"
+    
+    urgent:
+      style: "Darker, intense colors, stressed appearance, frantic pose"
+      emotion: "Frown, wide anxious eyes, frantic pose"
+      colors: "deep oranges, reds, dark yellows"
+    
+    expired:
+      style: "Dark, muted colors, wilted appearance, slumped pose"
+      emotion: "Downcast expression, tired eyes, exhausted pose"
+      colors: "grays, browns, dark purples"
+  
+  integration_with_scanner:
+    file: "lib/features/scanner/presentation/pages/scanner_screen.dart"
+    method: "_generateImageAsync"
+    changes:
+      - "ImageGenerationServiceからProductImageGenerationServiceに変更"
+      - "generateMultiStageProductIconsメソッドを呼び出し"
+      - "商品IDとrefを渡して商品更新を実行"
+  
+  error_handling:
+    api_errors:
+      - "GEMINI_API_KEY not found: フォールバック画像を使用"
+      - "API呼び出し失敗: フォールバック画像を使用"
+      - "JSON解析エラー: フォールバック画像を使用"
+    
+    fallback_images:
+      method: "_getCharacterFallbackImageUrl"
+      default: "assets/images/default_character.png"
+      note: "実際のアセット画像が存在する場合はそのパスを返す"
+    
+    logging:
+      - "🎨 複数段階キャラクター画像生成開始"
+      - "🖼️ 各段階の画像生成中"
+      - "✅ 各段階の画像生成完了"
+      - "🎉 複数段階画像生成完了"
+      - "❌ 画像生成エラー"
+  
+  product_update_integration:
+    multi_stage_update:
+      method: "_updateProductWithMultiStageImages"
+      description: "複数段階画像で商品を更新"
+      ref_support: "WidgetRefを使用した状態更新"
+    
+    single_image_update:
+      method: "_updateProductWithImageRef"
+      description: "単一画像で商品を更新"
+      ref_support: "WidgetRefを使用した状態更新"
+    
+    app_state_integration:
+      provider: "appStateProvider"
+      methods:
+        - "updateProductImages: 複数画像更新"
+        - "updateProductImage: 単一画像更新"
+  
+  advantages_over_previous:
+    separation_of_concerns:
+      - "料理画像生成と商品画像生成を分離"
+      - "専用のサービスで保守性向上"
+      - "互換性を保ちながら新機能を追加"
+    
+    improved_prompts:
+      - "Gemini 2.5 Flash Image Previewに最適化"
+      - "より詳細なキャラクターデザイン指示"
+      - "背景透過PNGの生成"
+      - "冷蔵庫環境に特化したデザイン"
+    
+    better_error_handling:
+      - "詳細なログ出力"
+      - "段階別のエラーハンドリング"
+      - "適切なフォールバック処理"
+  
+  testing_recommendations:
+    unit_tests:
+      - "各段階のプロンプト生成テスト"
+      - "JSON解析機能のテスト"
+      - "エラーハンドリングのテスト"
+    
+    integration_tests:
+      - "Gemini APIとの統合テスト"
+      - "商品更新機能のテスト"
+      - "複数段階画像生成のテスト"
+    
+    manual_tests:
+      - "商品追加での画像生成確認"
+      - "各感情状態の画像生成確認"
+      - "エラー時の適切な処理確認"
+  
+  monitoring:
+    success_metrics:
+      - "画像生成成功率"
+      - "各段階の生成成功率"
+      - "API呼び出し成功率"
+    
+    error_metrics:
+      - "APIエラー発生率"
+      - "JSON解析エラー発生率"
+      - "フォールバック使用率"
+    
+    performance_metrics:
+      - "平均画像生成時間"
+      - "各段階の生成時間"
+      - "API応答時間"
+

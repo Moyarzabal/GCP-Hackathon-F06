@@ -1,0 +1,132 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Firebase config files (contain sensitive data)
+firebase-debug.log
+.firebase/
+.firebaserc
+firebase-export-*
+firestore-debug.log
+firestore.rules
+firestore.indexes.json
+storage.rules
+database-debug.log
+ui-debug.log
+pubsub-debug.log
+
+# Google Cloud credentials
+*-key.json
+service-account*.json
+gcp-credentials.json
+keyfile.json
+
+# API Keys
+api_keys.dart
+secrets.dart
+*_secrets.dart
+
+# Node modules (for Cloud Functions)
+node_modules/
+functions/node_modules/
+functions/.env
+functions/*.log
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.reflectable.dart
+
+# macOS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Test coverage
+coverage/
+*.lcov
+
+# Flutter plugins
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Web specific
+web/firebase-config.js
+web/env.js
+
+# Temporary files
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+firebase-service-account.json

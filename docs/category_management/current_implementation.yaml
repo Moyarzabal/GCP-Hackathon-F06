@@ -1,0 +1,87 @@
+category_system_analysis:
+  current_implementation:
+    location: "lib/features/products/presentation/providers/product_provider.dart"
+    categories:
+      default_categories:
+        - "野菜"
+        - "果物"
+        - "肉類"
+        - "魚介類"
+        - "乳製品"
+        - "穀物"
+        - "飲料"
+        - "食品"
+        - "調味料"
+        - "冷凍食品"
+        - "その他"
+      
+      provider: "availableCategoriesProvider"
+      implementation: "ハードコードされた固定リスト"
+    
+    usage_locations:
+      home_screen:
+        file: "lib/features/home/presentation/pages/home_screen.dart"
+        purpose: "フィルタリング機能でカテゴリ選択"
+        implementation: "PopupMenuButtonでカテゴリ選択"
+      
+      product_model:
+        file: "lib/shared/models/product.dart"
+        field: "category: String"
+        purpose: "商品のカテゴリ情報を保存"
+      
+      firestore_service:
+        file: "lib/core/services/firestore_service.dart"
+        purpose: "商品追加時にカテゴリを保存"
+        field: "category: category"
+    
+    current_limitations:
+      - "カテゴリがハードコードされており、ユーザーが変更できない"
+      - "カテゴリの追加・編集・削除機能がない"
+      - "カテゴリの並び替え機能がない"
+      - "カテゴリの色やアイコンの設定ができない"
+      - "設定画面のカテゴリ管理は確認ダイアログのみ"
+
+  requirements_analysis:
+    user_needs:
+      - "カスタムカテゴリの追加"
+      - "既存カテゴリの編集・削除"
+      - "カテゴリの並び替え"
+      - "カテゴリの色・アイコン設定"
+      - "カテゴリの使用状況確認"
+    
+    technical_requirements:
+      - "Firestoreでのカテゴリデータ永続化"
+      - "リアルタイム同期（家族共有）"
+      - "既存商品への影響を考慮したカテゴリ変更"
+      - "カテゴリ削除時の既存商品の処理"
+      - "UI/UXの一貫性維持"
+
+  data_structure_design:
+    category_model:
+      fields:
+        - "id: String (UUID)"
+        - "name: String (カテゴリ名)"
+        - "color: Color (表示色)"
+        - "icon: IconData (アイコン)"
+        - "order: int (表示順序)"
+        - "isDefault: bool (デフォルトカテゴリか)"
+        - "isActive: bool (有効かどうか)"
+        - "createdAt: DateTime"
+        - "updatedAt: DateTime"
+        - "householdId: String (世帯ID)"
+    
+    firestore_collection:
+      name: "categories"
+      document_id: "category_{categoryId}"
+      fields:
+        - "categoryId: String"
+        - "householdId: String"
+        - "name: String"
+        - "color: String (hex)"
+        - "icon: String (icon name)"
+        - "order: int"
+        - "isDefault: bool"
+        - "isActive: bool"
+        - "createdAt: Timestamp"
+        - "updatedAt: Timestamp"
+

@@ -1,0 +1,47 @@
+current_implementation:
+  product_model:
+    location: lib/shared/models/product.dart
+    firestore_methods:
+      toFirestore:
+        status: implemented
+        issues:
+          - timestamp_handling: "millisecondsSinceEpochを使用しているが、FirestoreのTimestampとの互換性が不十分"
+          - field_mapping: "Firestoreのフィールド名と完全に一致していない"
+      fromFirestore:
+        status: implemented
+        issues:
+          - timestamp_parsing: "millisecondsSinceEpochからDateTimeへの変換のみ対応"
+          - firestore_timestamp: "FirestoreのTimestamp型を直接処理していない"
+    features:
+      - multiple_image_stages: "ImageStage enumとimageUrls Mapで実装済み"
+      - manufacturer_support: "manufacturer フィールド実装済み"
+      - quantity_unit_support: "quantity, unit フィールド実装済み"
+  
+  firestore_service:
+    location: lib/core/services/firestore_service.dart
+    status: partially_implemented
+    features:
+      - household_operations: "実装済み"
+      - product_crud: "基本的なCRUD操作実装済み"
+      - caching: "商品情報のキャッシュ機能実装済み"
+    issues:
+      - product_collection: "itemsコレクションを使用（productsコレクションと混在）"
+      - data_consistency: "Productモデルとの整合性が不十分"
+  
+  firestore_product_datasource:
+    location: lib/features/products/data/datasources/firestore_product_datasource.dart
+    status: implemented
+    features:
+      - crud_operations: "完全実装済み"
+      - error_handling: "適切なエラーハンドリング実装済み"
+      - logging: "Loggerを使用したログ出力実装済み"
+      - stream_support: "watchProducts()メソッド実装済み"
+    issues:
+      - product_model_integration: "Product.fromFirestore()のTimestamp処理に依存"
+  
+  product_datasource_interface:
+    location: lib/features/products/data/datasources/product_datasource.dart
+    status: implemented
+    features:
+      - standard_crud: "標準的なCRUD操作定義済み"
+      - stream_support: "リアルタイム更新対応"

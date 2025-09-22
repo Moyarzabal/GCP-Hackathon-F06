@@ -1,0 +1,74 @@
+name: ソート機能修正計画
+description: ソート機能を正常に動作させるための修正計画
+
+modifications:
+  home_screen_fix:
+    file: lib/features/home/presentation/pages/home_screen.dart
+    priority: 高
+    changes:
+      - appState.productsをproductProvider.filteredProductsに変更
+      - 商品リストの表示ロジックを修正
+      - デバッグログを更新してfilteredProductsの状態を確認
+
+  data_flow_correction:
+    description: データフローの修正
+    steps:
+      1. HomeScreenでproductProviderを監視
+      2. filteredProductsを使用して商品リストを表示
+      3. ソートボタンでsetSortType()を呼び出し
+      4. ProductProviderでソート処理を実行
+      5. ソート済みのfilteredProductsがUIに反映される
+
+  error_handling:
+    description: エラーハンドリングの追加
+    changes:
+      - ソート処理中のエラー表示
+      - 空の商品リストの場合の適切な表示
+      - ローディング状態の管理
+
+  performance_optimization:
+    description: パフォーマンスの最適化
+    changes:
+      - 不要な再ビルドの防止
+      - ソート処理の効率化
+      - メモリ使用量の最適化
+
+testing_plan:
+  unit_tests:
+    - ProductProviderのソート機能テスト
+    - HomeScreenの表示ロジックテスト
+    - エラーハンドリングのテスト
+
+  integration_tests:
+    - ソートボタンのタップテスト
+    - 各ソートタイプの動作確認
+    - UIの更新確認
+
+  manual_testing:
+    - 各ソートタイプでの商品リスト表示確認
+    - ソート切り替え時の動作確認
+    - エラー時の表示確認
+
+implementation_steps:
+  1. HomeScreenの修正
+     - appState.productsをproductProvider.filteredProductsに変更
+     - 商品リスト表示ロジックの更新
+     - デバッグログの追加
+
+  2. テストの実装
+     - ソート機能のユニットテスト
+     - 統合テストの追加
+
+  3. エラーハンドリングの強化
+     - ソート処理中のエラー表示
+     - 空リストの適切な表示
+
+  4. パフォーマンステスト
+     - 大量データでのソート性能確認
+     - メモリ使用量の確認
+
+expected_outcome:
+  - ソートボタンを押すと実際に商品リストが並び替わる
+  - 各ソートタイプ（名前順、賞味期限順、追加日順、カテゴリ順）が正常に動作
+  - エラー時の適切な表示
+  - パフォーマンスの向上

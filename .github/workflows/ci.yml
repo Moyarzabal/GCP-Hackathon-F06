@@ -1,0 +1,255 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop, 'feature/**']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.24.0'
+  JAVA_VERSION: '17'
+  XCODE_VERSION: '15.0'
+
+jobs:
+  analyze:
+    name: Flutter Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Analyze code
+        run: flutter analyze --no-fatal-infos
+
+  test:
+    name: Flutter Test
+    runs-on: ubuntu-latest
+    needs: analyze
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage/lcov.info
+          flags: unittests
+          name: flutter-coverage
+          fail_ci_if_error: false
+
+      - name: Check test coverage
+        run: |
+          total_coverage=$(lcov --summary coverage/lcov.info 2>&1 | grep "lines" | sed 's/.*: \([0-9.]*\)%.*/\1/')
+          echo "Total coverage: $total_coverage%"
+          if (( $(echo "$total_coverage < 80" | bc -l) )); then
+            echo "Warning: Code coverage is below 80%"
+          fi
+
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-latest
+    needs: analyze
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Web
+        run: flutter build web --release --no-tree-shake-icons
+
+      - name: Archive Web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web/
+          retention-days: 7
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          configPath: './.github/lighthouse/lighthouserc.json'
+          uploadArtifacts: true
+        continue-on-error: true
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    needs: analyze
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build iOS (no code sign)
+        run: |
+          flutter build ios --release --no-codesign
+          cd ios
+          xcodebuild -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO \
+            BUILD_LIBRARY_FOR_DISTRIBUTION=YES
+
+      - name: Check iOS build size
+        run: |
+          APP_SIZE=$(du -sh build/ios/iphoneos/Runner.app | cut -f1)
+          echo "iOS app size: $APP_SIZE"
+
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    needs: analyze
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build Android App Bundle
+        run: flutter build appbundle --release
+
+      - name: Archive Android builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-builds
+          path: |
+            build/app/outputs/flutter-apk/
+            build/app/outputs/bundle/release/
+          retention-days: 7
+
+      - name: Check Android build size
+        run: |
+          APK_SIZE=$(du -sh build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk | cut -f1)
+          AAB_SIZE=$(du -sh build/app/outputs/bundle/release/app-release.aab | cut -f1)
+          echo "APK size (arm): $APK_SIZE"
+          echo "AAB size: $AAB_SIZE"
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [test, build-web]
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run integration tests
+        run: |
+          # Chrome用のヘッドレステストを実行
+          flutter test integration_test --platform chrome --headless
+        continue-on-error: true
+
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [analyze, test, build-web, build-ios, build-android]
+    if: always()
+    steps:
+      - name: Check job statuses
+        id: check
+        run: |
+          if [[ "${{ needs.analyze.result }}" == "failure" ]] || \
+             [[ "${{ needs.test.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-web.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-ios.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-android.result }}" == "failure" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          STATUS="${{ steps.check.outputs.status }}"
+          COLOR=$([ "$STATUS" = "success" ] && echo "good" || echo "danger")
+          EMOJI=$([ "$STATUS" = "success" ] && echo ":white_check_mark:" || echo ":x:")
+          
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-Type: application/json' \
+            -d "{
+              \"attachments\": [{
+                \"color\": \"$COLOR\",
+                \"title\": \"$EMOJI CI Pipeline $STATUS\",
+                \"text\": \"Repository: ${{ github.repository }}\\nBranch: ${{ github.ref_name }}\\nCommit: ${{ github.sha }}\",
+                \"footer\": \"GitHub Actions\",
+                \"footer_icon\": \"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png\"
+              }]
+            }"

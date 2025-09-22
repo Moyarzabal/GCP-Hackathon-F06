@@ -1,0 +1,189 @@
+name: "献立履歴機能 - 現在の実装状況"
+version: "1.0"
+date: "2025-01-19"
+author: "Claude AI Assistant"
+
+# 現在の実装状況の分析結果
+
+## 既存アーキテクチャ
+
+### データモデル
+meal_plan_model:
+  location: "lib/shared/models/meal_plan.dart"
+  features:
+    - MealPlan: 献立のメインモデル
+    - MealPlanStatus: 献立の状態管理（suggested, accepted, cooking, completed, cancelled）
+    - MealItem: 個別メニューアイテム
+    - Ingredient: 材料情報
+    - Recipe: レシピ情報
+    - NutritionInfo: 栄養情報
+  fields:
+    - id: String?
+    - householdId: String
+    - date: DateTime
+    - status: MealPlanStatus
+    - mainDish: MealItem
+    - sideDish: MealItem
+    - soup: MealItem
+    - rice: MealItem
+    - totalCookingTime: int
+    - difficulty: DifficultyLevel
+    - nutritionScore: double
+    - confidence: double
+    - alternatives: List<MealPlan>
+    - createdAt: DateTime
+    - createdBy: String
+    - acceptedAt: DateTime?
+    - completedAt: DateTime?
+    - shoppingList: List<ShoppingItem>?
+    - popularityScore: int?
+    - cookingFrequency: String?
+    - seasonalRelevance: String?
+    - refrigeratorUsage: Map<String, dynamic>?
+
+### プロバイダー実装
+meal_plan_provider:
+  location: "lib/features/meal_planning/presentation/providers/meal_plan_provider.dart"
+  existing_providers:
+    - mealPlanProvider: 現在の献立管理
+    - mealPlanHistoryProvider: 献立履歴管理（既に実装済み）
+    - shoppingListProvider: 買い物リスト管理
+  existing_notifiers:
+    - MealPlanNotifier: 献立の状態管理
+    - MealPlanHistoryNotifier: 献立履歴の状態管理（既に実装済み）
+    - ShoppingListNotifier: 買い物リストの状態管理
+
+### Firestoreサービス
+firestore_service:
+  location: "lib/core/services/firestore_service.dart"
+  existing_methods:
+    - saveMealPlan(MealPlan): 献立保存
+    - getMealPlanHistory(String, DateTime?, DateTime?, int): 献立履歴取得（既に実装済み）
+    - getMealPlan(String): 個別献立取得
+    - updateMealPlanStatus(String, MealPlanStatus): 献立状態更新
+    - updateMealPlanRating(String, double): 献立評価更新
+  firestore_collections:
+    - meal_plans: 献立データ保存
+
+### UI実装
+meal_plan_screen:
+  location: "lib/features/meal_planning/presentation/pages/meal_plan_screen.dart"
+  existing_features:
+    - 献立提案表示
+    - 献立決定機能
+    - 再提案機能
+    - もう一品追加機能
+    - 買い物リスト表示
+  history_button:
+    line: 76-79
+    status: "実装済みだが未機能"
+    code: |
+      IconButton(
+        icon: const Icon(Icons.history),
+        onPressed: () => _showMealPlanHistory(context),
+        tooltip: '献立履歴',
+      )
+  history_method:
+    line: 1127-1134
+    status: "スタブ実装"
+    code: |
+      void _showMealPlanHistory(BuildContext context) {
+        // TODO: 献立履歴画面を実装
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('献立履歴機能は準備中です'),
+          ),
+        );
+      }
+
+### AIサービス
+ai_meal_planning_service:
+  location: "lib/core/services/ai_meal_planning_service.dart"
+  features:
+    - suggestMealPlan: 献立提案
+    - suggestAlternatives: 代替献立提案
+    - generateShoppingList: 買い物リスト生成
+
+## 現在の実装レベル
+
+### 完全実装済み
+- ✅ 献立データモデル
+- ✅ 献立提案機能
+- ✅ 献立保存機能
+- ✅ 献立状態管理
+- ✅ Firestore連携
+- ✅ 献立履歴プロバイダー
+- ✅ 献立履歴取得API
+
+### 部分実装済み
+- 🔄 献立履歴UI（ボタンは存在するが機能なし）
+
+### 未実装
+- ❌ 献立履歴画面UI
+- ❌ 履歴表示機能
+- ❌ 履歴フィルタリング機能
+- ❌ 履歴検索機能
+- ❌ 過去の献立再利用機能
+
+## 技術スタック
+
+### フレームワーク
+- Flutter (Dart)
+- Riverpod (状態管理)
+- Cloud Firestore (データベース)
+
+### 依存関係
+- flutter_riverpod: ^2.4.9
+- cloud_firestore: ^4.13.6
+- google_generative_ai: ^0.2.2
+- uuid: ^4.2.1
+
+## ファイル構造
+
+```
+lib/
+├── core/
+│   └── services/
+│       ├── firestore_service.dart ✅
+│       └── ai_meal_planning_service.dart ✅
+├── features/
+│   └── meal_planning/
+│       └── presentation/
+│           ├── pages/
+│           │   └── meal_plan_screen.dart 🔄
+│           └── providers/
+│               └── meal_plan_provider.dart ✅
+└── shared/
+    └── models/
+        ├── meal_plan.dart ✅
+        └── shopping_item.dart ✅
+```
+
+## 実装の強み
+
+1. **包括的なデータモデル**: 献立に関する詳細な情報を管理
+2. **状態管理**: Riverpodによる効率的な状態管理
+3. **Firebase連携**: Firestoreによる永続化
+4. **AI統合**: Gemini APIによる献立提案
+5. **履歴基盤**: 履歴管理の基礎実装済み
+
+## 実装の課題
+
+1. **UI不足**: 履歴表示画面が未実装
+2. **機能不足**: フィルタリング・検索機能なし
+3. **ユーザビリティ**: 過去献立の再利用機能なし
+4. **デザイン統一**: 既存UIとの一貫性確保が必要
+
+## 実装難易度評価
+
+- **データレイヤー**: ★☆☆☆☆ (ほぼ完成)
+- **ビジネスロジック**: ★★☆☆☆ (基本実装済み)
+- **UI実装**: ★★★☆☆ (新規画面作成必要)
+- **統合テスト**: ★★☆☆☆ (既存機能との連携)
+
+## 次のステップ
+
+1. 献立履歴画面UI設計
+2. フィルタリング・検索機能設計
+3. 過去献立再利用機能設計
+4. 実装計画策定
