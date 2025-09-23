@@ -5,6 +5,7 @@ import '../../presentation/providers/fridge_view_provider.dart';
 import '../providers/drawer_state_provider.dart';
 import '../../../products/presentation/pages/product_detail_screen.dart';
 import '../../../home/presentation/widgets/product_card.dart';
+import '../../../products/presentation/providers/product_provider.dart';
 
 class FridgeSectionView extends ConsumerWidget {
   const FridgeSectionView({super.key});
@@ -13,8 +14,12 @@ class FridgeSectionView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fridgeState = ref.watch(fridgeViewProvider);
     final notifier = ref.read(fridgeViewProvider.notifier);
+    final productState = ref.watch(productProvider);
 
-    final products = ref.read(fridgeViewProvider.notifier).getProductsForSelectedSection();
+    final products = _resolveProducts(
+      productState.filteredProducts,
+      fridgeState.selectedSection,
+    );
 
     final title = _titleForSection(fridgeState.selectedSection);
 
@@ -58,6 +63,25 @@ class FridgeSectionView extends ConsumerWidget {
     );
   }
 
+  List<Product> _resolveProducts(
+    List<Product> filteredProducts,
+    SelectedFridgeSection? section,
+  ) {
+    if (section == null) {
+      return filteredProducts;
+    }
+
+    return filteredProducts.where((product) {
+      final location = product.location;
+      if (location == null) {
+        return section.compartment == FridgeCompartment.refrigerator &&
+            section.level == 0;
+      }
+      return location.compartment == section.compartment &&
+          location.level == section.level;
+    }).toList();
+  }
+
   String _titleForSection(SelectedFridgeSection? section) {
     if (section == null) return 'セクション';
     switch (section.compartment) {
@@ -97,5 +121,3 @@ class FridgeSectionView extends ConsumerWidget {
     );
   }
 }
-
-

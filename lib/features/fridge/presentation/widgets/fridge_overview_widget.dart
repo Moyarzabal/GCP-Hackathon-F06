@@ -125,26 +125,29 @@ class FridgeOverviewWidget extends ConsumerWidget {
     );
   }
 
-  Widget _tapArea(BuildContext context, {required String label, required VoidCallback onTap, Widget? child}) {
+  Widget _tapArea(BuildContext context,
+      {required String label, required VoidCallback onTap, Widget? child}) {
     final color = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: color.surfaceContainerHigh,
-          border: Border.all(color: color.outlineVariant),
-        ),
-        child: Stack(
-          children: [
-            Center(child: Text(label, style: TextStyle(color: color.onSurfaceVariant))),
-            if (child != null) child,
-          ],
+      child: Semantics(
+        label: label,
+        button: true,
+        child: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: color.surfaceContainerHigh,
+            border: Border.all(color: color.outlineVariant),
+          ),
+          child: Stack(
+            children: [
+              if (child != null) child,
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
 
