@@ -86,7 +86,7 @@ class FridgeSectionView extends ConsumerWidget {
     if (section == null) return 'セクション';
     switch (section.compartment) {
       case FridgeCompartment.refrigerator:
-        return '冷蔵室 棚${section.level}';
+        return '冷蔵室 棚${section.level + 1}';
       case FridgeCompartment.vegetableDrawer:
         return '野菜室';
       case FridgeCompartment.freezer:
