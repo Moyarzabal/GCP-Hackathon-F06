@@ -103,6 +103,13 @@ class FridgeDoorLayer extends StatelessWidget {
             ? fridgeLeftEdge  // 左扉：左端から開始
             : fridgeCenterX;  // 右扉：中央から開始
 
+        final double absAngle = rotationAngle.abs();
+        double highlightProgress = 0.0;
+        if (absAngle > 0.02 && absAngle < 0.15) {
+          highlightProgress =
+              ((0.15 - absAngle) / (0.15 - 0.02)).clamp(0.0, 1.0).toDouble();
+        }
+
         return Positioned(
           left: actualLeft,
           top: top,
@@ -247,7 +254,8 @@ class FridgeDoorLayer extends StatelessWidget {
                       ),
                     ),
                     // 反射光効果 - 白い扉用
-                    if (rotationAngle.abs() > 0.3)
+                    // ハイライトは扉がほぼ正面を向いている時だけ表示し、開いた状態での丸模様を防ぐ
+                    if (highlightProgress > 0)
                       Positioned(
                         top: height * 0.2,
                         left: isLeft ? width * 0.3 : width * 0.1,
@@ -257,7 +265,9 @@ class FridgeDoorLayer extends StatelessWidget {
                           decoration: BoxDecoration(
                             gradient: RadialGradient(
                               colors: [
-                                Colors.white.withOpacity(_safeOpacity(0.6 * rotationAngle.abs())),
+                                Colors.white.withOpacity(
+                                  _safeOpacity(0.25 * highlightProgress),
+                                ),
                                 Colors.transparent,
                               ],
                             ),
