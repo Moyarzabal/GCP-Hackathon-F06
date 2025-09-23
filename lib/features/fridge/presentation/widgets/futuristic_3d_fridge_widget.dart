@@ -13,12 +13,13 @@ class Futuristic3DFridgeWidget extends ConsumerStatefulWidget {
   const Futuristic3DFridgeWidget({super.key, required this.onSectionTap});
 
   @override
-  ConsumerState<Futuristic3DFridgeWidget> createState() => _Futuristic3DFridgeWidgetState();
+  ConsumerState<Futuristic3DFridgeWidget> createState() =>
+      _Futuristic3DFridgeWidgetState();
 }
 
-class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWidget>
+class _Futuristic3DFridgeWidgetState
+    extends ConsumerState<Futuristic3DFridgeWidget>
     with TickerProviderStateMixin {
-  
   // アニメーションコントローラー
   late final AnimationController _leftDoorController;
   late final AnimationController _rightDoorController;
@@ -26,14 +27,14 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
   late final AnimationController _freezerController;
   late final AnimationController _globalAnimController;
   late final AnimationController _particleController;
-  
+
   // アニメーション値
   late final Animation<double> _leftDoorAngle;
   late final Animation<double> _rightDoorAngle;
   late final Animation<double> _vegDrawerOffset;
   late final Animation<double> _freezerOffset;
   late final Animation<double> _globalTime;
-  
+
   // 状態管理
   bool _leftDoorOpen = false;
   bool _rightDoorOpen = false;
@@ -43,7 +44,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
   @override
   void initState() {
     super.initState();
-    
+
     // コントローラー初期化
     _leftDoorController = AnimationController(
       vsync: this,
@@ -69,7 +70,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat();
-    
+
     // アニメーション定義
     _leftDoorAngle = Tween<double>(
       begin: 0.0,
@@ -78,7 +79,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
       parent: _leftDoorController,
       curve: Curves.elasticOut,
     ));
-    
+
     _rightDoorAngle = Tween<double>(
       begin: 0.0,
       end: -1.4, // 手前に開くように負の値に変更
@@ -86,7 +87,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
       parent: _rightDoorController,
       curve: Curves.elasticOut,
     ));
-    
+
     _vegDrawerOffset = Tween<double>(
       begin: 0.0,
       end: -80.0, // より大きなスライド距離
@@ -94,7 +95,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
       parent: _vegDrawerController,
       curve: Curves.bounceOut,
     ));
-    
+
     _freezerOffset = Tween<double>(
       begin: 0.0,
       end: -90.0,
@@ -102,7 +103,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
       parent: _freezerController,
       curve: Curves.bounceOut,
     ));
-    
+
     _globalTime = Tween<double>(
       begin: 0.0,
       end: 10.0,
@@ -123,7 +124,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
   @override
   Widget build(BuildContext context) {
     final counts = ref.watch(sectionCountsProvider);
-    
+
     return AspectRatio(
       aspectRatio: 9 / 16,
       child: Container(
@@ -165,10 +166,10 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
                     );
                   },
                 ),
-                
+
                 // インタラクション領域
                 _buildInteractionZones(counts),
-                
+
                 // ホログラム風オーバーレイ
                 _buildHologramOverlay(),
               ],
@@ -191,12 +192,13 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
               widthFactor: 0.425,
               heightFactor: 0.5,
               onTap: () => _toggleLeftDoor(),
-              onDoubleTap: () => widget.onSectionTap(FridgeCompartment.doorLeft, 0),
+              onDoubleTap: () =>
+                  widget.onSectionTap(FridgeCompartment.doorLeft, 0),
               semanticsLabel: '左ドア',
               semanticsValue: _leftDoorOpen ? '開' : '閉',
               badge: _buildHologramBadge(counts, FridgeCompartment.doorLeft, 0),
             ),
-            
+
             // 右扉（サイズ拡大に合わせて調整）
             _buildTouchZone(
               constraints: constraints,
@@ -204,15 +206,17 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
               widthFactor: 0.425,
               heightFactor: 0.5,
               onTap: () => _toggleRightDoor(),
-              onDoubleTap: () => widget.onSectionTap(FridgeCompartment.doorRight, 0),
+              onDoubleTap: () =>
+                  widget.onSectionTap(FridgeCompartment.doorRight, 0),
               semanticsLabel: '右ドア',
               semanticsValue: _rightDoorOpen ? '開' : '閉',
-              badge: _buildHologramBadge(counts, FridgeCompartment.doorRight, 0),
+              badge:
+                  _buildHologramBadge(counts, FridgeCompartment.doorRight, 0),
             ),
-            
+
             // 冷蔵室棚
             ...List.generate(3, (i) => _buildShelfZone(i, counts, constraints)),
-            
+
             // 野菜室
             _buildTouchZone(
               constraints: constraints,
@@ -221,12 +225,14 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
               heightFactor: 0.1,
               topOffset: 0.68,
               onTap: () => _toggleVegDrawer(),
-              onDoubleTap: () => widget.onSectionTap(FridgeCompartment.vegetableDrawer, 0),
+              onDoubleTap: () =>
+                  widget.onSectionTap(FridgeCompartment.vegetableDrawer, 0),
               semanticsLabel: '野菜室',
               semanticsValue: _vegDrawerOpen ? '開' : '閉',
-              badge: _buildHologramBadge(counts, FridgeCompartment.vegetableDrawer, 0),
+              badge: _buildHologramBadge(
+                  counts, FridgeCompartment.vegetableDrawer, 0),
             ),
-            
+
             // 冷凍庫
             _buildTouchZone(
               constraints: constraints,
@@ -235,7 +241,8 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
               heightFactor: 0.1,
               topOffset: 0.85,
               onTap: () => _toggleFreezer(),
-              onDoubleTap: () => widget.onSectionTap(FridgeCompartment.freezer, 0),
+              onDoubleTap: () =>
+                  widget.onSectionTap(FridgeCompartment.freezer, 0),
               semanticsLabel: '冷凍庫',
               semanticsValue: _freezerOpen ? '開' : '閉',
               badge: _buildHologramBadge(counts, FridgeCompartment.freezer, 0),
@@ -261,7 +268,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
     final width = constraints.maxWidth * widthFactor;
     final height = constraints.maxHeight * heightFactor;
     final top = constraints.maxHeight * topOffset;
-    
+
     Offset position;
     switch (alignment) {
       case Alignment.topLeft:
@@ -276,7 +283,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
       default:
         position = Offset.zero;
     }
-    
+
     return Positioned(
       left: position.dx,
       top: position.dy,
@@ -301,11 +308,12 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
     );
   }
 
-  Widget _buildShelfZone(int level, Map<String, int> counts, BoxConstraints constraints) {
+  Widget _buildShelfZone(
+      int level, Map<String, int> counts, BoxConstraints constraints) {
     final height = constraints.maxHeight;
     final top = height * (0.22 + level * 0.10);
     final shelfHeight = height * 0.08;
-    
+
     return Positioned(
       left: constraints.maxWidth * 0.125,
       right: constraints.maxWidth * 0.125,
@@ -317,7 +325,7 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
           widget.onSectionTap(FridgeCompartment.refrigerator, level);
         },
         child: Semantics(
-          label: '冷蔵室 棚$level',
+          label: '冷蔵室 棚${level + 1}',
           button: true,
           child: Container(
             decoration: BoxDecoration(
@@ -326,9 +334,26 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
             ),
             child: Stack(
               children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      '冷蔵室 棚${level + 1}',
+                      style: TextStyle(
+                        color: const Color(0xFF64FFDA),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w300,
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned.fill(
                   child: _buildHologramBadge(
-                      counts, FridgeCompartment.refrigerator, level),
+                    counts,
+                    FridgeCompartment.refrigerator,
+                    level,
+                  ),
                 ),
               ],
             ),
@@ -338,17 +363,19 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
     );
   }
 
-  Widget _buildHologramBadge(Map<String, int> counts, FridgeCompartment compartment, int level) {
+  Widget _buildHologramBadge(
+      Map<String, int> counts, FridgeCompartment compartment, int level) {
     final key = '${compartment.name}:$level';
     final count = counts[key] ?? 0;
     if (count == 0) return const SizedBox.shrink();
-    
+
     return Align(
       alignment: Alignment.topRight,
       child: AnimatedBuilder(
         animation: _particleController,
         builder: (context, _) {
-          final glow = (math.sin(_particleController.value * 2 * math.pi) + 1) / 2;
+          final glow =
+              (math.sin(_particleController.value * 2 * math.pi) + 1) / 2;
           return Container(
             margin: const EdgeInsets.all(6),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -482,7 +509,8 @@ class _Futuristic3DFridgeWidgetState extends ConsumerState<Futuristic3DFridgeWid
     return AnimatedBuilder(
       animation: _particleController,
       builder: (context, _) {
-        final opacity = (math.sin(_particleController.value * 2 * math.pi) + 1) / 2;
+        final opacity =
+            (math.sin(_particleController.value * 2 * math.pi) + 1) / 2;
         return Container(
           width: 20,
           height: 20,
