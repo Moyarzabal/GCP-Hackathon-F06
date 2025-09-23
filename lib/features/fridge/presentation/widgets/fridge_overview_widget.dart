@@ -38,7 +38,10 @@ class FridgeOverviewWidget extends ConsumerWidget {
                 ),
                 child: Text(
                   '$count',
-                  style: TextStyle(color: color.onTertiary, fontSize: 11, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: color.onTertiary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             );
@@ -61,7 +64,8 @@ class FridgeOverviewWidget extends ConsumerWidget {
                 top: 0,
                 width: width / 2,
                 height: height * 0.18,
-                child: _tapArea(context,
+                child: _tapArea(
+                  context,
                   label: '左ドア',
                   onTap: () => onSectionTap(FridgeCompartment.doorLeft, 0),
                   child: badge(FridgeCompartment.doorLeft, 0),
@@ -72,23 +76,26 @@ class FridgeOverviewWidget extends ConsumerWidget {
                 top: 0,
                 width: width / 2,
                 height: height * 0.18,
-                child: _tapArea(context,
+                child: _tapArea(
+                  context,
                   label: '右ドア',
                   onTap: () => onSectionTap(FridgeCompartment.doorRight, 0),
                   child: badge(FridgeCompartment.doorRight, 0),
                 ),
               ),
 
-              // 中央上：冷蔵室 棚レベル0..2（簡易3段）
+              // 中央上：冷蔵室 棚レベル1..3（簡易3段）
               for (var i = 0; i < 3; i++)
                 Positioned(
                   left: 12,
                   right: 12,
                   top: height * (0.22 + i * 0.10),
                   height: height * 0.08,
-                  child: _tapArea(context,
-                    label: '冷蔵室 棚$i',
-                    onTap: () => onSectionTap(FridgeCompartment.refrigerator, i),
+                  child: _tapArea(
+                    context,
+                    label: '冷蔵室 棚${i + 1}',
+                    onTap: () =>
+                        onSectionTap(FridgeCompartment.refrigerator, i),
                     child: badge(FridgeCompartment.refrigerator, i),
                   ),
                 ),
@@ -99,9 +106,11 @@ class FridgeOverviewWidget extends ConsumerWidget {
                 right: 12,
                 top: height * 0.68,
                 height: height * 0.10,
-                child: _tapArea(context,
+                child: _tapArea(
+                  context,
                   label: '野菜室',
-                  onTap: () => onSectionTap(FridgeCompartment.vegetableDrawer, 0),
+                  onTap: () =>
+                      onSectionTap(FridgeCompartment.vegetableDrawer, 0),
                   child: badge(FridgeCompartment.vegetableDrawer, 0),
                 ),
               ),
@@ -112,7 +121,8 @@ class FridgeOverviewWidget extends ConsumerWidget {
                 right: 12,
                 top: height * 0.85,
                 height: height * 0.10,
-                child: _tapArea(context,
+                child: _tapArea(
+                  context,
                   label: '冷凍庫',
                   onTap: () => onSectionTap(FridgeCompartment.freezer, 0),
                   child: badge(FridgeCompartment.freezer, 0),
@@ -150,4 +160,3 @@ class FridgeOverviewWidget extends ConsumerWidget {
     );
   }
 }
-
