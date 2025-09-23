@@ -5,9 +5,9 @@ import 'package:mockito/annotations.dart';
 import 'package:logging/logging.dart';
 import 'dart:async';
 
-import '../../../lib/core/errors/error_handler.dart';
-import '../../../lib/core/errors/app_exception.dart';
-import '../../../lib/core/errors/error_reporter.dart';
+import 'package:barcode_scanner/core/errors/error_handler.dart';
+import 'package:barcode_scanner/core/errors/app_exception.dart';
+import 'package:barcode_scanner/core/errors/error_reporter.dart';
 
 import 'error_handler_test.mocks.dart';
 

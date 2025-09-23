@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/constants/app_colors.dart';
 import 'core/platform/platform_info.dart';
@@ -13,7 +12,7 @@ import 'shared/widgets/adaptive/adaptive_navigation.dart';
 import 'shared/widgets/adaptive/adaptive_scaffold.dart';
 
 class MyApp extends ConsumerWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,7 +36,7 @@ class MyApp extends ConsumerWidget {
 }
 
 class MainScreen extends ConsumerWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  const MainScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

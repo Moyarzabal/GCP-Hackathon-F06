@@ -2,10 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import '../../../lib/shared/providers/app_state_provider.dart';
-import '../../../lib/shared/models/product.dart';
-import '../../../lib/features/products/data/datasources/product_datasource.dart';
-import '../../../lib/features/products/data/providers/product_data_source_provider.dart';
+import 'package:barcode_scanner/shared/providers/app_state_provider.dart';
+import 'package:barcode_scanner/shared/models/product.dart';
+import 'package:barcode_scanner/features/products/data/datasources/product_datasource.dart';
+import 'package:barcode_scanner/features/products/data/providers/product_data_source_provider.dart';
 import 'app_state_provider_firebase_test.mocks.dart';
 
 // Mock classes

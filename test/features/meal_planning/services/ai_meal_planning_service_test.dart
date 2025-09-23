@@ -1,18 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
-import '../../../../lib/core/services/ai_meal_planning_service.dart';
-import '../../../../lib/shared/models/product.dart';
-import '../../../../lib/shared/models/meal_plan.dart';
+import 'package:barcode_scanner/core/services/ai_meal_planning_service.dart';
+import 'package:barcode_scanner/shared/models/product.dart';
+import 'package:barcode_scanner/shared/models/meal_plan.dart';
 
-// import 'ai_meal_planning_service_test.mocks.dart';
-
-@GenerateMocks([AIMealPlanningService])
 void main() {
   group('AIMealPlanningService', () {
     late AIMealPlanningService service;
     late List<Product> mockProducts;
-    // late UserPreferences mockPreferences;
 
     setUp(() {
       service = AIMealPlanningService(
@@ -20,7 +14,7 @@ void main() {
           apiKey: 'test-api-key',
         ),
       );
-      
+
       mockProducts = [
         Product(
           name: 'トマト',
@@ -44,21 +38,12 @@ void main() {
           unit: 'kg',
         ),
       ];
-      
-      mockPreferences = const UserPreferences(
-        maxCookingTime: 60,
-        preferredDifficulty: DifficultyLevel.easy,
-        dietaryRestrictions: [],
-        allergies: [],
-        dislikedIngredients: [],
-        preferredCuisines: [],
-      );
     });
 
     test('should analyze ingredients correctly', () {
       // 注意: 実際のテストでは、private メソッドをテストするために
       // パブリックメソッドを通じてテストする必要があります
-      
+
       // モックデータで献立提案をテスト
       expect(mockProducts.length, 3);
       expect(mockProducts[0].name, 'トマト');
@@ -69,7 +54,7 @@ void main() {
     test('should determine expiry priority correctly', () {
       // 注意: 実際のテストでは、private メソッドをテストするために
       // リフレクションを使用するか、パブリックメソッドを通じてテストする必要があります
-      
+
       // 基本的なデータ検証
       expect(mockProducts[0].daysUntilExpiry, lessThanOrEqualTo(2));
       expect(mockProducts[1].daysUntilExpiry, lessThanOrEqualTo(5));
@@ -79,7 +64,7 @@ void main() {
     test('should translate categories correctly', () {
       // 注意: 実際のテストでは、private メソッドをテストするために
       // リフレクションを使用するか、パブリックメソッドを通じてテストする必要があります
-      
+
       // 基本的なカテゴリ検証
       expect(mockProducts[0].category, 'vegetables');
       expect(mockProducts[1].category, 'meat');
@@ -106,7 +91,7 @@ void main() {
 
       // 買い物リストを生成
       final shoppingList = service.generateShoppingList(mockMealPlan);
-      
+
       // 基本的な検証
       expect(shoppingList, isA<List>());
       // 注意: 実際の実装では、不足している材料のみが買い物リストに含まれるはず
@@ -116,7 +101,7 @@ void main() {
   group('UserPreferences', () {
     test('should create valid UserPreferences with default values', () {
       const preferences = UserPreferences();
-      
+
       expect(preferences.maxCookingTime, 60);
       expect(preferences.preferredDifficulty, DifficultyLevel.easy);
       expect(preferences.dietaryRestrictions, isEmpty);
@@ -134,7 +119,7 @@ void main() {
         dislikedIngredients: ['onion'],
         preferredCuisines: ['japanese'],
       );
-      
+
       expect(preferences.maxCookingTime, 30);
       expect(preferences.preferredDifficulty, DifficultyLevel.hard);
       expect(preferences.dietaryRestrictions, ['vegetarian']);
@@ -152,9 +137,9 @@ void main() {
         dislikedIngredients: ['garlic'],
         preferredCuisines: ['italian'],
       );
-      
+
       final json = preferences.toJson();
-      
+
       expect(json['maxCookingTime'], 45);
       expect(json['preferredDifficulty'], 'medium');
       expect(json['dietaryRestrictions'], ['vegan']);
@@ -169,7 +154,7 @@ void main() {
       const config = MealPlanningConfig(
         apiKey: 'test-api-key',
       );
-      
+
       expect(config.apiKey, 'test-api-key');
       expect(config.model, 'gemini-1.5-flash');
       expect(config.temperature, 0.7);
@@ -183,7 +168,7 @@ void main() {
         temperature: 0.5,
         maxTokens: 4096,
       );
-      
+
       expect(config.apiKey, 'test-api-key');
       expect(config.model, 'gemini-1.5-pro');
       expect(config.temperature, 0.5);
@@ -242,4 +227,3 @@ MealItem _createMockMealItem(String name) {
     createdAt: DateTime.now(),
   );
 }
-
