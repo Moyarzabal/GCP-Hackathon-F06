@@ -60,27 +60,23 @@ class FridgeShelfLayer extends StatelessWidget {
           top: top,
           height: shelfHeight,
           child: GestureDetector(
-            onTap: isVisible ? () {
-              HapticFeedback.lightImpact();
-              onSectionTap(FridgeCompartment.refrigerator, i);
-            } : null,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.blue.withOpacity(0.3),
-                    width: 2,
-                  ),
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  '冷蔵室 棚${i + 1}',
-                  style: TextStyle(
-                    color: Colors.grey[600]!.withOpacity(isVisible ? 0.8 : 0),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+            onTap: isVisible
+                ? () {
+                    HapticFeedback.lightImpact();
+                    onSectionTap(FridgeCompartment.refrigerator, i);
+                  }
+                : null,
+            child: Semantics(
+              label: '冷蔵室 棚${i + 1}',
+              button: true,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.blue.withOpacity(0.3),
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
