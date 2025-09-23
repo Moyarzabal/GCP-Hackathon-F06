@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.hackathon.f06" "\0"
-            VALUE "FileDescription", "barcode_scanner" "\0"
+            VALUE "FileDescription", "Edibuddy" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "barcode_scanner" "\0"
+            VALUE "InternalName", "Edibuddy" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.hackathon.f06. All rights reserved." "\0"
-            VALUE "OriginalFilename", "barcode_scanner.exe" "\0"
-            VALUE "ProductName", "barcode_scanner" "\0"
+            VALUE "OriginalFilename", "Edibuddy.exe" "\0"
+            VALUE "ProductName", "Edibuddy" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

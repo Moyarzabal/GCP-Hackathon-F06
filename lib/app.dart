@@ -19,7 +19,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // すべてのプラットフォームでMaterialAppを使用（NavigationDestinationのため）
     return MaterialApp(
-      title: '冷蔵庫管理AI',
+      title: 'Edibuddy | 食べ物の相棒',
       theme: ThemeData(
         primaryColor: AppColors.primary,
         colorScheme: ColorScheme.fromSeed(
