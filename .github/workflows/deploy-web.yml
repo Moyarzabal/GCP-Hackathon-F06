@@ -26,6 +26,7 @@ jobs:
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
       firebase-project: ${{ steps.set-env.outputs.firebase-project }}
+      firebase-target: ${{ steps.set-env.outputs.firebase-target }}
       firebase-channel: ${{ steps.set-env.outputs.firebase-channel }}
       hosting-url: ${{ steps.set-env.outputs.hosting-url }}
     steps:
@@ -46,11 +47,13 @@ jobs:
           
           if [[ "$ENV" == "production" ]]; then
             echo "firebase-project=gcp-f06-barcode" >> $GITHUB_OUTPUT
+            echo "firebase-target=production" >> $GITHUB_OUTPUT
             echo "firebase-channel=live" >> $GITHUB_OUTPUT
             echo "hosting-url=https://gcp-f06-barcode.web.app" >> $GITHUB_OUTPUT
           else
             echo "firebase-project=gcp-f06-barcode" >> $GITHUB_OUTPUT
-            echo "firebase-channel=staging" >> $GITHUB_OUTPUT
+            echo "firebase-target=staging" >> $GITHUB_OUTPUT
+            echo "firebase-channel=live" >> $GITHUB_OUTPUT
             echo "hosting-url=https://staging-gcp-f06-barcode.web.app" >> $GITHUB_OUTPUT
           fi
 
@@ -67,6 +70,12 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
+
+      - name: Install optimization tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y optipng jpegoptim
+          sudo npm install -g html-minifier
 
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
@@ -152,7 +161,7 @@ jobs:
           firebaseServiceAccount: ${{ steps.firebase-account.outputs.service_account }}
           channelId: ${{ needs.determine-environment.outputs.firebase-channel }}
           projectId: ${{ needs.determine-environment.outputs.firebase-project }}
-          target: ${{ needs.determine-environment.outputs.environment }}
+          target: ${{ needs.determine-environment.outputs.firebase-target }}
 
       - name: Get deployment URL
         id: deploy-url

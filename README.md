@@ -244,6 +244,42 @@ flutter test --coverage
 
 ## 🚢 デプロイ
 
+### Web (Firebase Hosting)
+
+ステージング／本番を Firebase Hosting のマルチターゲットで運用しています。`.firebaserc` と `firebase.json` に設定済みなので、以下の手順でデプロイできます。
+
+1. Flutter Web をビルド
+   ```bash
+   # ステージング用
+   flutter build web --release \\
+     --dart-define=ENVIRONMENT=staging \\
+     --dart-define=API_BASE_URL=https://staging-api.gcp-f06-barcode.com \\
+     --no-tree-shake-icons
+
+   # 本番用
+   flutter build web --release \\
+     --dart-define=ENVIRONMENT=production \\
+     --dart-define=API_BASE_URL=https://api.gcp-f06-barcode.com \\
+     --no-tree-shake-icons
+   ```
+
+2. Firebase Hosting へデプロイ
+   ```bash
+   # ステージングサイト (https://staging-gcp-f06-barcode.web.app)
+   firebase deploy --only hosting:staging --project gcp-f06-barcode
+
+   # 本番サイト (https://gcp-f06-barcode.web.app)
+   firebase deploy --only hosting:production --project gcp-f06-barcode
+   ```
+
+   > 初回のみ `firebase hosting:sites:create staging-gcp-f06-barcode` を実行してステージングサイトを作成済みです。
+
+3. CI/CD（GitHub Actions）
+   - `.github/workflows/deploy-web.yml` が Web デプロイを自動化します。
+   - `develop` ブランチへの push でステージング、`main` への push で本番へ自動デプロイ。
+   - 手動実行する場合は「Run workflow」で `environment`（staging / production）を選択。
+   - シークレットは `FIREBASE_SERVICE_ACCOUNT_STAGING` / `FIREBASE_SERVICE_ACCOUNT_PROD`（JSON を設定）、`FIREBASE_TOKEN`、`SLACK_WEBHOOK_URL` を利用します。
+
 ### iOS App Storeへのデプロイ
 
 ```bash
@@ -392,5 +428,3 @@ flutter build appbundle --release
 <p align="center">
   Made with ❤️ by F06 Team
 </p>
-
-

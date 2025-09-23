@@ -1,0 +1,13 @@
+{
+  "ci": {
+    "collect": {
+      "staticDistDir": "./build/web",
+      "url": [
+        "/index.html"
+      ]
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

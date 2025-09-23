@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../lib/shared/widgets/error_boundary.dart';
-import '../../../lib/core/errors/app_exception.dart';
+import 'package:barcode_scanner/shared/widgets/error_boundary.dart';
+import 'package:barcode_scanner/core/errors/app_exception.dart';
 
 class ThrowingWidget extends StatelessWidget {
   final Exception? exception;

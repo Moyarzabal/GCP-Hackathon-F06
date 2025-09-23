@@ -3,9 +3,9 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:logging/logging.dart';
 
-import '../../../lib/core/errors/error_reporter.dart';
-import '../../../lib/core/errors/app_exception.dart';
-import '../../../lib/core/errors/error_messages.dart';
+import 'package:barcode_scanner/core/errors/error_reporter.dart';
+import 'package:barcode_scanner/core/errors/app_exception.dart';
+import 'package:barcode_scanner/core/errors/error_messages.dart';
 
 import 'error_reporter_test.mocks.dart';
 
