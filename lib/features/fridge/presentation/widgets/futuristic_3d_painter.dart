@@ -253,19 +253,23 @@ class Futuristic3DFridgePainter extends CustomPainter {
       Rect.fromLTWH(x, y, w, h),
       const Radius.circular(15),
     );
-    
+
+    // 下地を完全不透明で塗りつぶして背景の透けを防ぐ
+    final Paint doorBaseFill = Paint()..color = darkMetal;
+    canvas.drawRRect(doorRect, doorBaseFill);
+
     // メタリック素材と半透明ガラスの組み合わせ
     final Paint doorBasePaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          darkMetal.withOpacity(0.85),
-          const Color(0xFF37474F).withOpacity(0.8),
-          darkMetal.withOpacity(0.75),
+          darkMetal,
+          const Color(0xFF37474F),
+          const Color(0xFF2C3A40),
         ],
       ).createShader(Rect.fromLTWH(x, y, w, h));
-    
+
     canvas.drawRRect(doorRect, doorBasePaint);
     
     // ガラス風オーバーレイ
