@@ -13,10 +13,12 @@ class RealisticFridgeWidget extends ConsumerStatefulWidget {
   const RealisticFridgeWidget({super.key, required this.onSectionTap});
 
   @override
-  ConsumerState<RealisticFridgeWidget> createState() => _RealisticFridgeWidgetState();
+  ConsumerState<RealisticFridgeWidget> createState() =>
+      _RealisticFridgeWidgetState();
 }
 
-class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> with TickerProviderStateMixin {
+class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget>
+    with TickerProviderStateMixin {
   late final AnimationController _leftDoorCtr;
   late final AnimationController _rightDoorCtr;
   late final AnimationController _vegDrawerCtr;
@@ -25,10 +27,14 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
   @override
   void initState() {
     super.initState();
-    _leftDoorCtr = AnimationController(vsync: this, duration: const Duration(milliseconds: 260));
-    _rightDoorCtr = AnimationController(vsync: this, duration: const Duration(milliseconds: 260));
-    _vegDrawerCtr = AnimationController(vsync: this, duration: const Duration(milliseconds: 240));
-    _freezerCtr = AnimationController(vsync: this, duration: const Duration(milliseconds: 260));
+    _leftDoorCtr = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 260));
+    _rightDoorCtr = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 260));
+    _vegDrawerCtr = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 240));
+    _freezerCtr = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 260));
   }
 
   @override
@@ -53,7 +59,9 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
             return Stack(
               children: [
                 // 本体（静的）
-                CustomPaint(size: Size.infinite, painter: FridgeBodyPainter(colorScheme: color)),
+                CustomPaint(
+                    size: Size.infinite,
+                    painter: FridgeBodyPainter(colorScheme: color)),
 
                 // ドア（左右）
                 _buildDoor(
@@ -62,7 +70,8 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
                   controller: _leftDoorCtr,
                   onTap: () => _toggle(_leftDoorCtr),
                   semanticsLabel: '左ドア',
-                  badge: _buildBadge(counts, FridgeCompartment.doorLeft, 0, color),
+                  badge:
+                      _buildBadge(counts, FridgeCompartment.doorLeft, 0, color),
                 ),
                 _buildDoor(
                   constraints: constraints,
@@ -70,11 +79,13 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
                   controller: _rightDoorCtr,
                   onTap: () => _toggle(_rightDoorCtr),
                   semanticsLabel: '右ドア',
-                  badge: _buildBadge(counts, FridgeCompartment.doorRight, 0, color),
+                  badge: _buildBadge(
+                      counts, FridgeCompartment.doorRight, 0, color),
                 ),
 
                 // 冷蔵室の棚（タップでズームビューへ）
-                ...List.generate(3, (i) => _buildShelfTap(i, color, counts, constraints)),
+                ...List.generate(
+                    3, (i) => _buildShelfTap(i, color, counts, constraints)),
 
                 // 野菜室 引き出し
                 _buildDrawer(
@@ -85,7 +96,8 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
                   color: color,
                   semanticsLabel: '野菜室',
                   onTap: () => _toggle(_vegDrawerCtr),
-                  badge: _buildBadge(counts, FridgeCompartment.vegetableDrawer, 0, color),
+                  badge: _buildBadge(
+                      counts, FridgeCompartment.vegetableDrawer, 0, color),
                 ),
 
                 // 冷凍庫 引き出し
@@ -97,7 +109,8 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
                   color: color,
                   semanticsLabel: '冷凍庫',
                   onTap: () => _toggle(_freezerCtr),
-                  badge: _buildBadge(counts, FridgeCompartment.freezer, 0, color),
+                  badge:
+                      _buildBadge(counts, FridgeCompartment.freezer, 0, color),
                 ),
               ],
             );
@@ -115,7 +128,8 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
     }
   }
 
-  Widget _buildBadge(Map<String, int> counts, FridgeCompartment c, int level, ColorScheme color) {
+  Widget _buildBadge(Map<String, int> counts, FridgeCompartment c, int level,
+      ColorScheme color) {
     final key = '${c.name}:$level';
     final count = counts[key] ?? 0;
     if (count == 0) return const SizedBox.shrink();
@@ -128,7 +142,11 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
           color: color.tertiary,
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Text('$count', style: TextStyle(color: color.onTertiary, fontSize: 11, fontWeight: FontWeight.bold)),
+        child: Text('$count',
+            style: TextStyle(
+                color: color.onTertiary,
+                fontSize: 11,
+                fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -169,7 +187,8 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
               animation: controller,
               builder: (context, _) {
                 return Transform(
-                  alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
+                  alignment:
+                      isLeft ? Alignment.centerLeft : Alignment.centerRight,
                   transform: Matrix4.identity()
                     ..setEntry(3, 2, 0.0015)
                     ..rotateY(angle.value),
@@ -201,7 +220,10 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
           ],
         ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 6, offset: const Offset(0, 2)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.10),
+              blurRadius: 6,
+              offset: const Offset(0, 2)),
         ],
         border: Border.all(color: color.outlineVariant),
       ),
@@ -220,7 +242,8 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
     );
   }
 
-  Widget _buildShelfTap(int level, ColorScheme color, Map<String, int> counts, BoxConstraints constraints) {
+  Widget _buildShelfTap(int level, ColorScheme color, Map<String, int> counts,
+      BoxConstraints constraints) {
     final height = constraints.maxHeight;
     final top = height * (0.22 + level * 0.10);
     final shelfHeight = height * 0.08;
@@ -232,7 +255,7 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
       child: GestureDetector(
         onTap: () => widget.onSectionTap(FridgeCompartment.refrigerator, level),
         child: Semantics(
-          label: '冷蔵室 棚$level',
+          label: '冷蔵室 棚${level + 1}',
           button: true,
           child: Container(
             decoration: BoxDecoration(
@@ -240,9 +263,23 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
               borderRadius: BorderRadius.circular(10),
             ),
             child: Stack(children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    '冷蔵室 棚${level + 1}',
+                    style: TextStyle(color: color.onSurfaceVariant),
+                  ),
+                ),
+              ),
               Positioned.fill(
                 child: _buildBadge(
-                    counts, FridgeCompartment.refrigerator, level, color),
+                  counts,
+                  FridgeCompartment.refrigerator,
+                  level,
+                  color,
+                ),
               ),
             ]),
           ),
@@ -264,9 +301,10 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
     final width = constraints.maxWidth;
     final height = constraints.maxHeight * heightFactor;
     final top = constraints.maxHeight * topFactor;
-    final offsetY = Tween<double>(begin: 0.0, end: -constraints.maxHeight * 0.22)
-        .chain(CurveTween(curve: Curves.easeOut))
-        .animate(controller);
+    final offsetY =
+        Tween<double>(begin: 0.0, end: -constraints.maxHeight * 0.22)
+            .chain(CurveTween(curve: Curves.easeOut))
+            .animate(controller);
 
     return Positioned(
       left: 12,
@@ -304,7 +342,10 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
                     ),
                     border: Border.all(color: color.outlineVariant),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 3)),
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3)),
                     ],
                   ),
                   child: Stack(children: [
@@ -331,4 +372,3 @@ class _RealisticFridgeWidgetState extends ConsumerState<RealisticFridgeWidget> w
     );
   }
 }
-
