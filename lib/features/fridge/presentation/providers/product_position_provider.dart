@@ -102,7 +102,6 @@ class ProductPositionNotifier
         p.deletedAt == null &&
         p.location?.compartment != FridgeCompartment.refrigerator &&
         p.location?.compartment != null)) {
-
       final location = product.location!;
       final key = _sectionKey(location.compartment, location.level);
       final context = sections.putIfAbsent(
@@ -218,7 +217,8 @@ class ProductPositionNotifier
             compartment: FridgeCompartment.refrigerator,
             level: targetLevel,
             bounds: bounds,
-            baseItemSize: _characterSizeForCompartment(FridgeCompartment.refrigerator),
+            baseItemSize:
+                _characterSizeForCompartment(FridgeCompartment.refrigerator),
           );
         },
       );
@@ -229,7 +229,8 @@ class ProductPositionNotifier
         for (int nextLevel = 0; nextLevel < totalLevels; nextLevel++) {
           if (nextLevel == targetLevel) continue;
 
-          final nextKey = _sectionKey(FridgeCompartment.refrigerator, nextLevel);
+          final nextKey =
+              _sectionKey(FridgeCompartment.refrigerator, nextLevel);
           final nextContext = sections.putIfAbsent(
             nextKey,
             () {
@@ -244,7 +245,8 @@ class ProductPositionNotifier
                 compartment: FridgeCompartment.refrigerator,
                 level: nextLevel,
                 bounds: bounds,
-                baseItemSize: _characterSizeForCompartment(FridgeCompartment.refrigerator),
+                baseItemSize: _characterSizeForCompartment(
+                    FridgeCompartment.refrigerator),
               );
             },
           );

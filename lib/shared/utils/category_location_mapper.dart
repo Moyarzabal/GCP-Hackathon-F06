@@ -51,7 +51,8 @@ class CategoryLocationMapper {
   }
 
   /// 各区画に適したカテゴリのリストを取得する
-  static List<String> getCategoriesForCompartment(FridgeCompartment compartment) {
+  static List<String> getCategoriesForCompartment(
+      FridgeCompartment compartment) {
     switch (compartment) {
       case FridgeCompartment.refrigerator:
         return ['飲料', '食品', '調味料', 'その他'];

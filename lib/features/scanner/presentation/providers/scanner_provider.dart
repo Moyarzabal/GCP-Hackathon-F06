@@ -168,7 +168,8 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
       final expiryDate = analysis.expiryDate;
 
       // カテゴリに基づいて適切な配置場所を決定
-      final location = CategoryLocationMapper.getDefaultLocationForCategory(analysis.category);
+      final location = CategoryLocationMapper.getDefaultLocationForCategory(
+          analysis.category);
 
       final product = Product(
         id: DateTime.now().millisecondsSinceEpoch.toString(),

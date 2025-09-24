@@ -434,8 +434,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
                     // カテゴリが変更された場合は適切な配置場所を自動設定
-                    final newLocation = selectedCategory != currentProduct.category
-                        ? CategoryLocationMapper.getDefaultLocationForCategory(selectedCategory)
+                    final newLocation = selectedCategory !=
+                            currentProduct.category
+                        ? CategoryLocationMapper.getDefaultLocationForCategory(
+                            selectedCategory)
                         : currentProduct.location;
 
                     final updatedProduct = currentProduct.copyWith(
