@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Exception thrown when secure storage operations fail
 class SecureStorageException implements Exception {
@@ -15,7 +17,8 @@ class SecureStorageException implements Exception {
 
 /// Secure storage manager for sensitive data
 class SecureStorage {
-  final FlutterSecureStorage _storage;
+  final FlutterSecureStorage? _storage;
+  SharedPreferences? _prefs;
 
   // Default options for secure storage
   static const AndroidOptions _androidOptions = AndroidOptions(
@@ -35,19 +38,33 @@ class SecureStorage {
   static const WebOptions _webOptions = WebOptions();
 
   SecureStorage({FlutterSecureStorage? storage})
-      : _storage = storage ??
-            const FlutterSecureStorage(
-              aOptions: _androidOptions,
-              iOptions: _iosOptions,
-              lOptions: _linuxOptions,
-              wOptions: _windowsOptions,
-              webOptions: _webOptions,
-            );
+      : _storage = kIsWeb
+            ? null
+            : (storage ??
+                const FlutterSecureStorage(
+                  aOptions: _androidOptions,
+                  iOptions: _iosOptions,
+                  lOptions: _linuxOptions,
+                  wOptions: _windowsOptions,
+                  webOptions: _webOptions,
+                ));
+
+  /// Initialize SharedPreferences for web platform
+  Future<void> _initPrefs() async {
+    if (kIsWeb && _prefs == null) {
+      _prefs = await SharedPreferences.getInstance();
+    }
+  }
 
   /// Store a key-value pair securely
   Future<void> store(String key, String value) async {
     try {
-      await _storage.write(key: key, value: value);
+      if (kIsWeb) {
+        await _initPrefs();
+        await _prefs!.setString(key, value);
+      } else {
+        await _storage!.write(key: key, value: value);
+      }
     } catch (e) {
       throw SecureStorageException(
           'Failed to store data for key: $key', Exception(e.toString()));
@@ -57,7 +74,12 @@ class SecureStorage {
   /// Read a value by key
   Future<String?> read(String key) async {
     try {
-      return await _storage.read(key: key);
+      if (kIsWeb) {
+        await _initPrefs();
+        return _prefs!.getString(key);
+      } else {
+        return await _storage!.read(key: key);
+      }
     } catch (e) {
       throw SecureStorageException(
           'Failed to read data for key: $key', Exception(e.toString()));
@@ -67,7 +89,12 @@ class SecureStorage {
   /// Delete a key-value pair
   Future<void> delete(String key) async {
     try {
-      await _storage.delete(key: key);
+      if (kIsWeb) {
+        await _initPrefs();
+        await _prefs!.remove(key);
+      } else {
+        await _storage!.delete(key: key);
+      }
     } catch (e) {
       throw SecureStorageException(
           'Failed to delete data for key: $key', Exception(e.toString()));
@@ -77,7 +104,12 @@ class SecureStorage {
   /// Clear all stored data
   Future<void> clearAll() async {
     try {
-      await _storage.deleteAll();
+      if (kIsWeb) {
+        await _initPrefs();
+        await _prefs!.clear();
+      } else {
+        await _storage!.deleteAll();
+      }
     } catch (e) {
       throw SecureStorageException(
           'Failed to clear all data', Exception(e.toString()));
@@ -199,8 +231,13 @@ class SecureStorage {
   /// Get all stored keys (for debugging purposes)
   Future<Set<String>> getAllKeys() async {
     try {
-      final allKeys = await _storage.readAll();
-      return allKeys.keys.toSet();
+      if (kIsWeb) {
+        await _initPrefs();
+        return _prefs!.getKeys();
+      } else {
+        final allKeys = await _storage!.readAll();
+        return allKeys.keys.toSet();
+      }
     } catch (e) {
       throw SecureStorageException(
           'Failed to retrieve all keys', Exception(e.toString()));
