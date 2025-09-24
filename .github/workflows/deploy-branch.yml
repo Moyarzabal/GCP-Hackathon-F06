@@ -5,7 +5,6 @@ on:
     branches-ignore:
       - main
       - master
-      - develop
     paths:
       - 'lib/**'
       - 'web/**'
@@ -106,7 +105,7 @@ jobs:
         id: deploy_branch
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}'
           projectId: gcp-f06-barcode
           channelId: branch-${{ steps.extract_branch.outputs.safe_branch }}
           expires: 30d
