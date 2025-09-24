@@ -177,8 +177,8 @@ List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
   for (double scale = 1.0; scale >= minScale; scale -= scaleStep) {
     final Size itemSize = Size(baseSize.width * scale, baseSize.height * scale);
     final double verticalGap = (itemSize.height * 0.28).clamp(6.0, 18.0);
-    final double minHorizontalGap = math.max(6.0, itemSize.width * 0.12);
-    final double maxHorizontalGap = math.max(minHorizontalGap + 6.0, itemSize.width * 0.35);
+    final double minHorizontalGap = math.max(2.0, itemSize.width * 0.08);
+    final double maxHorizontalGap = math.max(minHorizontalGap + 4.0, itemSize.width * 0.25);
 
     final int maxColumns = math.max(
       1,
@@ -214,10 +214,13 @@ List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
         final double top =
             baseTop - rowIndex * (itemSize.height + verticalGap);
 
+        // Center the row horizontally within available width
+        final double totalRowWidth = rowItems.length * itemSize.width + (rowItems.length - 1) * gap;
+        final double rowStartX = bounds.left + (availableWidth - totalRowWidth) / 2;
+
         for (int columnIndex = 0; columnIndex < rowItems.length; columnIndex++) {
           final Product product = rowItems[columnIndex];
-          final double left =
-              bounds.left + columnIndex * (itemSize.width + gap);
+          final double left = rowStartX + columnIndex * (itemSize.width + gap);
 
           placements.add(
             _PlannedPlacement(
@@ -233,21 +236,38 @@ List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
     }
   }
 
-  // Fallback: use the smallest scale and stack vertically with consistent spacing.
+  // Fallback: arrange horizontally in a single row with minimal spacing
   final Size fallbackSize = Size(
     baseSize.width * minScale,
     baseSize.height * minScale,
   );
-  final double verticalGap = (fallbackSize.height * 0.2).clamp(6.0, 14.0);
-  final double baseTop = bounds.bottom - fallbackSize.height;
 
+  final double minHorizontalGap = 2.0;
+  final double maxItemsInRow = (availableWidth / (fallbackSize.width + minHorizontalGap)).floor();
+  final int itemsToShow = math.min(products.length, maxItemsInRow);
+
+  if (itemsToShow == 0) {
+    return const [];
+  }
+
+  final double actualGap = itemsToShow <= 1
+    ? 0.0
+    : (availableWidth - itemsToShow * fallbackSize.width) / (itemsToShow - 1);
+  final double clampedGap = actualGap.clamp(minHorizontalGap, availableWidth * 0.1);
+
+  final double baseTop = bounds.bottom - fallbackSize.height;
   final List<_PlannedPlacement> placements = [];
-  for (int index = products.length - 1, row = 0; index >= 0; index--, row++) {
-    final double top = baseTop - row * (fallbackSize.height + verticalGap);
+
+  // Center the fallback row horizontally
+  final double totalRowWidth = itemsToShow * fallbackSize.width + (itemsToShow - 1) * clampedGap;
+  final double rowStartX = bounds.left + (availableWidth - totalRowWidth) / 2;
+
+  for (int index = 0; index < itemsToShow; index++) {
+    final double left = rowStartX + index * (fallbackSize.width + clampedGap);
     placements.add(
       _PlannedPlacement(
         product: products[index],
-        offset: Offset(bounds.left, top),
+        offset: Offset(left, baseTop),
         size: fallbackSize,
       ),
     );
