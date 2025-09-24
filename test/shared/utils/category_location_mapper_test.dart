@@ -38,49 +38,58 @@ void main() {
     });
 
     test('should create default location for vegetable category', () {
-      final location = CategoryLocationMapper.getDefaultLocationForCategory('野菜');
+      final location =
+          CategoryLocationMapper.getDefaultLocationForCategory('野菜');
       expect(location.compartment, FridgeCompartment.vegetableDrawer);
       expect(location.level, 0);
     });
 
     test('should create default location for frozen food category', () {
-      final location = CategoryLocationMapper.getDefaultLocationForCategory('冷凍食品');
+      final location =
+          CategoryLocationMapper.getDefaultLocationForCategory('冷凍食品');
       expect(location.compartment, FridgeCompartment.freezer);
       expect(location.level, 0);
     });
 
     test('should create default location for refrigerator categories', () {
-      final location = CategoryLocationMapper.getDefaultLocationForCategory('飲料');
+      final location =
+          CategoryLocationMapper.getDefaultLocationForCategory('飲料');
       expect(location.compartment, FridgeCompartment.refrigerator);
       expect(location.level, 0);
     });
 
     test('should get compartment display names in Japanese', () {
       expect(
-        CategoryLocationMapper.getCompartmentDisplayName(FridgeCompartment.refrigerator),
+        CategoryLocationMapper.getCompartmentDisplayName(
+            FridgeCompartment.refrigerator),
         '冷蔵室',
       );
       expect(
-        CategoryLocationMapper.getCompartmentDisplayName(FridgeCompartment.vegetableDrawer),
+        CategoryLocationMapper.getCompartmentDisplayName(
+            FridgeCompartment.vegetableDrawer),
         '野菜室',
       );
       expect(
-        CategoryLocationMapper.getCompartmentDisplayName(FridgeCompartment.freezer),
+        CategoryLocationMapper.getCompartmentDisplayName(
+            FridgeCompartment.freezer),
         '冷凍室',
       );
     });
 
     test('should return correct categories for each compartment', () {
       expect(
-        CategoryLocationMapper.getCategoriesForCompartment(FridgeCompartment.vegetableDrawer),
+        CategoryLocationMapper.getCategoriesForCompartment(
+            FridgeCompartment.vegetableDrawer),
         ['野菜'],
       );
       expect(
-        CategoryLocationMapper.getCategoriesForCompartment(FridgeCompartment.freezer),
+        CategoryLocationMapper.getCategoriesForCompartment(
+            FridgeCompartment.freezer),
         ['冷凍食品'],
       );
       expect(
-        CategoryLocationMapper.getCategoriesForCompartment(FridgeCompartment.refrigerator),
+        CategoryLocationMapper.getCategoriesForCompartment(
+            FridgeCompartment.refrigerator),
         ['飲料', '食品', '調味料', 'その他'],
       );
     });
