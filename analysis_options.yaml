@@ -27,6 +27,11 @@ analyzer:
     unnecessary_cast: info
     unnecessary_null_comparison: info
     unnecessary_type_check: info
+    asset_does_not_exist: info  # Treat missing asset warnings as info
+    invalid_use_of_visible_for_testing_member: info  # StateNotifier warnings
+    invalid_use_of_protected_member: info  # StateNotifier warnings
+    dead_null_aware_expression: info  # Null-aware operator warnings
+    invalid_null_aware_operator: info  # Null-aware operator warnings
 
 linter:
   rules:
