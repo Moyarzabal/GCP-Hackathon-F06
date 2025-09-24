@@ -1,0 +1,98 @@
+modification_plan:
+  phase_1_1_product_model_improvements:
+    priority: high
+    tasks:
+      - task: "Product.fromFirestore()のTimestamp処理改善"
+        description: "FirestoreのTimestamp型とmillisecondsSinceEpochの両方に対応"
+        test_first: true
+        implementation:
+          - "Timestamp型の検出と変換ロジック追加"
+          - "後方互換性の維持（millisecondsSinceEpoch対応）"
+          - "エラーハンドリングの強化"
+      
+      - task: "Product.toFirestore()の改善"
+        description: "Firestoreの標準的なフィールド構造に合わせる"
+        test_first: true
+        implementation:
+          - "Timestamp型の使用検討"
+          - "フィールド名の標準化"
+          - "null値の適切な処理"
+      
+      - task: "Productモデルのテスト追加"
+        description: "Firestore変換メソッドの包括的なテスト"
+        test_first: true
+        implementation:
+          - "fromFirestore()のテストケース"
+          - "toFirestore()のテストケース"
+          - "エッジケースのテスト"
+  
+  phase_1_2_firestore_service_consolidation:
+    priority: high
+    tasks:
+      - task: "FirestoreServiceの商品操作統一"
+        description: "productsコレクションを使用するように統一"
+        test_first: true
+        implementation:
+          - "既存のitemsコレクション操作をproductsコレクションに移行"
+          - "ProductDataSourceインターフェースとの統合"
+          - "重複コードの削除"
+      
+      - task: "FirestoreServiceのテスト追加"
+        description: "商品CRUD操作のテスト実装"
+        test_first: true
+        implementation:
+          - "各CRUD操作のテストケース"
+          - "エラーハンドリングのテスト"
+          - "モックを使用した単体テスト"
+  
+  phase_1_3_integration_testing:
+    priority: medium
+    tasks:
+      - task: "統合テストの実装"
+        description: "ProductDataSourceとFirestoreServiceの統合テスト"
+        test_first: true
+        implementation:
+          - "エンドツーエンドのテストシナリオ"
+          - "データ整合性のテスト"
+          - "パフォーマンステスト"
+  
+  phase_2_state_management_integration:
+    priority: high
+    tasks:
+      - task: "AppStateNotifierのFirebase統合"
+        description: "既存の状態管理をFirebaseと統合"
+        test_first: true
+        implementation:
+          - "初期データ読み込み機能"
+          - "リアルタイム同期機能"
+          - "オフライン対応"
+      
+      - task: "プロバイダーの更新"
+        description: "RiverpodプロバイダーのFirebase対応"
+        test_first: true
+        implementation:
+          - "productsProviderの更新"
+          - "エラー状態の管理"
+          - "ローディング状態の管理"
+  
+  phase_3_ui_integration:
+    priority: medium
+    tasks:
+      - task: "既存画面のFirebase統合"
+        description: "スキャナー画面とホーム画面の更新"
+        test_first: true
+        implementation:
+          - "商品追加時のFirebase保存"
+          - "商品編集・削除のFirebase同期"
+          - "エラー表示の改善"
+  
+  phase_4_optimization:
+    priority: low
+    tasks:
+      - task: "パフォーマンス最適化"
+        description: "読み込み時間とメモリ使用量の最適化"
+        test_first: true
+        implementation:
+          - "ページネーションの実装"
+          - "キャッシュ戦略の最適化"
+          - "画像の遅延読み込み"

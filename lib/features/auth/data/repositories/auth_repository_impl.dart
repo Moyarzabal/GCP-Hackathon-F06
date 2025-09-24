@@ -41,8 +41,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Result<User>> createAccount(
-    String email, 
-    String password, 
+    String email,
+    String password,
     String displayName,
   ) async {
     try {
@@ -180,7 +180,7 @@ class AuthRepositoryImpl implements AuthRepository {
           code: exception.code,
           originalError: exception,
         );
-      
+
       // ネットワークエラー
       case 'network-request-failed':
       case 'timeout':
@@ -189,7 +189,7 @@ class AuthRepositoryImpl implements AuthRepository {
           code: exception.code,
           originalError: exception,
         );
-      
+
       // バリデーションエラー
       case 'invalid-email':
       case 'weak-password':
@@ -199,7 +199,7 @@ class AuthRepositoryImpl implements AuthRepository {
           code: exception.code,
           originalError: exception,
         );
-      
+
       // その他のサーバーエラー
       default:
         return ServerFailure(

@@ -1,11 +1,11 @@
 {
-    "name": "barcode_scanner",
-    "short_name": "barcode_scanner",
+    "name": "Edibuddy",
+    "short_name": "Edibuddy",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "食べ物の相棒として食材の賞味期限を管理するアプリです。",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

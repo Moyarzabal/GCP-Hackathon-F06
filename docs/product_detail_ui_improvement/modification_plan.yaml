@@ -1,0 +1,118 @@
+modification_plan:
+  objective: "商品詳細画面からおすすめレシピ表示を削除し、キャラクター画像をより大きく表示する"
+  
+  changes_overview:
+    1. "おすすめレシピセクション(_buildRecipeSection)の完全削除"
+    2. "キャラクター画像サイズを120x120から200x200に拡大"
+    3. "不要なimportの削除（recipe関連）"
+    4. "レイアウトの調整とスペース最適化"
+  
+  detailed_modifications:
+    
+    remove_recipe_section:
+      target: "lines 127-129"
+      action: "delete"
+      content: |
+        const SizedBox(height: 24),
+        // おすすめレシピセクション
+        _buildRecipeSection(),
+      reason: "おすすめレシピ表示機能を削除するため"
+    
+    remove_recipe_method:
+      target: "lines 207-260"
+      action: "delete"
+      method: "_buildRecipeSection()"
+      reason: "使用されなくなるメソッドを削除"
+    
+    remove_recipe_dialog_method:
+      target: "lines 262-415"
+      action: "delete"
+      method: "_showRecipeDetail()"
+      reason: "レシピ詳細表示機能が不要になるため"
+    
+    enlarge_character_image:
+      target: "character image container and _buildImageWidget method"
+      modifications:
+        container_size:
+          from: "width: 120, height: 120"
+          to: "width: 200, height: 200"
+        image_widget_sizes:
+          base64_case:
+            from: "width: 120, height: 120"
+            to: "width: 200, height: 200"
+          network_case:
+            from: "width: 120, height: 120"
+            to: "width: 200, height: 200"
+        emotion_text_size:
+          from: "fontSize: 64"
+          to: "fontSize: 96"
+          reason: "画像サイズに比例してテキストサイズも拡大"
+    
+    remove_unused_imports:
+      targets:
+        - "import '../../../../core/services/recipe_service.dart';"
+        - "import '../widgets/recipe_card.dart';"
+      reason: "レシピ機能削除により不要になったimport"
+    
+    layout_adjustments:
+      spacing_optimization:
+        description: "レシピセクション削除により生まれる余白の活用"
+        approach: "既存の24pxスペーシングを維持し、より大きなキャラクター画像に焦点を当てる"
+  
+  expected_benefits:
+    - "画面がよりシンプルで直感的になる"
+    - "キャラクター画像が目立ち、商品の感情状態が分かりやすくなる"
+    - "不要な機能削除によりパフォーマンスが向上"
+    - "画面スクロール量が減少し、ユーザビリティが向上"
+  
+  implementation_steps:
+    1:
+      description: "不要なimportの削除"
+      files: ["product_detail_screen.dart"]
+      lines: ["8-9"]
+    
+    2:
+      description: "おすすめレシピセクションの削除"
+      files: ["product_detail_screen.dart"]
+      lines: ["127-129"]
+    
+    3:
+      description: "キャラクター画像サイズの拡大"
+      files: ["product_detail_screen.dart"]
+      targets:
+        - "Container size (lines 52-53)"
+        - "_buildImageWidget sizes (lines 142-144, 159-162)"
+        - "Emotion text size (lines 65, 151, 168, 200-203)"
+    
+    4:
+      description: "レシピ関連メソッドの削除"
+      files: ["product_detail_screen.dart"]
+      lines: ["207-415"]
+    
+    5:
+      description: "コード整理とフォーマット"
+      action: "不要な空行やコメントの整理"
+  
+  testing_considerations:
+    ui_testing:
+      - "キャラクター画像が200x200で正しく表示されること"
+      - "画像がない場合の絵文字表示が適切なサイズになること"
+      - "レスポンシブ対応（画面サイズへの適応）"
+    
+    functionality_testing:
+      - "商品詳細情報の表示に影響がないこと"
+      - "編集機能が正常に動作すること"
+      - "画像読み込み（Base64/Network）が正常に動作すること"
+    
+    performance_testing:
+      - "不要な処理削除によるパフォーマンス向上の確認"
+      - "メモリ使用量の最適化確認"
+  
+  risk_assessment:
+    low_risk:
+      - "レシピ機能は独立しており、他機能への影響は最小限"
+      - "画像サイズ変更は表示のみの変更"
+    
+    considerations:
+      - "大きな画像が画面に収まるかの確認が必要"
+      - "様々な画面サイズでの表示確認が必要"

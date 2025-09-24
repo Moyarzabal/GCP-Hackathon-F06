@@ -35,26 +35,33 @@ class AdaptiveButton extends StatelessWidget {
       case AdaptiveButtonStyle.primary:
         return CupertinoButton.filled(
           onPressed: onPressed,
-          child: child,
+          child: Container(
+            width: double.infinity,
+            child: Center(child: child),
+          ),
         );
       case AdaptiveButtonStyle.secondary:
         return CupertinoButton(
           onPressed: onPressed,
-          color: CupertinoColors.systemGrey.resolveFrom(context),
-          child: child,
+          color: CupertinoColors.systemGrey5.resolveFrom(context),
+          child: Container(
+            width: double.infinity,
+            child: Center(child: child),
+          ),
         );
       case AdaptiveButtonStyle.outlined:
-        return CupertinoButton(
-          onPressed: onPressed,
+        return GestureDetector(
+          onTap: onPressed,
           child: Container(
+            width: double.infinity,
             decoration: BoxDecoration(
               border: Border.all(
                 color: CupertinoColors.activeBlue.resolveFrom(context),
+                width: 2,
               ),
               borderRadius: BorderRadius.circular(8),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: child,
+            child: Center(child: child),
           ),
         );
     }
@@ -63,19 +70,32 @@ class AdaptiveButton extends StatelessWidget {
   Widget _buildMaterialButton(BuildContext context) {
     switch (style) {
       case AdaptiveButtonStyle.primary:
-        return ElevatedButton(
-          onPressed: onPressed,
-          child: child,
+        return SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: onPressed,
+            child: child,
+          ),
         );
       case AdaptiveButtonStyle.secondary:
-        return FilledButton.tonal(
-          onPressed: onPressed,
-          child: child,
+        return SizedBox(
+          width: double.infinity,
+          child: FilledButton.tonal(
+            onPressed: onPressed,
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.grey.shade200,
+              foregroundColor: Colors.grey.shade800,
+            ),
+            child: child,
+          ),
         );
       case AdaptiveButtonStyle.outlined:
-        return OutlinedButton(
-          onPressed: onPressed,
-          child: child,
+        return SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: onPressed,
+            child: child,
+          ),
         );
     }
   }

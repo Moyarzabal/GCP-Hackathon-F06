@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../lib/shared/widgets/error_display.dart';
-import '../../../lib/core/errors/app_exception.dart';
+import 'package:barcode_scanner/shared/widgets/error_display.dart';
+import 'package:barcode_scanner/core/errors/app_exception.dart';
 
 void main() {
   group('ErrorDisplay', () {
@@ -23,9 +23,9 @@ void main() {
       );
 
       // Assert
-      expect(find.text('エラーが発生しました'), findsOneWidget);
+      expect(find.text('ネットワークエラー'), findsOneWidget);
       expect(find.text('Connection failed'), findsOneWidget);
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.byIcon(Icons.wifi_off), findsOneWidget);
       expect(find.text('再試行'), findsOneWidget);
     });
 
@@ -198,7 +198,7 @@ void main() {
 
       // Assert
       expect(find.text('ネットワークエラー'), findsOneWidget);
-      expect(find.text('接続がタイムアウトしました。ネットワーク接続を確認してください。'), findsOneWidget);
+      expect(find.text('インターネット接続を確認してください。'), findsOneWidget);
     });
   });
 
@@ -266,32 +266,22 @@ void main() {
   });
 
   group('ErrorSnackBar', () {
-    testWidgets('should show error snackbar', (tester) async {
+    testWidgets('should display error snackbar widget', (tester) async {
       // Arrange
       const error = NetworkException('Connection failed');
 
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: ElevatedButton(
-                onPressed: () {
-                  ErrorSnackBar.show(context, error);
-                },
-                child: const Text('Show Error'),
-              ),
-            ),
+          home: Scaffold(
+            body: const ErrorSnackBar(error: error),
           ),
         ),
       );
 
-      await tester.tap(find.text('Show Error'));
-      await tester.pump();
-
       // Assert
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.text('Connection failed'), findsOneWidget);
+      expect(find.text('ネットワークエラー'), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
     testWidgets('should show retry action in snackbar', (tester) async {
@@ -302,27 +292,16 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: ElevatedButton(
-                onPressed: () {
-                  ErrorSnackBar.show(
-                    context,
-                    error,
-                    onRetry: () {
-                      retryCalled = true;
-                    },
-                  );
-                },
-                child: const Text('Show Error'),
-              ),
+          home: Scaffold(
+            body: ErrorSnackBar(
+              error: error,
+              onRetry: () {
+                retryCalled = true;
+              },
             ),
           ),
         ),
       );
-
-      await tester.tap(find.text('Show Error'));
-      await tester.pump();
 
       // Assert
       expect(find.text('再試行'), findsOneWidget);

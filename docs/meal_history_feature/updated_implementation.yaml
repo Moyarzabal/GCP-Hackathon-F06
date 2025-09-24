@@ -1,0 +1,874 @@
+name: "献立履歴機能 - 更新後実装"
+version: "1.0"
+date: "2025-01-19"
+author: "Claude AI Assistant"
+
+# 献立履歴機能実装後の完成形
+
+## 実装概要
+
+### 追加される機能
+- 献立履歴表示画面
+- フィルタリング・検索機能
+- 過去献立再利用機能
+- 献立詳細表示機能
+
+### 実装アプローチ
+- 既存の基盤（MealPlanHistoryNotifier、FirestoreService）を活用
+- 新規UI画面の追加
+- 既存UIとの統一性を保持
+
+## 詳細実装計画
+
+### Phase 1: 基本履歴表示機能 【1-2日】
+
+#### 1.1 献立履歴画面作成
+**ファイル**: `lib/features/meal_planning/presentation/pages/meal_plan_history_screen.dart`
+
+```dart
+class MealPlanHistoryScreen extends ConsumerStatefulWidget {
+  const MealPlanHistoryScreen({Key? key}) : super(key: key);
+  
+  @override
+  ConsumerState<MealPlanHistoryScreen> createState() => _MealPlanHistoryScreenState();
+}
+
+class _MealPlanHistoryScreenState extends ConsumerState<MealPlanHistoryScreen> {
+  // カラーパレット（既存と統一）
+  static const Color _baseColor = Color(0xFFF6EACB);
+  static const Color _primaryColor = Color(0xFFD4A574);
+  static const Color _accentColor = Color(0xFF8B7355);
+  static const Color _textColor = Color(0xFF5D4E37);
+  
+  final ScrollController _scrollController = ScrollController();
+  String _searchQuery = '';
+  MealPlanStatus? _statusFilter;
+  DateRange? _dateFilter;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+    _scrollController.addListener(_onScroll);
+  }
+  
+  void _loadHistory() {
+    const householdId = 'default_household';
+    ref.read(mealPlanHistoryProvider.notifier).loadMealPlanHistory(householdId);
+  }
+  
+  void _onScroll() {
+    // 無限スクロール実装
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent * 0.8) {
+      // 追加データ読み込み
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final historyAsync = ref.watch(mealPlanHistoryProvider);
+    
+    return Scaffold(
+      appBar: _buildAppBar(),
+      backgroundColor: _baseColor.withOpacity(0.3),
+      body: Column(
+        children: [
+          _buildFilterBar(),
+          _buildHistoryList(historyAsync),
+        ],
+      ),
+    );
+  }
+  
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: const Text('献立履歴', style: TextStyle(fontWeight: FontWeight.bold)),
+      backgroundColor: _baseColor,
+      foregroundColor: _textColor,
+      elevation: 0,
+      actions: [
+        IconButton(
+          icon: Icon(Icons.search, color: _accentColor),
+          onPressed: _showSearchDialog,
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildFilterBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildFilterChip('すべて', _statusFilter == null, () => _setStatusFilter(null)),
+            _buildFilterChip('完了済み', _statusFilter == MealPlanStatus.completed, 
+                             () => _setStatusFilter(MealPlanStatus.completed)),
+            _buildFilterChip('承認済み', _statusFilter == MealPlanStatus.accepted, 
+                             () => _setStatusFilter(MealPlanStatus.accepted)),
+            _buildFilterChip('キャンセル', _statusFilter == MealPlanStatus.cancelled, 
+                             () => _setStatusFilter(MealPlanStatus.cancelled)),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildFilterChip(String label, bool isSelected, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: FilterChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (_) => onTap(),
+        backgroundColor: Colors.white,
+        selectedColor: _primaryColor.withOpacity(0.3),
+        labelStyle: TextStyle(
+          color: isSelected ? _textColor : _accentColor,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildHistoryList(AsyncValue<List<MealPlan>> historyAsync) {
+    return Expanded(
+      child: historyAsync.when(
+        data: (mealPlans) => _buildHistoryContent(mealPlans),
+        loading: () => _buildLoadingState(),
+        error: (error, stack) => _buildErrorState(error),
+      ),
+    );
+  }
+  
+  Widget _buildHistoryContent(List<MealPlan> mealPlans) {
+    final filteredMealPlans = _filterMealPlans(mealPlans);
+    
+    if (filteredMealPlans.isEmpty) {
+      return _buildEmptyState();
+    }
+    
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: filteredMealPlans.length,
+      itemBuilder: (context, index) {
+        return MealHistoryItemCard(
+          mealPlan: filteredMealPlans[index],
+          onTap: () => _showMealDetail(filteredMealPlans[index]),
+          onReuse: () => _reuseMealPlan(filteredMealPlans[index]),
+        );
+      },
+    );
+  }
+  
+  List<MealPlan> _filterMealPlans(List<MealPlan> mealPlans) {
+    return mealPlans.where((mealPlan) {
+      // 状態フィルター
+      if (_statusFilter != null && mealPlan.status != _statusFilter) {
+        return false;
+      }
+      
+      // 検索クエリフィルター
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        return mealPlan.mainDish.name.toLowerCase().contains(query) ||
+               mealPlan.sideDish.name.toLowerCase().contains(query) ||
+               mealPlan.soup.name.toLowerCase().contains(query);
+      }
+      
+      return true;
+    }).toList();
+  }
+  
+  // その他のメソッド実装...
+}
+```
+
+#### 1.2 献立履歴アイテムカード作成
+**ファイル**: `lib/features/meal_planning/presentation/widgets/meal_history_item_card.dart`
+
+```dart
+class MealHistoryItemCard extends StatelessWidget {
+  final MealPlan mealPlan;
+  final VoidCallback onTap;
+  final VoidCallback onReuse;
+  
+  // カラーパレット（既存と統一）
+  static const Color _baseColor = Color(0xFFF6EACB);
+  static const Color _primaryColor = Color(0xFFD4A574);
+  static const Color _accentColor = Color(0xFF8B7355);
+  static const Color _textColor = Color(0xFF5D4E37);
+  
+  const MealHistoryItemCard({
+    Key? key,
+    required this.mealPlan,
+    required this.onTap,
+    required this.onReuse,
+  }) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        color: _baseColor.withOpacity(0.8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: _primaryColor.withOpacity(0.4),
+            width: 1,
+          ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                _buildThumbnail(),
+                const SizedBox(width: 16),
+                Expanded(child: _buildContent()),
+                _buildActions(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildThumbnail() {
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: _primaryColor.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _primaryColor.withOpacity(0.5),
+        ),
+      ),
+      child: Icon(
+        Icons.restaurant_menu,
+        color: _accentColor,
+        size: 30,
+      ),
+    );
+  }
+  
+  Widget _buildContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                mealPlan.mainDish.name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: _textColor,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            _buildStatusChip(),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${_formatDate(mealPlan.date)} • ${mealPlan.totalCookingTime}分',
+          style: TextStyle(
+            fontSize: 12,
+            color: _accentColor.withOpacity(0.8),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            _buildInfoChip(Icons.star, mealPlan.difficultyDisplayName),
+            const SizedBox(width: 8),
+            _buildInfoChip(Icons.favorite, '${mealPlan.nutritionScore.toInt()}点'),
+          ],
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildStatusChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: mealPlan.statusColor.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: mealPlan.statusColor.withOpacity(0.5),
+        ),
+      ),
+      child: Text(
+        mealPlan.statusDisplayName,
+        style: TextStyle(
+          fontSize: 10,
+          color: mealPlan.statusColor,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildInfoChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: _primaryColor.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: _accentColor),
+          const SizedBox(width: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: _textColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildActions() {
+    return Column(
+      children: [
+        IconButton(
+          icon: Icon(Icons.refresh, color: _accentColor, size: 20),
+          onPressed: onReuse,
+          tooltip: '再利用',
+          visualDensity: VisualDensity.compact,
+        ),
+      ],
+    );
+  }
+  
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date).inDays;
+    
+    if (difference == 0) {
+      return '今日';
+    } else if (difference == 1) {
+      return '昨日';
+    } else if (difference < 7) {
+      return '${difference}日前';
+    } else {
+      return '${date.month}/${date.day}';
+    }
+  }
+}
+```
+
+#### 1.3 既存画面の修正
+**ファイル**: `lib/features/meal_planning/presentation/pages/meal_plan_screen.dart`
+
+```dart
+// Line 1127-1134 の _showMealPlanHistory メソッドを修正
+void _showMealPlanHistory(BuildContext context) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => const MealPlanHistoryScreen(),
+    ),
+  );
+}
+```
+
+### Phase 2: フィルタリング・検索機能 【1-2日】
+
+#### 2.1 検索機能実装
+```dart
+void _showSearchDialog() {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: _baseColor,
+      title: Text('献立を検索', style: TextStyle(color: _textColor)),
+      content: TextField(
+        onChanged: (value) => setState(() => _searchQuery = value),
+        decoration: InputDecoration(
+          hintText: '料理名や材料名を入力...',
+          prefixIcon: Icon(Icons.search, color: _accentColor),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: _primaryColor),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: Text('キャンセル', style: TextStyle(color: _accentColor)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: _primaryColor),
+          child: const Text('検索'),
+          onPressed: () {
+            Navigator.pop(context);
+            _applySearch();
+          },
+        ),
+      ],
+    ),
+  );
+}
+```
+
+#### 2.2 日付フィルター実装
+```dart
+Widget _buildDateFilterChips() {
+  return Row(
+    children: [
+      _buildDateFilterChip('1週間', DateRange.lastWeek),
+      _buildDateFilterChip('1ヶ月', DateRange.lastMonth),
+      _buildDateFilterChip('3ヶ月', DateRange.last3Months),
+    ],
+  );
+}
+```
+
+### Phase 3: 過去献立再利用機能 【2-3日】
+
+#### 3.1 再利用確認ダイアログ作成
+**ファイル**: `lib/features/meal_planning/presentation/widgets/meal_reuse_confirmation_dialog.dart`
+
+```dart
+class MealReuseConfirmationDialog extends ConsumerStatefulWidget {
+  final MealPlan mealPlan;
+  
+  const MealReuseConfirmationDialog({
+    Key? key,
+    required this.mealPlan,
+  }) : super(key: key);
+  
+  @override
+  ConsumerState<MealReuseConfirmationDialog> createState() => 
+      _MealReuseConfirmationDialogState();
+}
+
+class _MealReuseConfirmationDialogState 
+    extends ConsumerState<MealReuseConfirmationDialog> {
+  
+  // カラーパレット
+  static const Color _baseColor = Color(0xFFF6EACB);
+  static const Color _primaryColor = Color(0xFFD4A574);
+  static const Color _accentColor = Color(0xFF8B7355);
+  static const Color _textColor = Color(0xFF5D4E37);
+  
+  List<Ingredient> _missingIngredients = [];
+  List<Ingredient> _availableIngredients = [];
+  bool _isAnalyzing = true;
+  
+  @override
+  void initState() {
+    super.initState();
+    _analyzeIngredients();
+  }
+  
+  Future<void> _analyzeIngredients() async {
+    // 現在の冷蔵庫の食材を取得
+    final appState = ref.read(appStateProvider);
+    final currentProducts = appState.products;
+    
+    // 献立の材料と照合
+    final allIngredients = widget.mealPlan.allIngredients;
+    
+    for (final ingredient in allIngredients) {
+      final isAvailable = currentProducts.any((product) =>
+          product.name.contains(ingredient.name) ||
+          ingredient.name.contains(product.name));
+      
+      if (isAvailable) {
+        _availableIngredients.add(ingredient);
+      } else {
+        _missingIngredients.add(ingredient);
+      }
+    }
+    
+    setState(() => _isAnalyzing = false);
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: _baseColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        'この献立を再利用しますか？',
+        style: TextStyle(color: _textColor, fontWeight: FontWeight.bold),
+      ),
+      content: _isAnalyzing ? _buildAnalyzingContent() : _buildAnalysisResult(),
+      actions: _buildActions(),
+    );
+  }
+  
+  Widget _buildAnalyzingContent() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircularProgressIndicator(color: _primaryColor),
+        const SizedBox(height: 16),
+        Text('食材を分析中...', style: TextStyle(color: _textColor)),
+      ],
+    );
+  }
+  
+  Widget _buildAnalysisResult() {
+    return Container(
+      width: double.maxFinite,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.mealPlan.mainDish.name,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: _textColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          if (_availableIngredients.isNotEmpty) ...[
+            _buildIngredientSection(
+              '利用可能な材料',
+              _availableIngredients,
+              Icons.check_circle,
+              Colors.green,
+            ),
+            const SizedBox(height: 12),
+          ],
+          
+          if (_missingIngredients.isNotEmpty) ...[
+            _buildIngredientSection(
+              '不足している材料',
+              _missingIngredients,
+              Icons.shopping_cart,
+              Colors.orange,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildIngredientSection(
+    String title,
+    List<Ingredient> ingredients,
+    IconData icon,
+    Color color,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 4),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: _textColor,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 80,
+          child: ListView.builder(
+            itemCount: ingredients.length,
+            itemBuilder: (context, index) {
+              final ingredient = ingredients[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Text(
+                  '• ${ingredient.displayName}',
+                  style: TextStyle(color: _accentColor, fontSize: 12),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+  
+  List<Widget> _buildActions() {
+    if (_isAnalyzing) {
+      return [
+        TextButton(
+          child: Text('キャンセル', style: TextStyle(color: _accentColor)),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ];
+    }
+    
+    return [
+      TextButton(
+        child: Text('キャンセル', style: TextStyle(color: _accentColor)),
+        onPressed: () => Navigator.pop(context),
+      ),
+      if (_missingIngredients.isNotEmpty)
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+          ),
+          child: const Text('買い物リスト作成'),
+          onPressed: () => _createShoppingListAndReuse(),
+        ),
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _primaryColor,
+          foregroundColor: Colors.white,
+        ),
+        child: const Text('再利用'),
+        onPressed: () => _reuseMealPlan(),
+      ),
+    ];
+  }
+  
+  void _createShoppingListAndReuse() async {
+    // 買い物リストを生成
+    await ref.read(shoppingListProvider.notifier).generateShoppingList(
+      widget.mealPlan,
+    );
+    
+    // 献立を現在の献立として設定
+    await _setAsCurrentMealPlan();
+    
+    Navigator.pop(context);
+    _showSuccessMessage('買い物リストを作成し、献立を設定しました');
+  }
+  
+  void _reuseMealPlan() async {
+    await _setAsCurrentMealPlan();
+    Navigator.pop(context);
+    _showSuccessMessage('献立を設定しました');
+  }
+  
+  Future<void> _setAsCurrentMealPlan() async {
+    // 現在の献立として設定
+    final newMealPlan = widget.mealPlan.copyWith(
+      id: null,
+      date: DateTime.now(),
+      status: MealPlanStatus.suggested,
+      createdAt: DateTime.now(),
+    );
+    
+    // 献立プロバイダーに設定
+    ref.read(mealPlanProvider.notifier).state = AsyncValue.data(newMealPlan);
+  }
+  
+  void _showSuccessMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+}
+```
+
+#### 3.2 再利用機能の統合
+```dart
+void _reuseMealPlan(MealPlan mealPlan) {
+  showDialog(
+    context: context,
+    builder: (context) => MealReuseConfirmationDialog(mealPlan: mealPlan),
+  );
+}
+```
+
+### Phase 4: 最適化・改善 【1日】
+
+#### 4.1 パフォーマンス最適化
+```dart
+// 無限スクロール実装
+class _MealPlanHistoryScreenState extends ConsumerState<MealPlanHistoryScreen> {
+  final int _pageSize = 20;
+  int _currentPage = 0;
+  bool _isLoadingMore = false;
+  
+  void _loadMoreHistory() async {
+    if (_isLoadingMore) return;
+    
+    setState(() => _isLoadingMore = true);
+    
+    try {
+      const householdId = 'default_household';
+      await ref.read(mealPlanHistoryProvider.notifier).loadMealPlanHistory(
+        householdId,
+        limit: _pageSize,
+        offset: _currentPage * _pageSize,
+      );
+      _currentPage++;
+    } finally {
+      setState(() => _isLoadingMore = false);
+    }
+  }
+}
+```
+
+#### 4.2 エラーハンドリング強化
+```dart
+Widget _buildErrorState(Object error) {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
+        const SizedBox(height: 16),
+        Text(
+          'エラーが発生しました',
+          style: TextStyle(fontSize: 18, color: Colors.red[600]),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          error.toString(),
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: _loadHistory,
+          child: const Text('再試行'),
+        ),
+      ],
+    ),
+  );
+}
+```
+
+## 実装スケジュール
+
+### Day 1-2: 基本履歴表示
+- [x] MealPlanHistoryScreen 作成
+- [x] MealHistoryItemCard 作成
+- [x] 既存画面の修正
+- [x] 基本的な履歴表示機能
+
+### Day 3-4: フィルタリング・検索
+- [ ] 検索ダイアログ実装
+- [ ] フィルターチップ実装
+- [ ] 日付フィルター実装
+- [ ] 検索ロジック実装
+
+### Day 5-6: 再利用機能
+- [ ] MealReuseConfirmationDialog 作成
+- [ ] 食材分析ロジック実装
+- [ ] 買い物リスト生成連携
+- [ ] 献立設定機能実装
+
+### Day 7: 最適化・テスト
+- [ ] パフォーマンス最適化
+- [ ] エラーハンドリング強化
+- [ ] 統合テスト
+- [ ] UI/UX調整
+
+## テスト計画
+
+### 単体テスト
+```dart
+// test/features/meal_planning/presentation/pages/meal_plan_history_screen_test.dart
+void main() {
+  group('MealPlanHistoryScreen', () {
+    testWidgets('should display meal plan history', (tester) async {
+      // テスト実装
+    });
+    
+    testWidgets('should filter meal plans by status', (tester) async {
+      // テスト実装
+    });
+    
+    testWidgets('should search meal plans', (tester) async {
+      // テスト実装
+    });
+  });
+}
+```
+
+### ウィジェットテスト
+```dart
+// test/features/meal_planning/presentation/widgets/meal_history_item_card_test.dart
+void main() {
+  group('MealHistoryItemCard', () {
+    testWidgets('should display meal plan information', (tester) async {
+      // テスト実装
+    });
+    
+    testWidgets('should call onReuse when reuse button is pressed', (tester) async {
+      // テスト実装
+    });
+  });
+}
+```
+
+### 統合テスト
+```dart
+// integration_test/meal_history_flow_test.dart
+void main() {
+  group('Meal History Flow', () {
+    testWidgets('complete meal history flow', (tester) async {
+      // 履歴表示 → フィルタリング → 再利用の完全フロー
+    });
+  });
+}
+```
+
+## 成功基準
+
+### 機能基準
+- ✅ 献立履歴が時系列で表示される
+- ✅ 状態別フィルタリングが機能する
+- ✅ 検索機能が正常に動作する
+- ✅ 過去献立の再利用が可能
+- ✅ 不足材料の表示が正確
+- ✅ 買い物リスト生成が連携する
+
+### パフォーマンス基準
+- ✅ 初期表示時間 < 2秒
+- ✅ 検索レスポンス時間 < 1秒
+- ✅ スクロール性能 60fps維持
+- ✅ メモリ使用量増加 < 50MB
+
+### UI/UX基準
+- ✅ 既存UIとの統一性
+- ✅ 直感的な操作性
+- ✅ 適切なローディング表示
+- ✅ 分かりやすいエラーメッセージ
+
+## 今後の拡張
+
+### 短期的な改善
+- 献立評価機能
+- お気に入り機能
+- 献立カレンダー表示
+
+### 長期的な拡張
+- 献立共有機能
+- 統計・分析機能
+- AI学習による推薦改善
+- 栄養バランス分析

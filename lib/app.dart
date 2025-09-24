@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/constants/app_colors.dart';
 import 'core/platform/platform_info.dart';
@@ -7,54 +6,46 @@ import 'features/home/presentation/pages/home_screen.dart';
 import 'features/scanner/presentation/pages/scanner_screen.dart';
 import 'features/history/presentation/pages/history_screen.dart';
 import 'features/settings/presentation/pages/settings_screen.dart';
+import 'features/meal_planning/presentation/pages/meal_plan_screen.dart';
 import 'shared/providers/app_state_provider.dart';
 import 'shared/widgets/adaptive/adaptive_navigation.dart';
 import 'shared/widgets/adaptive/adaptive_scaffold.dart';
 
 class MyApp extends ConsumerWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // プラットフォームに応じたアプリケーション
-    if (PlatformInfo.isIOS) {
-      return CupertinoApp(
-        title: '冷蔵庫管理AI',
-        theme: const CupertinoThemeData(
-          primaryColor: AppColors.accent,
+    // すべてのプラットフォームでMaterialAppを使用（NavigationDestinationのため）
+    return MaterialApp(
+      title: 'Edibuddy | 食べ物の相棒',
+      theme: ThemeData(
+        primaryColor: AppColors.primary,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.accent,
+          primary: AppColors.accent,
+          secondary: AppColors.secondary,
+          error: AppColors.error,
         ),
-        home: const MainScreen(),
-      );
-    } else {
-      return MaterialApp(
-        title: '冷蔵庫管理AI',
-        theme: ThemeData(
-          primaryColor: AppColors.primary,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.accent,
-            primary: AppColors.accent,
-            secondary: AppColors.secondary,
-            error: AppColors.error,
-          ),
-          useMaterial3: true,
-          fontFamily: 'SF Pro Display',
-        ),
-        home: const MainScreen(),
-      );
-    }
+        useMaterial3: true,
+        fontFamily: PlatformInfo.isIOS ? 'SF Pro Display' : null,
+      ),
+      home: const MainScreen(),
+    );
   }
 }
 
 class MainScreen extends ConsumerWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  const MainScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appState = ref.watch(appStateProvider);
     final appNotifier = ref.watch(appStateProvider.notifier);
-    
+
     final pages = [
       const HomeScreen(),
+      const MealPlanScreen(),
       const ScannerScreen(),
       const HistoryScreen(),
       const SettingsScreen(),
@@ -65,6 +56,11 @@ class MainScreen extends ConsumerWidget {
         icon: Icon(Icons.home_outlined),
         selectedIcon: Icon(Icons.home),
         label: 'ホーム',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.restaurant_menu_outlined),
+        selectedIcon: Icon(Icons.restaurant_menu),
+        label: '献立',
       ),
       NavigationDestination(
         icon: Icon(Icons.qr_code_scanner_outlined),

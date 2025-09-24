@@ -1,0 +1,102 @@
+modification_plan:
+  title: "献立生成フローの改善計画"
+  description: "実際の生活パターンに基づく献立提案への変更"
+  
+  new_approach:
+    concept: "冷蔵庫の食材を起点とした人気・定番メニューの提案"
+    real_life_flow:
+      step1: "冷蔵庫の食材確認"
+      step2: "『これがあるから、あれを買って、このメニューを作ろう』の判断"
+      step3: "スーパーでの追加購入食材の特定"
+      step4: "完成メニューの提案"
+    
+    example_scenarios:
+      scenario1:
+        available: "にんじん、じゃがいも、玉ねぎ"
+        suggested_menu: "カレーライス"
+        additional_shopping: "カレールウ、お米、肉"
+        reasoning: "定番の家庭料理で、冷蔵庫の野菜を有効活用"
+      
+      scenario2:
+        available: "玉ねぎ、じゃがいも、豚肉"
+        suggested_menu: "肉じゃが"
+        additional_shopping: "醤油、みりん、砂糖、出汁"
+        reasoning: "日本の定番料理で、季節を問わず人気"
+      
+      scenario3:
+        available: "キャベツ、豚肉、にんじん"
+        suggested_menu: "豚のしょうが焼き定食"
+        additional_shopping: "しょうが、醤油、みりん、ご飯"
+        reasoning: "栄養バランスが良く、作りやすい定番メニュー"
+
+  implementation_strategy:
+    phase1: "プロンプトエンジニアリングの改善"
+      changes:
+        - "冷蔵庫食材ベースの制約を削除"
+        - "人気・定番メニューの提案を追加"
+        - "追加購入食材の明示"
+        - "実用性の高い料理を優先"
+      
+      prompt_modifications:
+        current_constraint: "冷蔵庫の食材のみを使用"
+        new_approach: "冷蔵庫の食材を活用した人気メニューの提案"
+        shopping_guidance: "不足食材の具体的な買い物リスト"
+    
+    phase2: "データモデルの拡張"
+      new_fields:
+        shopping_required_ingredients: "追加購入が必要な食材リスト"
+        menu_popularity_score: "メニューの人気度スコア"
+        cooking_frequency: "一般的な調理頻度"
+        seasonal_relevance: "季節性の関連度"
+    
+    phase3: "UI/UXの改善"
+      new_features:
+        shopping_list_generation: "自動買い物リスト作成"
+        menu_comparison: "複数メニューの比較表示"
+        popularity_indicator: "人気度の可視化"
+        seasonal_badge: "季節メニューのバッジ表示"
+
+  technical_changes:
+    prompt_engineering:
+      current_prompt_focus: "冷蔵庫食材の有効活用"
+      new_prompt_focus: "実用的で人気の高いメニュー提案"
+      
+      prompt_structure:
+        section1: "冷蔵庫の食材リスト（参考情報）"
+        section2: "人気・定番メニューの提案要求"
+        section3: "追加購入食材の明示要求"
+        section4: "実用性と栄養バランスの考慮"
+    
+    response_format:
+      current_format: "4品構成の献立（主菜、副菜、汁物、主食）"
+      new_format: "メイン料理 + 追加購入食材リスト"
+      
+      new_json_structure:
+        main_menu:
+          name: "メイン料理名"
+          description: "料理の説明"
+          popularity_score: "人気度（1-10）"
+          cooking_frequency: "調理頻度（weekly/monthly/seasonal）"
+          seasonal_relevance: "季節性（spring/summer/autumn/winter/all）"
+        
+        shopping_list:
+          required_ingredients: "追加購入食材リスト"
+          estimated_cost: "概算費用"
+          store_sections: "購入場所の案内"
+        
+        refrigerator_usage:
+          used_ingredients: "冷蔵庫から使用する食材"
+          usage_efficiency: "食材活用効率"
+
+  success_metrics:
+    user_satisfaction: "より実用的な献立提案"
+    menu_variety: "多様な人気メニューの提案"
+    shopping_efficiency: "効率的な買い物リスト"
+    cooking_motivation: "料理へのモチベーション向上"
+    
+  implementation_timeline:
+    phase1_duration: "1-2時間（プロンプト改善）"
+    phase2_duration: "2-3時間（データモデル拡張）"
+    phase3_duration: "3-4時間（UI/UX改善）"
+    total_estimated_time: "6-9時間"
+

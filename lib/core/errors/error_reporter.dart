@@ -14,19 +14,19 @@ import 'error_messages.dart';
 class ErrorReporter {
   final Logger logger;
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
-  
+
   // エラー重複除去用のキャッシュ
   final Map<String, DateTime> _errorCache = {};
-  
+
   // パンくずリスト（ユーザーの行動履歴）
   final List<Map<String, dynamic>> _breadcrumbs = [];
-  
+
   // ユーザーコンテキスト
   final Map<String, dynamic> _userContext = {};
-  
+
   // カスタムタグ
   final Map<String, String> _tags = {};
-  
+
   // 設定
   static const int maxBreadcrumbs = 20;
   static const Duration duplicateErrorWindow = Duration(minutes: 5);
@@ -49,7 +49,7 @@ class ErrorReporter {
 
       // エラーの重要度を判定
       final severity = getErrorSeverity(error);
-      
+
       // ログレベルに応じてログ出力
       switch (severity) {
         case ErrorSeverity.info:
@@ -110,12 +110,12 @@ class ErrorReporter {
   Future<Map<String, dynamic>> collectDeviceInfo() async {
     try {
       final Map<String, dynamic> deviceInfo = {};
-      
+
       deviceInfo['platform'] = Platform.operatingSystem;
       deviceInfo['version'] = Platform.operatingSystemVersion;
       deviceInfo['locale'] = Platform.localeName;
       deviceInfo['dart_version'] = Platform.version;
-      
+
       if (kIsWeb) {
         final webBrowserInfo = await _deviceInfo.webBrowserInfo;
         deviceInfo['browser'] = webBrowserInfo.browserName.name;
@@ -131,7 +131,7 @@ class ErrorReporter {
         deviceInfo['ios_version'] = iosInfo.systemVersion;
         deviceInfo['device_name'] = iosInfo.name;
       }
-      
+
       return deviceInfo;
     } catch (e) {
       logger.warning('Failed to collect device info: $e');
@@ -249,14 +249,14 @@ class ErrorReporter {
   bool _isDuplicateError(Object error) {
     final errorKey = '${error.runtimeType}_${error.toString()}';
     final now = DateTime.now();
-    
+
     if (_errorCache.containsKey(errorKey)) {
       final lastReported = _errorCache[errorKey]!;
       if (now.difference(lastReported) < duplicateErrorWindow) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -264,7 +264,7 @@ class ErrorReporter {
   void _addToErrorCache(Object error) {
     final errorKey = '${error.runtimeType}_${error.toString()}';
     _errorCache[errorKey] = DateTime.now();
-    
+
     // 古いエラーエントリをクリーンアップ
     final cutoff = DateTime.now().subtract(duplicateErrorWindow);
     _errorCache.removeWhere((key, timestamp) => timestamp.isBefore(cutoff));
@@ -275,7 +275,7 @@ class ErrorReporter {
     // 将来的にCrashlyticsやSentryなどの外部サービスに送信
     // 現在はログ出力のみ
     logger.info('Error data ready for external reporting: ${errorData['error_type']}');
-    
+
     // TODO: Firebase Crashlytics統合
     // FirebaseCrashlytics.instance.recordError(
     //   errorData['error'],

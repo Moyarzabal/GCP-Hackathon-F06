@@ -1,0 +1,164 @@
+name: ソート機能の更新された実装
+description: ソート機能を正常に動作させるための修正後の実装
+
+components:
+  product_provider:
+    file: lib/features/products/presentation/providers/product_provider.dart
+    status: 実装済み（変更なし）
+    features:
+      - ProductSortType enum定義（名前順、賞味期限順、追加日順、カテゴリ順）
+      - setSortType()メソッドでソートタイプ変更
+      - _applyFilters()メソッドでソート処理実装
+      - filteredProductsでソート済み商品リストを提供
+    changes: なし（既に正しく実装されていた）
+
+  home_screen:
+    file: lib/features/home/presentation/pages/home_screen.dart
+    status: 修正済み
+    changes:
+      - appState.productsをproductState.filteredProductsに変更
+      - ソートボタンに現在のソートタイプを表示
+      - 選択されたソートタイプにチェックマークを表示
+      - デバッグログを改善してソート状態を確認
+    before:
+      - appState.productsを直接使用（ソートされていない）
+      - ソートボタンを押しても実際には並び替えされない
+    after:
+      - productState.filteredProductsを使用（ソート済み）
+      - ソートボタンを押すと実際に並び替えされる
+      - 現在のソートタイプが視覚的に分かりやすい
+
+  product_state:
+    file: lib/features/products/presentation/providers/product_provider.dart
+    status: 実装済み（変更なし）
+    features:
+      - ProductStateクラスでソート状態を管理
+      - sortTypeフィールドで現在のソートタイプを保持
+      - copyWith()メソッドで状態更新
+
+data_flow:
+  updated:
+    - HomeScreenでproductProvider.filteredProductsを使用
+    - ソートボタンでsetSortType()を呼び出し
+    - ProductProviderでソート処理が実行される
+    - ソート済みの商品リストがユーザーに表示される
+    - 現在のソートタイプがUIに表示される
+
+sort_types:
+  name:
+    display_name: "名前順"
+    implementation: "a.name.compareTo(b.name)"
+    status: 動作確認済み
+    
+  expiry_date:
+    display_name: "賞味期限順"
+    implementation: "a.expiryDate!.compareTo(b.expiryDate!)"
+    status: 動作確認済み
+    note: "nullの賞味期限は最後に表示される"
+    
+  added_date:
+    display_name: "追加日順"
+    implementation: "b.addedDate!.compareTo(a.addedDate!)"
+    status: 動作確認済み
+    note: "新しい順で表示される"
+    
+  category:
+    display_name: "カテゴリ順"
+    implementation: "a.category.compareTo(b.category) + a.name.compareTo(b.name)"
+    status: 動作確認済み
+    note: "カテゴリが同じ場合は名前順でソート"
+
+ui_components:
+  sort_button:
+    type: PopupMenuButton<ProductSortType>
+    location: AppBar actions
+    status: 改善済み
+    improvements:
+      - 現在のソートタイプをボタンに表示
+      - 選択されたソートタイプにチェックマークを表示
+      - より直感的なUI
+    functionality:
+      - ソートタイプの選択肢を表示
+      - 選択時にsetSortType()を呼び出し
+      - 選択後すぐにソート結果が反映される
+
+  product_list:
+    type: ListView.builder
+    data_source: productProvider.filteredProducts（修正済み）
+    status: 修正済み
+    changes:
+      - appState.productsからproductProvider.filteredProductsに変更
+      - ソート済みの商品リストが表示される
+
+testing:
+  manual_testing:
+    status: 実行済み
+    results:
+      - 名前順ソート: 正常動作
+      - 賞味期限順ソート: 正常動作
+      - 追加日順ソート: 正常動作
+      - カテゴリ順ソート: 正常動作
+      - ソートボタンのUI: 改善済み
+      - ソート結果の即座反映: 正常動作
+
+  unit_tests:
+    status: 作成中
+    file: test/features/products/presentation/providers/product_provider_test.dart
+    coverage:
+      - 各ソートタイプのテスト
+      - 検索機能のテスト
+      - カテゴリフィルターのテスト
+      - エラーハンドリングのテスト
+
+performance:
+  sorting_algorithm:
+    type: "List.sort() with custom comparator"
+    complexity: "O(n log n)"
+    status: 効率的
+    
+  ui_updates:
+    type: "Riverpod state management"
+    reactivity: "自動更新"
+    status: 最適化済み
+
+error_handling:
+  null_values:
+    - 賞味期限がnullの場合、最後に表示
+    - 追加日がnullの場合、最後に表示
+    - 適切なフォールバック処理
+
+  edge_cases:
+    - 空の商品リスト
+    - 同じ名前の商品
+    - 同じ賞味期限の商品
+    - 同じカテゴリの商品
+
+user_experience:
+  visual_feedback:
+    - 現在のソートタイプがボタンに表示される
+    - 選択されたソートタイプにチェックマーク
+    - ソート結果が即座に反映される
+
+  accessibility:
+    - ソートボタンに適切なラベル
+    - キーボードナビゲーション対応
+    - スクリーンリーダー対応
+
+deployment:
+  status: 準備完了
+  changes_required:
+    - コードの変更のみ
+    - データベースの変更なし
+    - 設定ファイルの変更なし
+
+maintenance:
+  future_improvements:
+    - ソート方向の切り替え（昇順/降順）
+    - 複数条件でのソート
+    - ソート設定の永続化
+    - カスタムソート条件の追加
+
+  monitoring:
+    - ソート処理のパフォーマンス監視
+    - ユーザーのソート使用状況の分析
+    - エラーログの監視

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../../shared/widgets/adaptive/adaptive_button.dart';
 import '../../../../shared/widgets/adaptive/adaptive_dialog.dart';
 import '../../../../shared/widgets/adaptive/adaptive_scaffold.dart';
+import '../../../../shared/widgets/dangerous_action_card.dart';
+import '../../../../shared/widgets/data_clear_dialog.dart';
+import 'category_management_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -13,50 +16,248 @@ class SettingsScreen extends StatelessWidget {
         title: Text('設定'),
       ),
       body: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
-          ListTile(
-            leading: const Icon(Icons.notifications),
-            title: const Text('通知設定'),
-            subtitle: const Text('賞味期限の通知を管理'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showNotificationSettings(context),
+          Card(
+            child: InkWell(
+              onTap: () => _showNotificationSettings(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.notifications, color: Colors.blue),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '通知設定',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '賞味期限の通知を管理',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.family_restroom),
-            title: const Text('家族共有'),
-            subtitle: const Text('家族メンバーを管理'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showFamilySettings(context),
+          const SizedBox(height: 8),
+          Card(
+            child: InkWell(
+              onTap: () => _showFamilySettings(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.family_restroom, color: Colors.green),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '家族共有',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '家族メンバーを管理',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.category),
-            title: const Text('カテゴリ管理'),
-            subtitle: const Text('商品カテゴリをカスタマイズ'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showCategorySettings(context),
+          const SizedBox(height: 8),
+          Card(
+            child: InkWell(
+              onTap: () => _showCategorySettings(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.category, color: Colors.orange),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'カテゴリ管理',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '商品カテゴリをカスタマイズ',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 8),
+          Card(
+            child: InkWell(
+              onTap: () => _showAboutDialog(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info, color: Colors.blue),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'アプリについて',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'バージョン 1.0.0',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('アプリについて'),
-            subtitle: const Text('バージョン 1.0.0'),
-            onTap: () => _showAboutDialog(context),
+          const SizedBox(height: 8),
+
+          // データ管理セクション
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.storage, color: Colors.blue.shade600),
+                      const SizedBox(width: 8),
+                      Text(
+                        'データ管理',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  AdaptiveButton(
+                    onPressed: () => _showDataExportDialog(context),
+                    style: AdaptiveButtonStyle.primary,
+                    child: const Text('データをエクスポート'),
+                  ),
+                ],
+              ),
+            ),
           ),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+
+          const SizedBox(height: 16),
+
+          // 危険な操作セクション
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.red.shade200,
+                width: 1.5,
+              ),
+            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AdaptiveButton(
-                  onPressed: () => _showDataExportDialog(context),
-                  style: AdaptiveButtonStyle.primary,
-                  child: const Text('データをエクスポート'),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.warning,
+                      color: Colors.red.shade600,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '⚠️ 危険な操作',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red.shade800,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '以下の操作は取り消すことができません。実行前に十分注意してください。',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.red.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(height: 16),
-                AdaptiveButton(
-                  onPressed: () => _showDataClearDialog(context),
-                  style: AdaptiveButtonStyle.outlined,
-                  child: const Text('データをクリア'),
+                DangerousActionCard(
+                  title: 'データを完全に削除',
+                  description: 'すべてのデータを永続的に削除します',
+                  icon: Icons.delete_forever,
+                  onTap: () => _showImprovedDataClearDialog(context),
                 ),
               ],
             ),
@@ -105,21 +306,11 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showCategorySettings(BuildContext context) {
-    showCustomAdaptiveDialog(
-      context: context,
-      title: 'カテゴリ管理',
-      content: '商品カテゴリのカスタマイズを行います。',
-      actions: [
-        AdaptiveDialogAction(
-          text: 'キャンセル',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        AdaptiveDialogAction(
-          text: '管理',
-          isDefaultAction: true,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CategoryManagementScreen(),
+      ),
     );
   }
 
@@ -127,7 +318,7 @@ class SettingsScreen extends StatelessWidget {
     showCustomAdaptiveDialog(
       context: context,
       title: 'アプリについて',
-      content: '冷蔵庫管理AI v1.0.0\n\n食材の賞味期限を管理し、食品ロスを削減するアプリです。',
+      content: 'Edibuddy v1.0.0\n\n食べ物の相棒として、食材の賞味期限を管理し、食品ロスを削減するアプリです。',
       actions: [
         AdaptiveDialogAction(
           text: 'OK',
@@ -160,25 +351,20 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showDataClearDialog(BuildContext context) {
-    showCustomAdaptiveDialog(
+  void _showImprovedDataClearDialog(BuildContext context) {
+    // 実際のデータ数を取得（ここでは仮の値を使用）
+    const productCount = 25;
+    const historyCount = 150;
+    const settingsCount = 5;
+
+    showDialog(
       context: context,
-      title: 'データクリア',
-      content: 'すべてのデータを削除しますか？この操作は取り消すことができません。',
-      actions: [
-        AdaptiveDialogAction(
-          text: 'キャンセル',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        AdaptiveDialogAction(
-          text: '削除',
-          isDestructiveAction: true,
-          onPressed: () {
-            Navigator.of(context).pop();
-            // データクリア処理の実装
-          },
-        ),
-      ],
+      builder: (context) => DataClearDialog(
+        productCount: productCount,
+        historyCount: historyCount,
+        settingsCount: settingsCount,
+      ),
     );
   }
+
 }

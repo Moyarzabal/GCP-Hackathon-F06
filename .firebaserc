@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "gcp-f06-barcode"
+  },
+  "targets": {
+    "gcp-f06-barcode": {
+      "hosting": {
+        "production": [
+          "gcp-f06-barcode"
+        ],
+        "staging": [
+          "staging-gcp-f06-barcode"
+        ]
+      }
+    }
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/foundation.dart';
-import '../../../lib/core/platform/platform_info.dart';
+import 'package:barcode_scanner/core/platform/platform_info.dart';
 
 void main() {
   group('PlatformInfo', () {
