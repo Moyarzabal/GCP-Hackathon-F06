@@ -10,7 +10,8 @@ class ApiKeyException implements Exception {
   const ApiKeyException(this.message, [this.cause]);
 
   @override
-  String toString() => 'ApiKeyException: $message${cause != null ? ' (Caused by: $cause)' : ''}';
+  String toString() =>
+      'ApiKeyException: $message${cause != null ? ' (Caused by: $cause)' : ''}';
 }
 
 /// Secure API key manager
@@ -29,8 +30,8 @@ class ApiKeyManager {
   ApiKeyManager({
     SecureStorage? secureStorage,
     EnvConfig? envConfig,
-  }) : _secureStorage = secureStorage ?? SecureStorage(),
-       _envConfig = envConfig ?? EnvConfig();
+  })  : _secureStorage = secureStorage ?? SecureStorage(),
+        _envConfig = envConfig ?? EnvConfig();
 
   /// Get Gemini API key with fallback strategy
   Future<String> getGeminiApiKey() async {
@@ -56,13 +57,15 @@ class ApiKeyManager {
           return apiKey;
         }
       } catch (e) {
-        dev.log('Failed to get Gemini API key from env: $e', name: 'ApiKeyManager');
+        dev.log('Failed to get Gemini API key from env: $e',
+            name: 'ApiKeyManager');
       }
 
       throw ApiKeyException('No valid Gemini API key found');
     } catch (e) {
       _logSuspiciousActivity('Failed to retrieve Gemini API key', e);
-      throw ApiKeyException('Failed to retrieve Gemini API key', Exception(e.toString()));
+      throw ApiKeyException(
+          'Failed to retrieve Gemini API key', Exception(e.toString()));
     }
   }
 
@@ -88,7 +91,8 @@ class ApiKeyManager {
       throw ApiKeyException('No valid Firebase API key found');
     } catch (e) {
       _logSuspiciousActivity('Failed to retrieve Firebase API key', e);
-      throw ApiKeyException('Failed to retrieve Firebase API key', Exception(e.toString()));
+      throw ApiKeyException(
+          'Failed to retrieve Firebase API key', Exception(e.toString()));
     }
   }
 
@@ -99,7 +103,8 @@ class ApiKeyManager {
     try {
       return _envConfig.getFirebaseConfig();
     } catch (e) {
-      throw ApiKeyException('Failed to get Firebase config', Exception(e.toString()));
+      throw ApiKeyException(
+          'Failed to get Firebase config', Exception(e.toString()));
     }
   }
 
@@ -109,9 +114,9 @@ class ApiKeyManager {
 
     // Gemini keys start with 'AIza' and are typically 39 characters
     return apiKey.startsWith('AIza') &&
-           apiKey.length >= 35 &&
-           apiKey.length <= 50 &&
-           RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(apiKey);
+        apiKey.length >= 35 &&
+        apiKey.length <= 50 &&
+        RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(apiKey);
   }
 
   /// Validate Firebase API key format
@@ -120,9 +125,9 @@ class ApiKeyManager {
 
     // Firebase keys also start with 'AIza'
     return apiKey.startsWith('AIza') &&
-           apiKey.length >= 35 &&
-           apiKey.length <= 50 &&
-           RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(apiKey);
+        apiKey.length >= 35 &&
+        apiKey.length <= 50 &&
+        RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(apiKey);
   }
 
   /// Rotate Gemini API key
@@ -144,7 +149,8 @@ class ApiKeyManager {
 
       dev.log('Gemini API key rotated successfully', name: 'ApiKeyManager');
     } catch (e) {
-      throw ApiKeyException('Failed to rotate Gemini API key', Exception(e.toString()));
+      throw ApiKeyException(
+          'Failed to rotate Gemini API key', Exception(e.toString()));
     }
   }
 
@@ -155,7 +161,8 @@ class ApiKeyManager {
       _cachedKeys.clear();
       dev.log('All API keys cleared', name: 'ApiKeyManager');
     } catch (e) {
-      throw ApiKeyException('Failed to clear API keys', Exception(e.toString()));
+      throw ApiKeyException(
+          'Failed to clear API keys', Exception(e.toString()));
     }
   }
 

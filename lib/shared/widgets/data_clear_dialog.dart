@@ -96,7 +96,9 @@ class _DataClearDialogState extends State<DataClearDialog> {
               value: 'all',
               title: 'すべてのデータを削除',
               description: '商品データ、履歴データ、設定データをすべて削除',
-              count: widget.productCount + widget.historyCount + widget.settingsCount,
+              count: widget.productCount +
+                  widget.historyCount +
+                  widget.settingsCount,
             ),
             _buildDataOption(
               value: 'products',
@@ -231,7 +233,9 @@ class _DataClearDialogState extends State<DataClearDialog> {
                       title,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.red.shade800 : Colors.grey.shade800,
+                        color: isSelected
+                            ? Colors.red.shade800
+                            : Colors.grey.shade800,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -239,7 +243,9 @@ class _DataClearDialogState extends State<DataClearDialog> {
                       description,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isSelected ? Colors.red.shade600 : Colors.grey.shade600,
+                        color: isSelected
+                            ? Colors.red.shade600
+                            : Colors.grey.shade600,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -247,7 +253,9 @@ class _DataClearDialogState extends State<DataClearDialog> {
                       '$count件のデータ',
                       style: TextStyle(
                         fontSize: 11,
-                        color: isSelected ? Colors.red.shade500 : Colors.grey.shade500,
+                        color: isSelected
+                            ? Colors.red.shade500
+                            : Colors.grey.shade500,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

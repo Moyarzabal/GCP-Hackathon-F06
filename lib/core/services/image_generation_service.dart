@@ -38,15 +38,18 @@ class ImageGenerationService {
           final duration = endTime.difference(startTime);
           print('✅ ImageGenerationService: 画像生成成功');
           print('   終了時刻: ${endTime.toIso8601String()}');
-          print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
+          print(
+              '   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
           print('   画像URL: $imageUrl');
           return imageUrl;
         } else {
-          print('❌ ImageGenerationService: 画像生成失敗 - 結果がnull (試行 $attempt/$maxRetries)');
+          print(
+              '❌ ImageGenerationService: 画像生成失敗 - 結果がnull (試行 $attempt/$maxRetries)');
 
           // リトライ可能な場合、リトライ
           if (attempt < maxRetries) {
-            print('🔄 ImageGenerationService: リトライします... (${attempt + 1}/$maxRetries)');
+            print(
+                '🔄 ImageGenerationService: リトライします... (${attempt + 1}/$maxRetries)');
             await Future.delayed(Duration(seconds: 3 * attempt)); // 指数バックオフ
             continue;
           }
@@ -55,13 +58,16 @@ class ImageGenerationService {
       } catch (e) {
         final endTime = DateTime.now();
         final duration = endTime.difference(startTime);
-        print('❌ ImageGenerationService: 画像生成エラー (試行 $attempt/$maxRetries): $e');
+        print(
+            '❌ ImageGenerationService: 画像生成エラー (試行 $attempt/$maxRetries): $e');
         print('   終了時刻: ${endTime.toIso8601String()}');
-        print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
+        print(
+            '   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
 
         // リトライ可能なエラーの場合、リトライ
         if (attempt < maxRetries) {
-          print('🔄 ImageGenerationService: エラーのためリトライします... (${attempt + 1}/$maxRetries)');
+          print(
+              '🔄 ImageGenerationService: エラーのためリトライします... (${attempt + 1}/$maxRetries)');
           await Future.delayed(Duration(seconds: 3 * attempt));
           continue;
         }
@@ -77,16 +83,29 @@ class ImageGenerationService {
     // より具体的で魅力的なプロンプトを生成
     String specificPrompt = '';
 
-    if (dishName.contains('主菜') || dishName.contains('炒め物') || dishName.contains('肉')) {
-      specificPrompt = 'Show a delicious main dish with meat and vegetables, beautifully plated with garnishes';
-    } else if (dishName.contains('副菜') || dishName.contains('サラダ') || dishName.contains('野菜')) {
-      specificPrompt = 'Show a fresh, colorful side dish or salad, presented on a small elegant plate';
-    } else if (dishName.contains('汁物') || dishName.contains('スープ') || dishName.contains('味噌汁')) {
-      specificPrompt = 'Show a steaming hot soup in an attractive bowl, with steam rising and perfect presentation';
-    } else if (dishName.contains('ご飯') || dishName.contains('白米') || dishName.contains('米')) {
-      specificPrompt = 'Show perfectly cooked white rice in a traditional Japanese rice bowl, with individual grains visible';
+    if (dishName.contains('主菜') ||
+        dishName.contains('炒め物') ||
+        dishName.contains('肉')) {
+      specificPrompt =
+          'Show a delicious main dish with meat and vegetables, beautifully plated with garnishes';
+    } else if (dishName.contains('副菜') ||
+        dishName.contains('サラダ') ||
+        dishName.contains('野菜')) {
+      specificPrompt =
+          'Show a fresh, colorful side dish or salad, presented on a small elegant plate';
+    } else if (dishName.contains('汁物') ||
+        dishName.contains('スープ') ||
+        dishName.contains('味噌汁')) {
+      specificPrompt =
+          'Show a steaming hot soup in an attractive bowl, with steam rising and perfect presentation';
+    } else if (dishName.contains('ご飯') ||
+        dishName.contains('白米') ||
+        dishName.contains('米')) {
+      specificPrompt =
+          'Show perfectly cooked white rice in a traditional Japanese rice bowl, with individual grains visible';
     } else {
-      specificPrompt = 'Show a delicious Japanese home-cooked meal, beautifully presented';
+      specificPrompt =
+          'Show a delicious Japanese home-cooked meal, beautifully presented';
     }
 
     return '''
@@ -129,10 +148,13 @@ Style: $style
 
     // 並列で画像生成を実行（各料理に対して個別にリトライ機能を適用）
     final futures = [
-      generateDishImage(dishName: mainDish, description: 'Main dish', maxRetries: 3),
-      generateDishImage(dishName: sideDish, description: 'Side dish', maxRetries: 3),
+      generateDishImage(
+          dishName: mainDish, description: 'Main dish', maxRetries: 3),
+      generateDishImage(
+          dishName: sideDish, description: 'Side dish', maxRetries: 3),
       generateDishImage(dishName: soup, description: 'Soup', maxRetries: 3),
-      generateDishImage(dishName: rice, description: 'Rice or staple food', maxRetries: 3),
+      generateDishImage(
+          dishName: rice, description: 'Rice or staple food', maxRetries: 3),
     ];
 
     final imageUrls = await Future.wait(futures);
@@ -148,7 +170,8 @@ Style: $style
 
     print('🍽️ ImageGenerationService: 献立画像一括生成完了');
     print('   終了時刻: ${endTime.toIso8601String()}');
-    print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
+    print(
+        '   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
     print('   成功数: $successCount/4');
     print('   メイン料理: ${results['mainDish'] != null ? '✅' : '❌'}');
     print('   副菜: ${results['sideDish'] != null ? '✅' : '❌'}');
@@ -172,11 +195,16 @@ Style: $style
 
       // 並列で画像生成を実行（nano bananaを使用）
       final futures = [
-        _generateProductImageWithNanoBanana(productName, category, 'fresh', '😊'),
-        _generateProductImageWithNanoBanana(productName, category, 'warning', '😐'),
-        _generateProductImageWithNanoBanana(productName, category, 'urgent', '😟'),
-        _generateProductImageWithNanoBanana(productName, category, 'veryFresh', '😊'),
-        _generateProductImageWithNanoBanana(productName, category, 'expired', '💀'),
+        _generateProductImageWithNanoBanana(
+            productName, category, 'fresh', '😊'),
+        _generateProductImageWithNanoBanana(
+            productName, category, 'warning', '😐'),
+        _generateProductImageWithNanoBanana(
+            productName, category, 'urgent', '😟'),
+        _generateProductImageWithNanoBanana(
+            productName, category, 'veryFresh', '😊'),
+        _generateProductImageWithNanoBanana(
+            productName, category, 'expired', '💀'),
       ];
 
       final results = await Future.wait(futures);
@@ -187,7 +215,8 @@ Style: $style
       imageUrls['veryFresh'] = results[3];
       imageUrls['expired'] = results[4];
 
-      print('✅ nano banana商品画像生成完了: ${imageUrls.values.where((url) => url != null).length}/5 成功');
+      print(
+          '✅ nano banana商品画像生成完了: ${imageUrls.values.where((url) => url != null).length}/5 成功');
       return imageUrls;
     } catch (e) {
       print('❌ nano banana商品画像生成エラー: $e');
@@ -210,7 +239,8 @@ Style: $style
     String emoji,
   ) async {
     try {
-      final prompt = _buildNanoBananaPrompt(productName, category, emotionType, emoji);
+      final prompt =
+          _buildNanoBananaPrompt(productName, category, emotionType, emoji);
 
       // nano banana（ADKApiClient）を使用して画像生成
       final adkClient = ADKApiClient.forSimpleImageApi();
@@ -241,7 +271,8 @@ Style: $style
     String emoji,
   ) async {
     try {
-      final prompt = _buildProductImagePrompt(productName, category, emotionType, emoji);
+      final prompt =
+          _buildProductImagePrompt(productName, category, emotionType, emoji);
 
       // ADKApiClientを使用して画像生成
       final adkClient = ADKApiClient.forSimpleImageApi();
@@ -272,12 +303,16 @@ Style: $style
     final emotionDescriptions = {
       'fresh': 'happy and fresh, bright colors, smiling face, sparkles around',
       'warning': 'neutral expression, slightly concerned, pastel colors',
-      'urgent': 'worried expression, sweat drops, muted colors, looking anxious',
-      'veryFresh': 'very happy and energetic, bright vibrant colors, excited expression',
-      'expired': 'zombie-like appearance, expired and spooky, dark colors, ghost-like',
+      'urgent':
+          'worried expression, sweat drops, muted colors, looking anxious',
+      'veryFresh':
+          'very happy and energetic, bright vibrant colors, excited expression',
+      'expired':
+          'zombie-like appearance, expired and spooky, dark colors, ghost-like',
     };
 
-    final emotionDesc = emotionDescriptions[emotionType] ?? 'neutral kawaii expression';
+    final emotionDesc =
+        emotionDescriptions[emotionType] ?? 'neutral kawaii expression';
 
     // nano banana用のシンプルなプロンプト
     return '$productName: $emotionDesc $emoji kawaii character, $category food item, chibi style, simple design, white background, 512x512';
@@ -293,12 +328,16 @@ Style: $style
     final emotionDescriptions = {
       'fresh': 'happy and fresh, bright colors, smiling face, sparkles around',
       'warning': 'neutral expression, slightly concerned, pastel colors',
-      'urgent': 'worried expression, sweat drops, muted colors, looking anxious',
-      'veryFresh': 'very happy and energetic, bright vibrant colors, excited expression',
-      'expired': 'zombie-like appearance, expired and spooky, dark colors, ghost-like',
+      'urgent':
+          'worried expression, sweat drops, muted colors, looking anxious',
+      'veryFresh':
+          'very happy and energetic, bright vibrant colors, excited expression',
+      'expired':
+          'zombie-like appearance, expired and spooky, dark colors, ghost-like',
     };
 
-    final emotionDesc = emotionDescriptions[emotionType] ?? 'neutral kawaii expression';
+    final emotionDesc =
+        emotionDescriptions[emotionType] ?? 'neutral kawaii expression';
 
     return '''
 Create a cute kawaii Japanese mascot character representing $productName ($category food item), $emotionDesc, chibi style, simple design, $emoji expression, white background, sticker-like appearance, high quality, 512x512 pixels

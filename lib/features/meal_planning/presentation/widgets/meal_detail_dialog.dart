@@ -94,7 +94,8 @@ class _MealDetailDialogState extends State<MealDetailDialog>
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: _getCategoryColor().withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -127,9 +128,9 @@ class _MealDetailDialogState extends State<MealDetailDialog>
           Text(
             widget.mealItem.name,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: MealDetailDialog._textColor,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: MealDetailDialog._textColor,
+                ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -139,8 +140,8 @@ class _MealDetailDialogState extends State<MealDetailDialog>
             Text(
               widget.mealItem.description,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: MealDetailDialog._accentColor,
-              ),
+                    color: MealDetailDialog._accentColor,
+                  ),
             ),
           ],
 
@@ -221,20 +222,23 @@ class _MealDetailDialogState extends State<MealDetailDialog>
           Text(
             '材料リスト',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
 
           const SizedBox(height: 12),
 
-          ...widget.mealItem.ingredients.map((ingredient) => _buildIngredientItem(ingredient)),
+          ...widget.mealItem.ingredients
+              .map((ingredient) => _buildIngredientItem(ingredient)),
         ],
       ),
     );
   }
 
   Widget _buildIngredientSummary() {
-    final availableCount = widget.mealItem.ingredients.where((ingredient) => ingredient.available).length;
+    final availableCount = widget.mealItem.ingredients
+        .where((ingredient) => ingredient.available)
+        .length;
     final totalCount = widget.mealItem.ingredients.length;
     final missingCount = totalCount - availableCount;
 
@@ -268,7 +272,9 @@ class _MealDetailDialogState extends State<MealDetailDialog>
                       ? 'すべての材料が揃っています'
                       : '$missingCount個の材料が不足しています',
                   style: TextStyle(
-                    color: availableCount == totalCount ? Colors.green : Colors.orange,
+                    color: availableCount == totalCount
+                        ? Colors.green
+                        : Colors.orange,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -277,7 +283,9 @@ class _MealDetailDialogState extends State<MealDetailDialog>
                 Text(
                   '在庫: $availableCount/$totalCount',
                   style: TextStyle(
-                    color: availableCount == totalCount ? Colors.green : Colors.orange,
+                    color: availableCount == totalCount
+                        ? Colors.green
+                        : Colors.orange,
                     fontSize: 14,
                   ),
                 ),
@@ -373,8 +381,8 @@ class _MealDetailDialogState extends State<MealDetailDialog>
           Text(
             '調理手順',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
 
           const SizedBox(height: 12),
@@ -527,29 +535,29 @@ class _MealDetailDialogState extends State<MealDetailDialog>
           ),
           const SizedBox(height: 8),
           ...widget.mealItem.recipe.tips.map((tip) => Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '• ',
-                  style: TextStyle(
-                    color: Colors.amber[700],
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    tip,
-                    style: TextStyle(
-                      color: Colors.amber[700],
-                      fontSize: 14,
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '• ',
+                      style: TextStyle(
+                        color: Colors.amber[700],
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                    Expanded(
+                      child: Text(
+                        tip,
+                        style: TextStyle(
+                          color: Colors.amber[700],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );
@@ -572,8 +580,8 @@ class _MealDetailDialogState extends State<MealDetailDialog>
           Text(
             '栄養素の詳細',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
 
           const SizedBox(height: 12),

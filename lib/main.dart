@@ -25,7 +25,8 @@ void main() async {
     await dotenv.load(fileName: ".env");
     print('.env file loaded successfully');
     print('GEMINI_API_KEY found: ${dotenv.env['GEMINI_API_KEY'] != null}');
-    print('JANCODE_LOOKUP_API_KEY found: ${dotenv.env['JANCODE_LOOKUP_API_KEY'] != null}');
+    print(
+        'JANCODE_LOOKUP_API_KEY found: ${dotenv.env['JANCODE_LOOKUP_API_KEY'] != null}');
   } catch (e) {
     // .env file not found, continue without it for development
     print('Warning: .env file not found, using default values');

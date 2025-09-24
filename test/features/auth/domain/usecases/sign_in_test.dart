@@ -12,7 +12,8 @@ import 'sign_in_test.mocks.dart';
 @GenerateMocks([AuthRepository])
 void main() {
   // Provide dummy values for Mockito
-  provideDummy<Result<User>>(const Result.failure(AuthFailure(message: 'dummy')));
+  provideDummy<Result<User>>(
+      const Result.failure(AuthFailure(message: 'dummy')));
   late SignIn usecase;
   late MockAuthRepository mockAuthRepository;
 

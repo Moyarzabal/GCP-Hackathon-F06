@@ -45,13 +45,15 @@ class JanCodeService {
       // Check if API key is available
       final apiKey = _apiKey;
       if (apiKey == null) {
-        print('JANCODE_LOOKUP_API_KEY not found, falling back to local database');
+        print(
+            'JANCODE_LOOKUP_API_KEY not found, falling back to local database');
         return _getFromLocalDatabase(janCode);
       }
 
       // Try JANCODE LOOKUP API
       final query = Uri.encodeComponent(janCode);
-      final uri = Uri.parse('$_baseUrl/search?appId=$apiKey&query=$query&type=code&hits=1&page=1');
+      final uri = Uri.parse(
+          '$_baseUrl/search?appId=$apiKey&query=$query&type=code&hits=1&page=1');
 
       print('API URL: $uri');
 
@@ -70,7 +72,9 @@ class JanCodeService {
         print('API response data: $data');
 
         // Check if product array exists and has items
-        if (data['product'] != null && data['product'] is List && (data['product'] as List).isNotEmpty) {
+        if (data['product'] != null &&
+            data['product'] is List &&
+            (data['product'] as List).isNotEmpty) {
           final products = data['product'] as List;
           final product = products.first; // Get first result
 
@@ -94,7 +98,8 @@ class JanCodeService {
               manufacturer: productInfo['manufacturer'] as String?,
               category: productInfo['category'] as String?,
               imageUrl: productInfo['imageUrl'] as String?,
-              nutritionInfo: productInfo['nutritionInfo'] as Map<String, dynamic>?,
+              nutritionInfo:
+                  productInfo['nutritionInfo'] as Map<String, dynamic>?,
               allergens: productInfo['allergens'] as List<String>?,
             );
           } catch (cacheError) {
@@ -173,7 +178,8 @@ class JanCodeService {
   }
 
   /// 統合版Gemini分析結果をキャッシュに保存するためのメソッド
-  Future<void> _cacheProductAnalysis(String janCode, ProductAnalysis analysis) async {
+  Future<void> _cacheProductAnalysis(
+      String janCode, ProductAnalysis analysis) async {
     try {
       await _firestoreService.cacheProductInfo(
         janCode: janCode,
@@ -192,7 +198,8 @@ class JanCodeService {
   }
 
   /// Geminiを使って商品のカテゴリを判定（旧版 - フォールバック用）
-  Future<String?> _determineCategoryWithGemini(Map<String, dynamic> product) async {
+  Future<String?> _determineCategoryWithGemini(
+      Map<String, dynamic> product) async {
     try {
       final itemName = product['itemName']?.toString() ?? '';
       final brandName = product['brandName']?.toString() ?? '';
@@ -248,7 +255,6 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
 
       print('Gemini判定に失敗、フォールバック判定を使用');
       return _fallbackCategoryDetermination(product);
-
     } catch (e) {
       print('Gemini判定でエラー: $e');
       return _fallbackCategoryDetermination(product);
@@ -260,16 +266,25 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
     final itemName = product['itemName']?.toString().toLowerCase() ?? '';
     final brandName = product['brandName']?.toString().toLowerCase() ?? '';
 
-    if (itemName.contains('茶') || itemName.contains('コーヒー') || itemName.contains('ジュース') ||
-        itemName.contains('水') || itemName.contains('飲料')) {
+    if (itemName.contains('茶') ||
+        itemName.contains('コーヒー') ||
+        itemName.contains('ジュース') ||
+        itemName.contains('水') ||
+        itemName.contains('飲料')) {
       return '飲料';
-    } else if (itemName.contains('麺') || itemName.contains('ラーメン') || itemName.contains('うどん')) {
+    } else if (itemName.contains('麺') ||
+        itemName.contains('ラーメン') ||
+        itemName.contains('うどん')) {
       return '即席麺';
-    } else if (itemName.contains('牛乳') || itemName.contains('ヨーグルト') || itemName.contains('チーズ')) {
+    } else if (itemName.contains('牛乳') ||
+        itemName.contains('ヨーグルト') ||
+        itemName.contains('チーズ')) {
       return '乳製品';
     } else if (itemName.contains('冷凍') || itemName.contains('アイス')) {
       return '冷凍食品';
-    } else if (itemName.contains('調味料') || itemName.contains('醤油') || itemName.contains('味噌')) {
+    } else if (itemName.contains('調味料') ||
+        itemName.contains('醤油') ||
+        itemName.contains('味噌')) {
       return '調味料';
     }
 
@@ -333,7 +348,8 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
   // 既存のローカルデータベース用メソッド（後方互換性のため保持）
   String _getProductName(Map<String, dynamic> product) {
     // 日本語名を最優先で取得
-    if (product['name_ja'] != null && product['name_ja'].toString().isNotEmpty) {
+    if (product['name_ja'] != null &&
+        product['name_ja'].toString().isNotEmpty) {
       return product['name_ja'];
     }
 
@@ -349,9 +365,7 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
   }
 
   String? _getManufacturer(Map<String, dynamic> product) {
-    return product['manufacturer'] ??
-           product['brand'] ??
-           product['maker'];
+    return product['manufacturer'] ?? product['brand'] ?? product['maker'];
   }
 
   String? _getCategory(Map<String, dynamic> product) {
@@ -381,9 +395,7 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
   }
 
   String? _getImageUrl(Map<String, dynamic> product) {
-    return product['image_url'] ??
-           product['image'] ??
-           product['thumbnail'];
+    return product['image_url'] ?? product['image'] ?? product['thumbnail'];
   }
 
   Map<String, dynamic>? _getNutritionInfo(Map<String, dynamic> product) {

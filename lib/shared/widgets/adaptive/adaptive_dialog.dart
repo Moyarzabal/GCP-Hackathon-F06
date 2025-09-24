@@ -64,12 +64,15 @@ class _CupertinoAdaptiveDialog extends StatelessWidget {
     return CupertinoAlertDialog(
       title: Text(title),
       content: content != null ? Text(content!) : null,
-      actions: actions?.map((action) => CupertinoDialogAction(
-        onPressed: action.onPressed,
-        isDefaultAction: action.isDefaultAction,
-        isDestructiveAction: action.isDestructiveAction,
-        child: Text(action.text),
-      )).toList() ?? [],
+      actions: actions
+              ?.map((action) => CupertinoDialogAction(
+                    onPressed: action.onPressed,
+                    isDefaultAction: action.isDefaultAction,
+                    isDestructiveAction: action.isDestructiveAction,
+                    child: Text(action.text),
+                  ))
+              .toList() ??
+          [],
     );
   }
 }
@@ -91,26 +94,27 @@ class _MaterialAdaptiveDialog extends StatelessWidget {
       title: Text(title),
       content: content != null ? Text(content!) : null,
       actions: actions?.map((action) {
-        if (action.isDestructiveAction) {
-          return TextButton(
-            onPressed: action.onPressed,
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(action.text),
-          );
-        } else if (action.isDefaultAction) {
-          return ElevatedButton(
-            onPressed: action.onPressed,
-            child: Text(action.text),
-          );
-        } else {
-          return TextButton(
-            onPressed: action.onPressed,
-            child: Text(action.text),
-          );
-        }
-      }).toList() ?? [],
+            if (action.isDestructiveAction) {
+              return TextButton(
+                onPressed: action.onPressed,
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: Text(action.text),
+              );
+            } else if (action.isDefaultAction) {
+              return ElevatedButton(
+                onPressed: action.onPressed,
+                child: Text(action.text),
+              );
+            } else {
+              return TextButton(
+                onPressed: action.onPressed,
+                child: Text(action.text),
+              );
+            }
+          }).toList() ??
+          [],
     );
   }
 }

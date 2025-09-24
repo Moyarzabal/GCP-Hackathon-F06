@@ -32,7 +32,8 @@ class AppState {
       products: products ?? this.products,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
-      selectedBottomNavIndex: selectedBottomNavIndex ?? this.selectedBottomNavIndex,
+      selectedBottomNavIndex:
+          selectedBottomNavIndex ?? this.selectedBottomNavIndex,
       currentHouseholdId: currentHouseholdId ?? this.currentHouseholdId,
     );
   }
@@ -61,7 +62,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
 
   /// 商品を削除
   void removeProduct(String productId) {
-    final updatedProducts = state.products.where((product) => product.id != productId).toList();
+    final updatedProducts =
+        state.products.where((product) => product.id != productId).toList();
     state = state.copyWith(products: updatedProducts);
   }
 
@@ -87,7 +89,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
 
   /// 商品の画像を更新
   void updateProductImage(String productId, String imageUrl) {
-    print('🔄 updateProductImage called: productId=$productId, imageUrl=$imageUrl');
+    print(
+        '🔄 updateProductImage called: productId=$productId, imageUrl=$imageUrl');
     print('📦 Current products count: ${state.products.length}');
 
     final updatedProducts = state.products.map((product) {
@@ -239,7 +242,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
       // FirestoreProductDataSourceの一括論理削除機能を使用
       if (_dataSource is FirestoreProductDataSource) {
         print('🔄 FirestoreProductDataSource.deleteProductsを呼び出し');
-        await (_dataSource as FirestoreProductDataSource).deleteProducts(productIds);
+        await (_dataSource as FirestoreProductDataSource)
+            .deleteProducts(productIds);
         print('✅ FirestoreProductDataSource.deleteProducts完了');
       } else {
         // フォールバック: 個別に論理削除
@@ -289,7 +293,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
   }
 
   /// 商品の複数段階画像を更新
-  void updateProductMultiStageImages(String productId, Map<ImageStage, String> imageUrls) {
+  void updateProductMultiStageImages(
+      String productId, Map<ImageStage, String> imageUrls) {
     print('🔄 updateProductMultiStageImages called: productId=$productId');
     print('📦 Current products count: ${state.products.length}');
     print('🖼️ Image URLs count: ${imageUrls.length}');
@@ -317,7 +322,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
   }
 
   /// 商品の複数段階画像を更新（ProductImageGenerationService用）
-  void updateProductImages(String productId, Map<ImageStage, String> imageUrls) {
+  void updateProductImages(
+      String productId, Map<ImageStage, String> imageUrls) {
     print('🔄 updateProductImages: $productId');
     print('📊 ImageUrls count: ${imageUrls.length}');
 
@@ -358,9 +364,9 @@ class AppStateNotifier extends StateNotifier<AppState> {
     try {
       print('🔥 Firebaseに商品を更新中: ${product.id}');
       print('   imageUrls: ${product.imageUrls?.length ?? 0}個の段階');
-      
+
       await _dataSource!.updateProduct(product);
-      
+
       print('✅ Firebase更新完了: ${product.id}');
     } catch (e) {
       print('❌ Firebase更新エラー: $e');
@@ -369,7 +375,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
 }
 
 /// アプリケーション状態プロバイダー
-final appStateProvider = StateNotifierProvider<AppStateNotifier, AppState>((ref) {
+final appStateProvider =
+    StateNotifierProvider<AppStateNotifier, AppState>((ref) {
   // FirebaseDataSourceを注入（利用可能な場合）
   final dataSource = ref.watch(productDataSourceProvider);
   return AppStateNotifier(dataSource);

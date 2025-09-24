@@ -137,8 +137,8 @@ class ProductNotifier extends StateNotifier<ProductState> {
       if (state.searchQuery.isNotEmpty) {
         filteredProducts = filteredProducts.where((product) {
           return product.name.toLowerCase().contains(state.searchQuery) ||
-                 product.category.toLowerCase().contains(state.searchQuery) ||
-                 (product.janCode?.contains(state.searchQuery) ?? false);
+              product.category.toLowerCase().contains(state.searchQuery) ||
+              (product.janCode?.contains(state.searchQuery) ?? false);
         }).toList();
       }
 
@@ -200,12 +200,15 @@ class ProductNotifier extends StateNotifier<ProductState> {
   }
 
   /// 商品を編集
-  Future<Result<void>> editProduct(String productId, Product updatedProduct) async {
+  Future<Result<void>> editProduct(
+      String productId, Product updatedProduct) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
 
       // Firebaseで商品を更新
-      await _ref.read(appStateProvider.notifier).updateProductInFirebase(updatedProduct);
+      await _ref
+          .read(appStateProvider.notifier)
+          .updateProductInFirebase(updatedProduct);
 
       // フィルターを再適用
       _applyFilters();
@@ -234,7 +237,9 @@ class ProductNotifier extends StateNotifier<ProductState> {
       state = state.copyWith(isLoading: true, error: null);
 
       // Firebaseから商品を削除
-      await _ref.read(appStateProvider.notifier).deleteProductFromFirebase(productId);
+      await _ref
+          .read(appStateProvider.notifier)
+          .deleteProductFromFirebase(productId);
 
       // フィルターを再適用
       _applyFilters();
@@ -273,7 +278,9 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
       // Firebaseから選択された商品を一括削除
       print('🔄 AppStateProvider.deleteProductsFromFirebaseを呼び出し');
-      await _ref.read(appStateProvider.notifier).deleteProductsFromFirebase(productIds);
+      await _ref
+          .read(appStateProvider.notifier)
+          .deleteProductsFromFirebase(productIds);
       print('✅ AppStateProvider.deleteProductsFromFirebase完了');
 
       // フィルターを再適用
@@ -317,7 +324,8 @@ class ProductNotifier extends StateNotifier<ProductState> {
 }
 
 /// 商品管理プロバイダー
-final productProvider = StateNotifierProvider<ProductNotifier, ProductState>((ref) {
+final productProvider =
+    StateNotifierProvider<ProductNotifier, ProductState>((ref) {
   final notifier = ProductNotifier(ref);
 
   // 商品リストが変更されたらフィルターを再適用（遅延実行）
@@ -336,7 +344,6 @@ final productProvider = StateNotifierProvider<ProductNotifier, ProductState>((re
 final filteredProductsProvider = Provider<List<Product>>((ref) {
   return ref.watch(productProvider).filteredProducts;
 });
-
 
 /// デフォルトカテゴリ一覧（商品追加時と同じ）
 const List<String> _defaultCategories = [

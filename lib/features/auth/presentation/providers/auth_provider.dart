@@ -152,7 +152,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// メールアドレスとパスワードでアカウント作成
-  Future<Result<User>> createAccount(String email, String password, String displayName) async {
+  Future<Result<User>> createAccount(
+      String email, String password, String displayName) async {
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await _createAccount.execute(CreateAccountParams(
@@ -230,7 +231,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void clearError() {
     state = state.copyWith(error: null);
   }
-
 }
 
 /// 認証プロバイダー
