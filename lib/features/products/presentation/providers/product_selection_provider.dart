@@ -131,6 +131,8 @@ class ProductSelectionNotifier extends StateNotifier<ProductSelectionState> {
 }
 
 /// 商品選択プロバイダー
-final productSelectionProvider = StateNotifierProvider<ProductSelectionNotifier, ProductSelectionState>((ref) {
+final productSelectionProvider =
+    StateNotifierProvider<ProductSelectionNotifier, ProductSelectionState>(
+        (ref) {
   return ProductSelectionNotifier(ref);
 });

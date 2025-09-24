@@ -22,7 +22,8 @@ final aiMealPlanningServiceProvider = Provider<AIMealPlanningService>((ref) {
 });
 
 /// 献立プロバイダー
-final mealPlanProvider = StateNotifierProvider<MealPlanNotifier, AsyncValue<MealPlan?>>((ref) {
+final mealPlanProvider =
+    StateNotifierProvider<MealPlanNotifier, AsyncValue<MealPlan?>>((ref) {
   return MealPlanNotifier(
     ref.read(aiMealPlanningServiceProvider),
     ref.read(firestoreServiceProvider),
@@ -30,14 +31,18 @@ final mealPlanProvider = StateNotifierProvider<MealPlanNotifier, AsyncValue<Meal
 });
 
 /// 献立履歴プロバイダー
-final mealPlanHistoryProvider = StateNotifierProvider<MealPlanHistoryNotifier, AsyncValue<List<MealPlan>>>((ref) {
+final mealPlanHistoryProvider =
+    StateNotifierProvider<MealPlanHistoryNotifier, AsyncValue<List<MealPlan>>>(
+        (ref) {
   return MealPlanHistoryNotifier(
     ref.read(firestoreServiceProvider),
   );
 });
 
 /// 買い物リストプロバイダー
-final shoppingListProvider = StateNotifierProvider<ShoppingListNotifier, AsyncValue<List<ShoppingItem>>>((ref) {
+final shoppingListProvider =
+    StateNotifierProvider<ShoppingListNotifier, AsyncValue<List<ShoppingItem>>>(
+        (ref) {
   return ShoppingListNotifier(
     ref.read(firestoreServiceProvider),
   );
@@ -48,7 +53,8 @@ class MealPlanNotifier extends StateNotifier<AsyncValue<MealPlan?>> {
   final AIMealPlanningService _aiService;
   final FirestoreService _firestoreService;
 
-  MealPlanNotifier(this._aiService, this._firestoreService) : super(const AsyncValue.data(null));
+  MealPlanNotifier(this._aiService, this._firestoreService)
+      : super(const AsyncValue.data(null));
 
   /// 献立を提案する
   Future<void> suggestMealPlan({
@@ -156,7 +162,8 @@ class MealPlanNotifier extends StateNotifier<AsyncValue<MealPlan?>> {
       // 最初の代替案を選択
       if (alternatives.isNotEmpty) {
         final selectedAlternative = alternatives.first;
-        final mealPlanId = await _firestoreService.saveMealPlan(selectedAlternative);
+        final mealPlanId =
+            await _firestoreService.saveMealPlan(selectedAlternative);
         final savedMealPlan = selectedAlternative.copyWith(id: mealPlanId);
 
         state = AsyncValue.data(savedMealPlan);
@@ -210,13 +217,16 @@ class MealPlanNotifier extends StateNotifier<AsyncValue<MealPlan?>> {
 }
 
 /// 献立履歴の状態管理
-class MealPlanHistoryNotifier extends StateNotifier<AsyncValue<List<MealPlan>>> {
+class MealPlanHistoryNotifier
+    extends StateNotifier<AsyncValue<List<MealPlan>>> {
   final FirestoreService _firestoreService;
 
-  MealPlanHistoryNotifier(this._firestoreService) : super(const AsyncValue.data([]));
+  MealPlanHistoryNotifier(this._firestoreService)
+      : super(const AsyncValue.data([]));
 
   /// 献立履歴を取得する
-  Future<void> loadMealPlanHistory(String householdId, {
+  Future<void> loadMealPlanHistory(
+    String householdId, {
     DateTime? startDate,
     DateTime? endDate,
     int limit = 50,
@@ -244,10 +254,12 @@ class MealPlanHistoryNotifier extends StateNotifier<AsyncValue<List<MealPlan>>> 
 }
 
 /// 買い物リストの状態管理
-class ShoppingListNotifier extends StateNotifier<AsyncValue<List<ShoppingItem>>> {
+class ShoppingListNotifier
+    extends StateNotifier<AsyncValue<List<ShoppingItem>>> {
   final FirestoreService _firestoreService;
 
-  ShoppingListNotifier(this._firestoreService) : super(const AsyncValue.data([]));
+  ShoppingListNotifier(this._firestoreService)
+      : super(const AsyncValue.data([]));
 
   /// 買い物リストを生成する
   Future<void> generateShoppingList(MealPlan mealPlan) async {
@@ -353,7 +365,8 @@ class ShoppingListNotifier extends StateNotifier<AsyncValue<List<ShoppingItem>>>
 
       // ローカル状態から削除
       final currentItems = state.value ?? [];
-      final updatedItems = currentItems.where((item) => item.id != itemId).toList();
+      final updatedItems =
+          currentItems.where((item) => item.id != itemId).toList();
       state = AsyncValue.data(updatedItems);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -364,7 +377,8 @@ class ShoppingListNotifier extends StateNotifier<AsyncValue<List<ShoppingItem>>>
   Future<void> clearCompletedItems() async {
     try {
       final currentItems = state.value ?? [];
-      final completedItems = currentItems.where((item) => item.isCompleted).toList();
+      final completedItems =
+          currentItems.where((item) => item.isCompleted).toList();
 
       // Firestoreから削除
       for (final item in completedItems) {
@@ -374,7 +388,8 @@ class ShoppingListNotifier extends StateNotifier<AsyncValue<List<ShoppingItem>>>
       }
 
       // ローカル状態から削除
-      final pendingItems = currentItems.where((item) => !item.isCompleted).toList();
+      final pendingItems =
+          currentItems.where((item) => !item.isCompleted).toList();
       state = AsyncValue.data(pendingItems);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);

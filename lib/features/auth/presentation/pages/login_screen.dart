@@ -4,7 +4,7 @@ import '../../../../shared/providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
-  
+
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
@@ -83,12 +83,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    '冷蔵庫管理AIアプリ',
+                    'Edibuddy',
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'あなたの食材を賢く管理',
+                    '食べ物の相棒',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 48),
@@ -166,9 +166,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ? null
                         : () => setState(() => _isSignUp = !_isSignUp),
                     child: Text(
-                      _isSignUp
-                          ? 'すでにアカウントをお持ちの方はこちら'
-                          : '新規登録はこちら',
+                      _isSignUp ? 'すでにアカウントをお持ちの方はこちら' : '新規登録はこちら',
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -188,7 +186,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     height: 48,
                     child: OutlinedButton.icon(
                       onPressed: _isLoading ? null : _handleGoogleSignIn,
-                      icon: Icon(Icons.g_mobiledata, color: Colors.red.shade400),
+                      icon:
+                          Icon(Icons.g_mobiledata, color: Colors.red.shade400),
                       label: const Text('Googleでログイン'),
                     ),
                   ),

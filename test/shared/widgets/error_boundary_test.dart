@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../lib/shared/widgets/error_boundary.dart';
-import '../../../lib/core/errors/app_exception.dart';
+import 'package:barcode_scanner/shared/widgets/error_boundary.dart';
+import 'package:barcode_scanner/core/errors/app_exception.dart';
 
 class ThrowingWidget extends StatelessWidget {
   final Exception? exception;
@@ -35,7 +35,8 @@ void main() {
       expect(find.text('Normal Widget'), findsOneWidget);
     });
 
-    testWidgets('should catch and display error when child throws', (tester) async {
+    testWidgets('should catch and display error when child throws',
+        (tester) async {
       // Arrange
       final exception = NetworkException('Test error');
 
@@ -55,7 +56,8 @@ void main() {
       expect(find.text('Test error'), findsOneWidget);
     });
 
-    testWidgets('should call onError callback when error occurs', (tester) async {
+    testWidgets('should call onError callback when error occurs',
+        (tester) async {
       // Arrange
       Exception? capturedError;
       StackTrace? capturedStackTrace;
@@ -80,7 +82,8 @@ void main() {
       expect(capturedStackTrace, isNotNull);
     });
 
-    testWidgets('should display error message for different exception types', (tester) async {
+    testWidgets('should display error message for different exception types',
+        (tester) async {
       // Arrange
       final exception = AuthException('Auth failed');
 
@@ -149,7 +152,8 @@ void main() {
       expect(find.text('Normal Widget'), findsOneWidget);
     });
 
-    testWidgets('should handle different error types with appropriate messages', (tester) async {
+    testWidgets('should handle different error types with appropriate messages',
+        (tester) async {
       // Test NetworkException
       await tester.pumpWidget(
         MaterialApp(
@@ -177,14 +181,16 @@ void main() {
         MaterialApp(
           home: ErrorBoundary(
             onError: (error, stackTrace) {},
-            child: ThrowingWidget(exception: DatabaseException('Database error')),
+            child:
+                ThrowingWidget(exception: DatabaseException('Database error')),
           ),
         ),
       );
       expect(find.text('エラーが発生しました'), findsOneWidget);
     });
 
-    testWidgets('should prevent error boundary from crashing the app', (tester) async {
+    testWidgets('should prevent error boundary from crashing the app',
+        (tester) async {
       // Arrange
       final multipleExceptions = [
         NetworkException('Error 1'),
@@ -202,7 +208,7 @@ void main() {
             ),
           ),
         );
-        
+
         // Should show error display, not crash
         expect(find.text('エラーが発生しました'), findsOneWidget);
       }
@@ -211,7 +217,7 @@ void main() {
     testWidgets('should report errors to error handler', (tester) async {
       // This test would be more meaningful with a mock error handler
       // For now, we ensure the error boundary doesn't prevent error reporting
-      
+
       bool errorReported = false;
       final exception = ApiException('API Error', statusCode: 500);
 
@@ -229,5 +235,4 @@ void main() {
       expect(errorReported, isTrue);
     });
   });
-
 }

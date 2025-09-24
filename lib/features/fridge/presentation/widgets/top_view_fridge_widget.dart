@@ -4,8 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math' as math;
 import '../../../../shared/models/product.dart';
 import '../providers/drawer_state_provider.dart';
+import '../providers/product_position_provider.dart';
 import '../animations/drawer_animation_config.dart';
 import '../styles/unified_fridge_styles.dart';
+import '../utils/section_bounds_calculator.dart';
+import 'characters/drawer_characters_layer.dart';
 
 /// 上から見た冷蔵庫のウィジェット
 class TopViewFridgeWidget extends ConsumerStatefulWidget {
@@ -17,11 +20,11 @@ class TopViewFridgeWidget extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   @override
-  ConsumerState<TopViewFridgeWidget> createState() => _TopViewFridgeWidgetState();
+  ConsumerState<TopViewFridgeWidget> createState() =>
+      _TopViewFridgeWidgetState();
 }
 
 class _TopViewFridgeWidgetState extends ConsumerState<TopViewFridgeWidget> {
-
   @override
   Widget build(BuildContext context) {
     final drawerState = ref.watch(drawerStateProvider);
@@ -85,43 +88,79 @@ class _TopViewFridgeWidgetState extends ConsumerState<TopViewFridgeWidget> {
     );
   }
 
-  Widget _buildTopViewFridge(BoxConstraints constraints, DrawerState drawerState) {
+  Widget _buildTopViewFridge(
+      BoxConstraints constraints, DrawerState drawerState) {
     // 冷蔵庫をより現実的な奥行きで表示
     final maxWidth = constraints.maxWidth * 0.9;
     final maxHeight = constraints.maxHeight * 0.95;
-    final fridgeWidth = math.min(maxWidth, maxHeight * 0.7);  // 奥行きを優先
+    final fridgeWidth = math.min(maxWidth, maxHeight * 0.7); // 奥行きを優先
     final fridgeHeight = fridgeWidth * 1.3; // 幅に対してより深い奥行き（現実的な比率）
 
-    return Container(
+    final fridgeSize = Size(fridgeWidth, fridgeHeight);
+    if (fridgeSize.width.isFinite && fridgeSize.height.isFinite) {
+      final notifier = ref.read(productPositionProvider.notifier);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifier
+          ..updatePerspective(FridgeViewPerspective.top)
+          ..updateFridgeSize(fridgeSize);
+      });
+    }
+
+    final placements = ref.watch(productPositionProvider).values.toList();
+    final vegetableOpen = drawerState.openDrawer?.compartment ==
+        FridgeCompartment.vegetableDrawer;
+    final freezerOpen =
+        drawerState.openDrawer?.compartment == FridgeCompartment.freezer;
+
+    return SizedBox(
       width: fridgeWidth,
       height: fridgeHeight,
-      child: GestureDetector(
-        onTap: () {
-          // 引き出しが開いている場合のみタップ処理
-          if (drawerState.openDrawer != null) {
-            HapticFeedback.mediumImpact();
-            // 直接リスト画面に遷移
-            widget.onSectionTap(
-              drawerState.openDrawer!.compartment,
-              drawerState.openDrawer!.level
-            );
-          }
-        },
-        child: CustomPaint(
-          painter: EnhancedTopViewFridgePainter(
-            openDrawer: drawerState.openDrawer,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                if (drawerState.openDrawer != null) {
+                  HapticFeedback.mediumImpact();
+                  widget.onSectionTap(
+                    drawerState.openDrawer!.compartment,
+                    drawerState.openDrawer!.level,
+                  );
+                }
+              },
+              child: CustomPaint(
+                painter: EnhancedTopViewFridgePainter(
+                  openDrawer: drawerState.openDrawer,
+                ),
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
           ),
-          child: Container(
-            // 全体をタッチ可能にするために透明なコンテナを配置
-            color: Colors.transparent,
-          ),
-        ),
+          if (placements.isNotEmpty)
+            Positioned.fill(
+              child: DrawerCharactersLayer(
+                placements: placements,
+                vegetableDrawerOpen: vegetableOpen,
+                freezerDrawerOpen: freezerOpen,
+                onTapProduct: _handleProductTap,
+                isTopView: true,
+              ),
+            ),
+        ],
       ),
     );
   }
 
-
-
+  void _handleProductTap(Product product) {
+    final location = product.location ??
+        const ProductLocation(
+          compartment: FridgeCompartment.vegetableDrawer,
+          level: 0,
+        );
+    widget.onSectionTap(location.compartment, location.level);
+  }
 }
 
 /// 完全に90度真上からの視点での冷蔵庫ペインター（参考画像準拠）
@@ -140,16 +179,17 @@ class EnhancedTopViewFridgePainter extends CustomPainter {
     }
   }
 
-
   /// 上から見た引き出しが手前に引き出された状態
-  void _drawOpenDrawerTopDown(Canvas canvas, double width, double height, OpenDrawerInfo drawerInfo) {
-    final isVegetableDrawer = drawerInfo.compartment == FridgeCompartment.vegetableDrawer;
+  void _drawOpenDrawerTopDown(
+      Canvas canvas, double width, double height, OpenDrawerInfo drawerInfo) {
+    final isVegetableDrawer =
+        drawerInfo.compartment == FridgeCompartment.vegetableDrawer;
 
     // 引き出しを画面幅を大きく使って横長に表示
-    final drawerWidth = width * 0.85;  // 画面幅の85%を使用
+    final drawerWidth = width * 0.85; // 画面幅の85%を使用
     final drawerHeight = height * 0.45; // 高さをより広く
     final drawerLeft = (width - drawerWidth) / 2;
-    final drawerTop = height * 0.275;   // 画面中央に配置
+    final drawerTop = height * 0.275; // 画面中央に配置
 
     // 引き出し本体（横長の長方形）
     final RRect pulledDrawerRect = RRect.fromRectAndRadius(
@@ -163,10 +203,10 @@ class EnhancedTopViewFridgePainter extends CustomPainter {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Colors.white,                    // 左上ハイライト
-          const Color(0xFFF0F0F0),        // 明るい面
-          const Color(0xFFE0E0E0),        // 中間色
-          const Color(0xFFD0D0D0),        // 影
+          Colors.white, // 左上ハイライト
+          const Color(0xFFF0F0F0), // 明るい面
+          const Color(0xFFE0E0E0), // 中間色
+          const Color(0xFFD0D0D0), // 影
         ],
         stops: const [0.0, 0.3, 0.7, 1.0],
       ).createShader(pulledDrawerRect.outerRect);
@@ -218,9 +258,9 @@ class EnhancedTopViewFridgePainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Colors.grey[200]!,           // 手前側（明るい）
-          Colors.grey[100]!,           // 中間
-          Colors.white,                // 底部（最も明るい）
+          Colors.grey[200]!, // 手前側（明るい）
+          Colors.grey[100]!, // 中間
+          Colors.white, // 底部（最も明るい）
         ],
         stops: const [0.0, 0.3, 1.0],
       ).createShader(innerPanelRect.outerRect);
@@ -300,9 +340,9 @@ class EnhancedTopViewFridgePainter extends CustomPainter {
     // 上から見た引き出しのハンドル（手前端に配置）
     final Rect handleRect = Rect.fromLTWH(
       pulledDrawerRect.left + (pulledDrawerRect.width / 2) - 50,
-      pulledDrawerRect.top + 8,  // 引き出しの手前端
+      pulledDrawerRect.top + 8, // 引き出しの手前端
       100, // ハンドル幅
-      20,  // ハンドル高さ
+      20, // ハンドル高さ
     );
 
     final Paint handlePaint = Paint()
@@ -366,8 +406,7 @@ class EnhancedTopViewFridgePainter extends CustomPainter {
       ).createShader(innerRect);
 
     // 清潔で空の引き出し内部（白い背景）
-    final Paint cleanInteriorPaint = Paint()
-      ..color = Colors.white;
+    final Paint cleanInteriorPaint = Paint()..color = Colors.white;
 
     canvas.drawRect(innerRect, cleanInteriorPaint);
 
@@ -423,7 +462,6 @@ class EnhancedTopViewFridgePainter extends CustomPainter {
 
     canvas.drawRect(innerRect, reflectionPaint);
   }
-
 
   @override
   bool shouldRepaint(covariant EnhancedTopViewFridgePainter oldDelegate) {

@@ -76,4 +76,3 @@ class CategoryColorPicker extends StatelessWidget {
     );
   }
 }
-

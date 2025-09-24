@@ -37,11 +37,14 @@ class GenreSelectionDialog extends StatelessWidget {
           const SizedBox(height: 20),
           _buildGenreButton(context, '主菜', MealCategory.main, Icons.restaurant),
           const SizedBox(height: 12),
-          _buildGenreButton(context, '副菜', MealCategory.side, Icons.local_dining),
+          _buildGenreButton(
+              context, '副菜', MealCategory.side, Icons.local_dining),
           const SizedBox(height: 12),
-          _buildGenreButton(context, '汁物', MealCategory.soup, Icons.soup_kitchen),
+          _buildGenreButton(
+              context, '汁物', MealCategory.soup, Icons.soup_kitchen),
           const SizedBox(height: 12),
-          _buildGenreButton(context, 'おつまみ', MealCategory.dessert, Icons.cookie),
+          _buildGenreButton(
+              context, 'おつまみ', MealCategory.dessert, Icons.cookie),
         ],
       ),
       actions: [
@@ -85,7 +88,7 @@ class GenreSelectionDialog extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              icon, 
+              icon,
               size: 24,
               color: const Color(0xFF8B7355),
             ),

@@ -60,27 +60,23 @@ class FridgeShelfLayer extends StatelessWidget {
           top: top,
           height: shelfHeight,
           child: GestureDetector(
-            onTap: isVisible ? () {
-              HapticFeedback.lightImpact();
-              onSectionTap(FridgeCompartment.refrigerator, i);
-            } : null,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.blue.withOpacity(0.3),
-                    width: 2,
-                  ),
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  '冷蔵室 棚${i + 1}',
-                  style: TextStyle(
-                    color: Colors.grey[600]!.withOpacity(isVisible ? 0.8 : 0),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+            onTap: isVisible
+                ? () {
+                    HapticFeedback.lightImpact();
+                    onSectionTap(FridgeCompartment.refrigerator, i);
+                  }
+                : null,
+            child: Semantics(
+              label: '冷蔵室 棚${i + 1}',
+              button: true,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.blue.withOpacity(0.3),
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
@@ -89,7 +85,7 @@ class FridgeShelfLayer extends StatelessWidget {
         ),
       );
     }
-    
+
     return shelves;
   }
 }
@@ -97,9 +93,9 @@ class FridgeShelfLayer extends StatelessWidget {
 /// 棚の視覚的な描画
 class ShelfPainter extends CustomPainter {
   final bool isVisible;
-  
+
   ShelfPainter({required this.isVisible});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     // 冷蔵庫本体のサイズと位置に合わせる
@@ -129,9 +125,9 @@ class ShelfPainter extends CustomPainter {
       ),
       const Radius.circular(12),
     );
-    
+
     canvas.drawRRect(background, backgroundPaint);
-    
+
     // LED照明効果
     if (isVisible) {
       final Paint lightPaint = Paint()
@@ -144,10 +140,10 @@ class ShelfPainter extends CustomPainter {
             Colors.transparent,
           ],
         ).createShader(background.outerRect);
-      
+
       canvas.drawRRect(background, lightPaint);
     }
-    
+
     // 棚板の描画（メタリック質感）
     final double shelfAreaHeight = fridgeBodyHeight * 0.55; // 1段目: 55%
     for (int i = 0; i < 3; i++) {
@@ -161,7 +157,7 @@ class ShelfPainter extends CustomPainter {
         fridgeBodyWidth,
         shelfHeight - 2,
       );
-      
+
       // 棚板のグラデーション - クリアガラス風
       final Paint shelfPaint = Paint()
         ..shader = LinearGradient(
@@ -173,21 +169,21 @@ class ShelfPainter extends CustomPainter {
             Colors.white.withOpacity(0.8),
           ],
         ).createShader(shelfRect);
-      
+
       canvas.drawRect(shelfRect, shelfPaint);
-      
+
       // 棚板のエッジ（クリアガラス風）
       final Paint edgePaint = Paint()
         ..color = Colors.grey[300]!.withOpacity(0.8)
         ..strokeWidth = 1.5
         ..style = PaintingStyle.stroke;
-      
+
       canvas.drawLine(
         Offset(fridgeBodyLeft, y + shelfHeight - 2),
         Offset(fridgeBodyLeft + fridgeBodyWidth, y + shelfHeight - 2),
         edgePaint,
       );
-      
+
       // 棚板の反射光
       final Paint reflectionPaint = Paint()
         ..shader = LinearGradient(
@@ -203,7 +199,7 @@ class ShelfPainter extends CustomPainter {
           shelfRect.width,
           10,
         ));
-      
+
       canvas.drawRect(
         Rect.fromLTWH(
           shelfRect.left,
@@ -213,12 +209,12 @@ class ShelfPainter extends CustomPainter {
         ),
         reflectionPaint,
       );
-      
+
       // 棚板の影
       final Paint shadowPaint = Paint()
         ..color = Colors.black.withOpacity(0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-      
+
       canvas.drawRect(
         Rect.fromLTWH(
           shelfRect.left,
@@ -232,6 +228,6 @@ class ShelfPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(ShelfPainter oldDelegate) => 
+  bool shouldRepaint(ShelfPainter oldDelegate) =>
       oldDelegate.isVisible != isVisible;
 }

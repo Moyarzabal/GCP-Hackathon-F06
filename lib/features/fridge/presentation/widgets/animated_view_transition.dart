@@ -16,12 +16,12 @@ class AnimatedViewTransition extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   @override
-  ConsumerState<AnimatedViewTransition> createState() => _AnimatedViewTransitionState();
+  ConsumerState<AnimatedViewTransition> createState() =>
+      _AnimatedViewTransitionState();
 }
 
 class _AnimatedViewTransitionState extends ConsumerState<AnimatedViewTransition>
     with TickerProviderStateMixin {
-
   late AnimationController _transitionController;
   late AnimationController _perspectiveController;
   late AnimationController _scaleController;
@@ -167,16 +167,13 @@ class _AnimatedViewTransitionState extends ConsumerState<AnimatedViewTransition>
     return Stack(
       children: [
         // 正面ビュー（フェードアウト）
-        if (_transitionAnimation.value < 1.0)
-          _buildFrontView(drawerState),
+        if (_transitionAnimation.value < 1.0) _buildFrontView(drawerState),
 
         // 上視点ビュー（フェードイン）
-        if (_transitionAnimation.value > 0.0)
-          _buildTopView(drawerState),
+        if (_transitionAnimation.value > 0.0) _buildTopView(drawerState),
 
         // トランジション中のオーバーレイ効果
-        if (_transitionController.isAnimating)
-          _buildTransitionOverlay(),
+        if (_transitionController.isAnimating) _buildTransitionOverlay(),
       ],
     );
   }
@@ -303,7 +300,7 @@ class TransitionParticlesPainter extends CustomPainter {
 }
 
 /// トランジション状態の管理用ミックスイン
-mixin ViewTransitionMixin<T extends StatefulWidget> on State<T>, TickerProviderStateMixin {
+mixin ViewTransitionMixin<T extends StatefulWidget> on State<T> {
   late AnimationController transitionController;
   late Animation<double> transitionCurve;
 
@@ -312,7 +309,7 @@ mixin ViewTransitionMixin<T extends StatefulWidget> on State<T>, TickerProviderS
     super.initState();
     transitionController = AnimationController(
       duration: const Duration(milliseconds: 800),
-      vsync: this,
+      vsync: this as TickerProvider,
     );
 
     transitionCurve = CurvedAnimation(

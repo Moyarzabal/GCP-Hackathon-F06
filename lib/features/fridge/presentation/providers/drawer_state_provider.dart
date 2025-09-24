@@ -6,8 +6,10 @@ import '../../../../shared/models/product.dart';
 enum DrawerViewMode {
   /// 正面ビュー（通常の冷蔵庫表示）
   frontView,
+
   /// 上から見たビュー（引き出しが開いた状態）
   topView,
+
   /// 引き出し内部の詳細ビュー（商品一覧）
   innerView,
 }
@@ -67,19 +69,28 @@ class DrawerStateNotifier extends StateNotifier<DrawerState> {
   Future<void> openDrawer(FridgeCompartment compartment, int level) async {
     final drawerInfo = OpenDrawerInfo(compartment: compartment, level: level);
 
-    // アニメーション開始
-    state = state.copyWith(isAnimating: true);
+    // レイヤー付き冷蔵庫ウィジェット側のアニメーション時間と同期
+    const drawerAnimationDuration = Duration(milliseconds: 600);
+    const additionalBuffer = Duration(milliseconds: 80);
 
-    // 短い遅延でトップビューに遷移
-    await Future.delayed(const Duration(milliseconds: 100));
+    // アニメーション開始時点で対象の引き出し情報を保持
     state = state.copyWith(
-      viewMode: DrawerViewMode.topView,
+      isAnimating: true,
       openDrawer: drawerInfo,
     );
 
-    // アニメーション終了
-    await Future.delayed(const Duration(milliseconds: 500));
-    state = state.copyWith(isAnimating: false);
+    // 引き出しが完全に開くまで待機してから画面遷移
+    await Future.delayed(drawerAnimationDuration + additionalBuffer);
+
+    // 途中で閉じられている場合は遷移を行わない
+    if (state.openDrawer != drawerInfo) {
+      return;
+    }
+
+    state = state.copyWith(
+      viewMode: DrawerViewMode.topView,
+      isAnimating: false,
+    );
   }
 
   /// 引き出し内部をタップ（詳細ビューに遷移）
@@ -107,6 +118,7 @@ class DrawerStateNotifier extends StateNotifier<DrawerState> {
 }
 
 /// 引き出し状態プロバイダー
-final drawerStateProvider = StateNotifierProvider<DrawerStateNotifier, DrawerState>((ref) {
+final drawerStateProvider =
+    StateNotifierProvider<DrawerStateNotifier, DrawerState>((ref) {
   return DrawerStateNotifier();
 });

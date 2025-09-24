@@ -6,30 +6,30 @@ import 'package:barcode_scanner/core/security/env_config.dart';
 class FirebaseConfig {
   // Secure Firebase configuration using environment variables
   static FirebaseOptions get webOptions => FirebaseOptions(
-    apiKey: _getApiKey(),
-    authDomain: _getAuthDomain(),
-    projectId: _getProjectId(),
-    storageBucket: _getStorageBucket(),
-    messagingSenderId: _getMessagingSenderId(),
-    appId: _getWebAppId(),
-  );
+        apiKey: _getApiKey(),
+        authDomain: _getAuthDomain(),
+        projectId: _getProjectId(),
+        storageBucket: _getStorageBucket(),
+        messagingSenderId: _getMessagingSenderId(),
+        appId: _getWebAppId(),
+      );
 
   static FirebaseOptions get iosOptions => FirebaseOptions(
-    apiKey: _getApiKey(),
-    appId: _getIosAppId(),
-    messagingSenderId: _getMessagingSenderId(),
-    projectId: _getProjectId(),
-    storageBucket: _getStorageBucket(),
-    iosBundleId: 'com.f06team.fridgemanager',
-  );
+        apiKey: _getApiKey(),
+        appId: _getIosAppId(),
+        messagingSenderId: _getMessagingSenderId(),
+        projectId: _getProjectId(),
+        storageBucket: _getStorageBucket(),
+        iosBundleId: 'com.f06team.fridgemanager',
+      );
 
   static FirebaseOptions get androidOptions => FirebaseOptions(
-    apiKey: _getApiKey(),
-    appId: _getAndroidAppId(),
-    messagingSenderId: _getMessagingSenderId(),
-    projectId: _getProjectId(),
-    storageBucket: _getStorageBucket(),
-  );
+        apiKey: _getApiKey(),
+        appId: _getAndroidAppId(),
+        messagingSenderId: _getMessagingSenderId(),
+        projectId: _getProjectId(),
+        storageBucket: _getStorageBucket(),
+      );
 
   // Private methods to get configuration from environment
   static String _getApiKey() {
@@ -49,27 +49,33 @@ class FirebaseConfig {
   }
 
   static String _getStorageBucket() {
-    return EnvConfig.getOptional('FIREBASE_STORAGE_BUCKET', 'gcp-f06-barcode.firebasestorage.app');
+    return EnvConfig.getOptional(
+        'FIREBASE_STORAGE_BUCKET', 'gcp-f06-barcode.firebasestorage.app');
   }
 
   static String _getAuthDomain() {
-    return EnvConfig.getOptional('FIREBASE_AUTH_DOMAIN', 'gcp-f06-barcode.firebaseapp.com');
+    return EnvConfig.getOptional(
+        'FIREBASE_AUTH_DOMAIN', 'gcp-f06-barcode.firebaseapp.com');
   }
 
   static String _getMessagingSenderId() {
-    return EnvConfig.getOptional('FIREBASE_MESSAGING_SENDER_ID', '787989873030');
+    return EnvConfig.getOptional(
+        'FIREBASE_MESSAGING_SENDER_ID', '787989873030');
   }
 
   static String _getWebAppId() {
-    return EnvConfig.getOptional('FIREBASE_WEB_APP_ID', '1:787989873030:web:09603db34685565f29ac07');
+    return EnvConfig.getOptional(
+        'FIREBASE_WEB_APP_ID', '1:787989873030:web:09603db34685565f29ac07');
   }
 
   static String _getIosAppId() {
-    return EnvConfig.getOptional('FIREBASE_IOS_APP_ID', '1:787989873030:ios:0f768aa144b5823329ac07');
+    return EnvConfig.getOptional(
+        'FIREBASE_IOS_APP_ID', '1:787989873030:ios:0f768aa144b5823329ac07');
   }
 
   static String _getAndroidAppId() {
-    return EnvConfig.getOptional('FIREBASE_ANDROID_APP_ID', '1:787989873030:android:d9495bc8845cdfa629ac07');
+    return EnvConfig.getOptional('FIREBASE_ANDROID_APP_ID',
+        '1:787989873030:android:d9495bc8845cdfa629ac07');
   }
 
   /// Initialize Firebase with platform-specific configuration
@@ -90,7 +96,8 @@ class FirebaseConfig {
     if (options != null) {
       await Firebase.initializeApp(options: options);
     } else {
-      throw UnsupportedError('Unsupported platform for Firebase initialization');
+      throw UnsupportedError(
+          'Unsupported platform for Firebase initialization');
     }
   }
 

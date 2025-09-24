@@ -8,7 +8,8 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Authentication Flow Integration Tests', () {
-    testWidgets('should bypass authentication and access main features', (tester) async {
+    testWidgets('should bypass authentication and access main features',
+        (tester) async {
       // Arrange: アプリを起動（認証は現在バイパス中）
       app.main();
       await tester.pumpAndSettle();
@@ -42,7 +43,7 @@ void main() {
       // Act: アプリの状態を保持しながら画面遷移
       await tester.tap(find.text('スキャン'));
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.text('ホーム'));
       await tester.pumpAndSettle();
 
@@ -50,7 +51,8 @@ void main() {
       expect(find.text('冷蔵庫の中身'), findsOneWidget);
     });
 
-    testWidgets('should handle authentication errors gracefully', (tester) async {
+    testWidgets('should handle authentication errors gracefully',
+        (tester) async {
       // Arrange: アプリを起動
       app.main();
       await tester.pumpAndSettle();

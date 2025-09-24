@@ -105,4 +105,3 @@ class CategoryIconPicker extends StatelessWidget {
     );
   }
 }
-

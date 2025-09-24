@@ -85,7 +85,8 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
     );
   }
 
-  Widget _buildPendingItemsTab(AsyncValue<List<ShoppingItem>> shoppingListAsync) {
+  Widget _buildPendingItemsTab(
+      AsyncValue<List<ShoppingItem>> shoppingListAsync) {
     return shoppingListAsync.when(
       data: (items) {
         final pendingItems = items.where((item) => !item.isCompleted).toList();
@@ -96,7 +97,8 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
     );
   }
 
-  Widget _buildCompletedItemsTab(AsyncValue<List<ShoppingItem>> shoppingListAsync) {
+  Widget _buildCompletedItemsTab(
+      AsyncValue<List<ShoppingItem>> shoppingListAsync) {
     return shoppingListAsync.when(
       data: (items) {
         final completedItems = items.where((item) => item.isCompleted).toList();
@@ -107,7 +109,8 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
     );
   }
 
-  Widget _buildItemsList(List<ShoppingItem> items, {required bool showCompleted}) {
+  Widget _buildItemsList(List<ShoppingItem> items,
+      {required bool showCompleted}) {
     if (items.isEmpty) {
       return _buildEmptyState(showCompleted);
     }
@@ -136,7 +139,8 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
             final category = entry.key;
             final categoryItems = entry.value;
 
-            return _buildCategorySection(category, categoryItems, showCompleted);
+            return _buildCategorySection(
+                category, categoryItems, showCompleted);
           }),
         ],
       ),
@@ -147,7 +151,8 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
     final totalItems = items.length;
     final completedItems = items.where((item) => item.isCompleted).length;
     final completionRate = totalItems > 0 ? (completedItems / totalItems) : 0.0;
-    final estimatedPrice = items.fold(0.0, (sum, item) => sum + (item.estimatedPrice ?? 0.0));
+    final estimatedPrice =
+        items.fold(0.0, (sum, item) => sum + (item.estimatedPrice ?? 0.0));
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -179,15 +184,13 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
               Text(
                 '買い物リスト',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           Row(
             children: [
               _buildSummaryChip(
@@ -255,7 +258,8 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
     );
   }
 
-  Widget _buildCategorySection(String category, List<ShoppingItem> items, bool showCompleted) {
+  Widget _buildCategorySection(
+      String category, List<ShoppingItem> items, bool showCompleted) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       child: Column(
@@ -303,14 +307,14 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
 
           // アイテムリスト
           ...items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: ShoppingItemCard(
-              item: item,
-              onToggle: () => _toggleItemStatus(item),
-              onEdit: () => _editItem(item),
-              onDelete: () => _deleteItem(item),
-            ),
-          )),
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ShoppingItemCard(
+                  item: item,
+                  onToggle: () => _toggleItemStatus(item),
+                  onEdit: () => _editItem(item),
+                  onDelete: () => _deleteItem(item),
+                ),
+              )),
         ],
       ),
     );
@@ -322,7 +326,9 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            showCompleted ? Icons.check_circle_outline : Icons.shopping_cart_outlined,
+            showCompleted
+                ? Icons.check_circle_outline
+                : Icons.shopping_cart_outlined,
             size: 80,
             color: Colors.grey[400],
           ),
@@ -336,9 +342,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            showCompleted
-                ? 'アイテムを完了するとここに表示されます'
-                : '献立を承認するか、手動でアイテムを追加してください',
+            showCompleted ? 'アイテムを完了するとここに表示されます' : '献立を承認するか、手動でアイテムを追加してください',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -352,7 +356,8 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
               icon: const Icon(Icons.add),
               label: const Text('アイテムを追加'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -427,12 +432,12 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
       builder: (context) => AddItemDialog(
         onAddItem: (name, quantity, unit, category) {
           ref.read(shoppingListProvider.notifier).addCustomItem(
-            name: name,
-            quantity: quantity,
-            unit: unit,
-            category: category,
-            addedBy: 'user', // TODO: 実際のユーザーIDを取得
-          );
+                name: name,
+                quantity: quantity,
+                unit: unit,
+                category: category,
+                addedBy: 'user', // TODO: 実際のユーザーIDを取得
+              );
         },
       ),
     );
@@ -552,4 +557,3 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen>
     }
   }
 }
-

@@ -1,7 +1,6 @@
 import 'package:barcode_scanner/features/home/presentation/pages/home_screen.dart';
 import 'package:barcode_scanner/shared/models/product.dart';
 import 'package:barcode_scanner/shared/providers/app_state_provider.dart';
-import 'package:barcode_scanner/features/fridge/presentation/widgets/tesla_style_fridge_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,12 +8,21 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('リスト⇄冷蔵庫の切替ができ、セクションタップで遷移する', (tester) async {
     final products = [
-      Product(id: '1', name: '牛乳', category: '乳製品', expiryDate: DateTime.now().add(const Duration(days: 3))),
-      Product(id: '2', name: 'にんじん', category: '野菜', expiryDate: DateTime.now().add(const Duration(days: 5))),
+      Product(
+          id: '1',
+          name: '牛乳',
+          category: '乳製品',
+          expiryDate: DateTime.now().add(const Duration(days: 3))),
+      Product(
+          id: '2',
+          name: 'にんじん',
+          category: '野菜',
+          expiryDate: DateTime.now().add(const Duration(days: 5))),
     ];
 
     final container = ProviderContainer(overrides: [
-      appStateProvider.overrideWith((ref) => AppStateNotifier()..state = AppState(products: products)),
+      appStateProvider.overrideWith(
+          (ref) => AppStateNotifier()..state = AppState(products: products)),
     ]);
 
     await tester.pumpWidget(
@@ -53,13 +61,20 @@ void main() {
 
     // 位置を付与（2件を冷蔵室0、1件を左ドア）
     final withLoc = [
-      products[0].copyWith(location: const ProductLocation(compartment: FridgeCompartment.refrigerator, level: 0)),
-      products[1].copyWith(location: const ProductLocation(compartment: FridgeCompartment.refrigerator, level: 0)),
-      products[2].copyWith(location: const ProductLocation(compartment: FridgeCompartment.doorLeft, level: 0)),
+      products[0].copyWith(
+          location: const ProductLocation(
+              compartment: FridgeCompartment.refrigerator, level: 0)),
+      products[1].copyWith(
+          location: const ProductLocation(
+              compartment: FridgeCompartment.refrigerator, level: 0)),
+      products[2].copyWith(
+          location: const ProductLocation(
+              compartment: FridgeCompartment.doorLeft, level: 0)),
     ];
 
     final container = ProviderContainer(overrides: [
-      appStateProvider.overrideWith((ref) => AppStateNotifier()..state = AppState(products: withLoc)),
+      appStateProvider.overrideWith(
+          (ref) => AppStateNotifier()..state = AppState(products: withLoc)),
     ]);
 
     await tester.pumpWidget(
@@ -78,5 +93,3 @@ void main() {
     expect(find.text('2'), findsWidgets);
   });
 }
-
-

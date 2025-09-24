@@ -41,7 +41,8 @@ class MealPlanCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: _getCategoryColor().withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -80,8 +81,8 @@ class MealPlanCard extends StatelessWidget {
               Text(
                 mealItem.name,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -91,8 +92,8 @@ class MealPlanCard extends StatelessWidget {
                 Text(
                   mealItem.description,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -165,7 +166,8 @@ class MealPlanCard extends StatelessWidget {
   }
 
   Widget _buildIngredientsInfo() {
-    final availableCount = mealItem.ingredients.where((ingredient) => ingredient.available).length;
+    final availableCount =
+        mealItem.ingredients.where((ingredient) => ingredient.available).length;
     final totalCount = mealItem.ingredients.length;
     final missingCount = totalCount - availableCount;
 
@@ -208,7 +210,6 @@ class MealPlanCard extends StatelessWidget {
               ),
           ],
         ),
-
         if (mealItem.ingredients.isNotEmpty) ...[
           const SizedBox(height: 8),
           Wrap(
@@ -234,13 +235,15 @@ class MealPlanCard extends StatelessWidget {
                     Icon(
                       ingredient.available ? Icons.check : Icons.shopping_cart,
                       size: 12,
-                      color: ingredient.available ? Colors.green : Colors.orange,
+                      color:
+                          ingredient.available ? Colors.green : Colors.orange,
                     ),
                     const SizedBox(width: 2),
                     Text(
                       ingredient.name,
                       style: TextStyle(
-                        color: ingredient.available ? Colors.green : Colors.orange,
+                        color:
+                            ingredient.available ? Colors.green : Colors.orange,
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
@@ -250,7 +253,6 @@ class MealPlanCard extends StatelessWidget {
               );
             }).toList(),
           ),
-
           if (mealItem.ingredients.length > 3) ...[
             const SizedBox(height: 4),
             Text(

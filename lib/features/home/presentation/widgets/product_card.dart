@@ -51,72 +51,75 @@ class ProductCard extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: currentProduct.statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: currentProduct.currentImageUrl != null && currentProduct.currentImageUrl!.isNotEmpty
-              ? _buildImageWidget(currentProduct)
-              : Center(
-                  child: Text(
-                    currentProduct.emotionState,
-                    style: const TextStyle(fontSize: 32),
-                  ),
-                ),
-        ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      currentProduct.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: currentProduct.statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: currentProduct.currentImageUrl != null &&
+                              currentProduct.currentImageUrl!.isNotEmpty
+                          ? _buildImageWidget(currentProduct)
+                          : Center(
+                              child: Text(
+                                currentProduct.emotionState,
+                                style: const TextStyle(fontSize: 32),
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.category, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
                         Text(
-                          currentProduct.category,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.access_time, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(
-                          currentProduct.expiryDate != null
-                              ? '${currentProduct.daysUntilExpiry}日後'
-                              : '期限なし',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: currentProduct.statusColor,
+                          currentProduct.name,
+                          style: const TextStyle(
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.category,
+                                size: 14, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Text(
+                              currentProduct.category,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Icon(Icons.access_time,
+                                size: 14, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Text(
+                              currentProduct.expiryDate != null
+                                  ? '${currentProduct.daysUntilExpiry}日後'
+                                  : '期限なし',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: currentProduct.statusColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey[400],
-              ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: Colors.grey[400],
+                  ),
                 ],
               ),
             ),
@@ -156,6 +159,7 @@ class ProductCard extends ConsumerWidget {
       ),
     );
   }
+
   Widget _buildImageWidget(Product product) {
     try {
       // Base64画像データかどうかを判定

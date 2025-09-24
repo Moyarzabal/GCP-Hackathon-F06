@@ -31,7 +31,8 @@ class EnhancedFridgeWidget extends ConsumerWidget {
         // 詳細ビューでは、セクションタップを呼んで元の画面遷移ロジックを使う
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (drawerState.openDrawer != null) {
-            onSectionTap(drawerState.openDrawer!.compartment, drawerState.openDrawer!.level);
+            onSectionTap(drawerState.openDrawer!.compartment,
+                drawerState.openDrawer!.level);
             // innerView状態をクリアして、次回の正常な遷移のため
             ref.read(drawerStateProvider.notifier).backToFrontView();
           }
