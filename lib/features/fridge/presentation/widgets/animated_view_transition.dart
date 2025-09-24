@@ -303,7 +303,7 @@ class TransitionParticlesPainter extends CustomPainter {
 }
 
 /// トランジション状態の管理用ミックスイン
-mixin ViewTransitionMixin<T extends StatefulWidget> on State<T>, TickerProviderStateMixin {
+mixin ViewTransitionMixin<T extends StatefulWidget> on State<T> {
   late AnimationController transitionController;
   late Animation<double> transitionCurve;
 
@@ -312,7 +312,7 @@ mixin ViewTransitionMixin<T extends StatefulWidget> on State<T>, TickerProviderS
     super.initState();
     transitionController = AnimationController(
       duration: const Duration(milliseconds: 800),
-      vsync: this,
+      vsync: this as TickerProvider,
     );
 
     transitionCurve = CurvedAnimation(
