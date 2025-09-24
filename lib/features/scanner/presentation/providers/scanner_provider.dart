@@ -8,7 +8,14 @@ import '../../../../core/services/jan_code_service.dart';
 import '../../../../core/services/gemini_service.dart';
 
 // 共通のカテゴリリスト
-const List<String> _defaultCategories = ['飲料', '食品', '調味料', '冷凍食品', 'その他'];
+const List<String> _defaultCategories = [
+  '飲料',
+  '食品',
+  '調味料',
+  '野菜',
+  '冷凍食品',
+  'その他'
+];
 
 /// スキャナーの状態を表すクラス
 class ScannerState {

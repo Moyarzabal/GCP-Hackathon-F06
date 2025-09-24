@@ -177,6 +177,35 @@ class RecipeService {
         category: '冷凍食品',
       ),
     ],
+    '野菜': [
+      Recipe(
+        id: 'vegetable_1',
+        title: 'シンプル野菜炒め',
+        description: '旬の野菜を使ったヘルシーな炒め物',
+        imageUrl:
+            'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400',
+        cookingTime: '15分',
+        ingredients: ['キャベツ', 'にんじん', 'ピーマン', '玉ねぎ', '醤油', '塩胡椒', 'ごま油'],
+        steps: ['野菜を一口大に切る', 'フライパンにごま油を熱する', '硬い野菜から順に炒める', '醤油と塩胡椒で味付けする'],
+        category: '野菜',
+      ),
+      Recipe(
+        id: 'vegetable_2',
+        title: 'トマトとレタスのサラダ',
+        description: '新鮮な野菜のシンプルサラダ',
+        imageUrl:
+            'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400',
+        cookingTime: '10分',
+        ingredients: ['トマト', 'レタス', 'きゅうり', 'ドレッシング'],
+        steps: [
+          'トマトを適当な大きさに切る',
+          'レタスを食べやすい大きさにちぎる',
+          'きゅうりを薄切りにする',
+          'ドレッシングで和える'
+        ],
+        category: '野菜',
+      ),
+    ],
     'その他': [
       Recipe(
         id: 'other_1',

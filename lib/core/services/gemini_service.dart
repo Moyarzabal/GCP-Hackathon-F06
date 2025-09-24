@@ -323,10 +323,16 @@ ${categoryOptions.map((cat) => '- $cat').join('\n')}
       confidence = 0.8;
     } else if (name.contains('野菜') ||
         name.contains('トマト') ||
-        name.contains('レタス')) {
+        name.contains('きゅうり') ||
+        name.contains('にんじん') ||
+        name.contains('たまねぎ') ||
+        name.contains('キャベツ') ||
+        name.contains('レタス') ||
+        name.contains('ほうれん草') ||
+        name.contains('じゃがいも')) {
       category = categoryOptions.contains('野菜') ? '野菜' : categoryOptions.first;
-      expiryDays = 5;
-      confidence = 0.7;
+      expiryDays = 7;
+      confidence = 0.8;
     } else if (name.contains('果物') ||
         name.contains('りんご') ||
         name.contains('バナナ')) {
