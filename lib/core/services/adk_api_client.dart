@@ -20,7 +20,7 @@ class ADKApiClient {
 
   /// シンプルな画像生成API用のクライアント
   static ADKApiClient forSimpleImageApi() {
-    return ADKApiClient(baseUrl: 'http://localhost:8003');
+    return ADKApiClient();
   }
 
   void _initializeDio() {
