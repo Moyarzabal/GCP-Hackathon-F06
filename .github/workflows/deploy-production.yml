@@ -1,0 +1,179 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip pre-deployment tests'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  FLUTTER_VERSION: '3.29.0'
+  NODE_VERSION: '20'
+
+jobs:
+  pre-deployment-check:
+    name: Pre-deployment Check
+    runs-on: ubuntu-latest
+    if: "!inputs.skip_tests"
+    outputs:
+      should-deploy: ${{ steps.check.outputs.should-deploy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run analysis
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Check deployment readiness
+        id: check
+        run: echo "should-deploy=true" >> $GITHUB_OUTPUT
+
+  build-and-deploy:
+    name: Build and Deploy Production
+    runs-on: ubuntu-latest
+    needs: [pre-deployment-check]
+    if: always() && (needs.pre-deployment-check.result == 'success' || needs.pre-deployment-check.result == 'skipped')
+    environment: production
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install optimization tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y optipng jpegoptim
+          sudo npm install -g html-minifier
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Create .env file
+        run: |
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+          echo "FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" >> .env
+          echo "FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}" >> .env
+          echo "FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}" >> .env
+          echo "FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}" >> .env
+          echo "FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}" >> .env
+          echo "FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}" >> .env
+          echo "FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }}" >> .env
+          echo "FIREBASE_IOS_CLIENT_ID=${{ secrets.FIREBASE_IOS_CLIENT_ID }}" >> .env
+          echo "FIREBASE_IOS_BUNDLE_ID=${{ secrets.FIREBASE_IOS_BUNDLE_ID }}" >> .env
+
+      - name: Build web
+        run: |
+          flutter build web --release \
+            --dart-define=ENVIRONMENT=production \
+            --dart-define=API_BASE_URL=https://api.gcp-f06-barcode.com \
+            --no-tree-shake-icons
+
+      - name: Optimize build assets
+        run: |
+          # HTML圧縮
+          find build/web -name "*.html" -exec html-minifier --collapse-whitespace --remove-comments --minify-css --minify-js {} -o {} \; 2>/dev/null || true
+
+          # 画像最適化
+          find build/web -name "*.png" -exec optipng -o5 {} \; 2>/dev/null || true
+          find build/web -name "*.jpg" -exec jpegoptim --strip-all {} \; 2>/dev/null || true
+
+      - name: Add deployment metadata
+        run: |
+          echo "{
+            \"version\": \"${{ github.sha }}\",
+            \"buildTime\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"environment\": \"production\",
+            \"branch\": \"${{ github.ref_name }}\",
+            \"workflowRun\": \"${{ github.run_id }}\"
+          }" > build/web/version.json
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build
+          path: build/web/
+          retention-days: 30
+
+      - name: Deploy to Firebase Hosting (Production)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        id: deploy
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
+          channelId: live
+          projectId: gcp-f06-barcode
+          target: production
+
+      - name: Run smoke tests
+        run: |
+          # 基本的なヘルスチェック
+          curl -f https://gcp-f06-barcode.web.app/ || exit 1
+          echo "✅ Production deployment health check passed"
+
+      - name: Notify deployment success
+        if: success() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-Type: application/json' \
+            -d "{
+              \"text\": \":rocket: Production Deployment Successful!\",
+              \"attachments\": [{
+                \"color\": \"good\",
+                \"fields\": [
+                  {\"title\": \"Environment\", \"value\": \"Production\", \"short\": true},
+                  {\"title\": \"Version\", \"value\": \"${{ github.sha }}\", \"short\": true},
+                  {\"title\": \"URL\", \"value\": \"https://gcp-f06-barcode.web.app\", \"short\": false}
+                ]
+              }]
+            }"
