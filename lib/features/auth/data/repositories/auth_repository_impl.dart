@@ -46,7 +46,8 @@ class AuthRepositoryImpl implements AuthRepository {
     String displayName,
   ) async {
     try {
-      final user = await _datasource.createAccount(email, password, displayName);
+      final user =
+          await _datasource.createAccount(email, password, displayName);
       return Result.success(user);
     } on firebase_auth.FirebaseAuthException catch (e) {
       return Result.failure(_mapFirebaseAuthException(e));
@@ -167,7 +168,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   /// FirebaseAuthExceptionをFailureにマッピング
-  Failure _mapFirebaseAuthException(firebase_auth.FirebaseAuthException exception) {
+  Failure _mapFirebaseAuthException(
+      firebase_auth.FirebaseAuthException exception) {
     switch (exception.code) {
       // 認証エラー
       case 'user-not-found':

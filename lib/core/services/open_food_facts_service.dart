@@ -54,7 +54,8 @@ class OpenFoodFactsService {
               manufacturer: productInfo['manufacturer'] as String?,
               category: productInfo['category'] as String?,
               imageUrl: productInfo['imageUrl'] as String?,
-              nutritionInfo: productInfo['nutritionInfo'] as Map<String, dynamic>?,
+              nutritionInfo:
+                  productInfo['nutritionInfo'] as Map<String, dynamic>?,
               allergens: productInfo['allergens'] as List<String>?,
             );
           } catch (cacheError) {
@@ -79,12 +80,14 @@ class OpenFoodFactsService {
 
   String _getProductName(Map<String, dynamic> product) {
     // 日本語名を最優先で取得
-    if (product['product_name_ja'] != null && product['product_name_ja'].toString().isNotEmpty) {
+    if (product['product_name_ja'] != null &&
+        product['product_name_ja'].toString().isNotEmpty) {
       return product['product_name_ja'];
     }
 
     // 日本語の商品名（product_name）を次に優先
-    if (product['product_name'] != null && product['product_name'].toString().isNotEmpty) {
+    if (product['product_name'] != null &&
+        product['product_name'].toString().isNotEmpty) {
       final name = product['product_name'].toString();
       // 日本語文字が含まれているかチェック
       if (RegExp(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]').hasMatch(name)) {
@@ -94,8 +97,8 @@ class OpenFoodFactsService {
 
     // 英語名を最後に使用
     return product['product_name_en'] ??
-           product['product_name'] ??
-           'Unknown Product';
+        product['product_name'] ??
+        'Unknown Product';
   }
 
   String? _getCategory(Map<String, dynamic> product) {
@@ -103,15 +106,18 @@ class OpenFoodFactsService {
         product['categories_hierarchy'] is List &&
         (product['categories_hierarchy'] as List).isNotEmpty) {
       final categories = product['categories_hierarchy'] as List;
-      return categories.last.toString().replaceAll('en:', '').replaceAll('-', ' ');
+      return categories.last
+          .toString()
+          .replaceAll('en:', '')
+          .replaceAll('-', ' ');
     }
     return product['categories'] ?? null;
   }
 
   String? _getImageUrl(Map<String, dynamic> product) {
     return product['image_url'] ??
-           product['image_front_url'] ??
-           product['image_small_url'];
+        product['image_front_url'] ??
+        product['image_small_url'];
   }
 
   Map<String, dynamic>? _getNutritionInfo(Map<String, dynamic> product) {
@@ -132,7 +138,8 @@ class OpenFoodFactsService {
   }
 
   List<String>? _getAllergens(Map<String, dynamic> product) {
-    if (product['allergens_tags'] != null && product['allergens_tags'] is List) {
+    if (product['allergens_tags'] != null &&
+        product['allergens_tags'] is List) {
       return (product['allergens_tags'] as List)
           .map((e) => e.toString().replaceAll('en:', ''))
           .toList();

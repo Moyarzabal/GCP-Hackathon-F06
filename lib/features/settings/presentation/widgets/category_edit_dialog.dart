@@ -117,7 +117,9 @@ class _CategoryEditDialogState extends State<CategoryEditDialog> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _nameController.text.isEmpty ? 'カテゴリ名' : _nameController.text,
+                    _nameController.text.isEmpty
+                        ? 'カテゴリ名'
+                        : _nameController.text,
                     style: TextStyle(
                       color: _selectedColor,
                       fontWeight: FontWeight.bold,
@@ -189,4 +191,3 @@ class _CategoryEditDialogState extends State<CategoryEditDialog> {
     }
   }
 }
-

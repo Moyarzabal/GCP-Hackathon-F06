@@ -85,8 +85,7 @@ void main() {
 
     test('should delete product through data source', () async {
       // Arrange
-      when(mockDataSource.deleteProduct('test-id'))
-          .thenAnswer((_) async => {});
+      when(mockDataSource.deleteProduct('test-id')).thenAnswer((_) async => {});
 
       // Act
       await repository.deleteProduct('test-id');

@@ -64,7 +64,8 @@ class EnvConfig {
   /// Get required environment variable or throw exception
   static String getRequired(String key) {
     if (!_isInitialized) {
-      throw EnvConfigException('EnvConfig not initialized. Call initialize() first.');
+      throw EnvConfigException(
+          'EnvConfig not initialized. Call initialize() first.');
     }
 
     String? value;
@@ -124,7 +125,8 @@ class EnvConfig {
       try {
         getRequired(varName);
       } catch (e) {
-        throw EnvConfigException('Missing required environment variable: $varName');
+        throw EnvConfigException(
+            'Missing required environment variable: $varName');
       }
     }
   }
@@ -133,10 +135,12 @@ class EnvConfig {
   bool get isWeb => kIsWeb;
 
   /// Check if running in development environment
-  bool get isDevelopment => getOptional('ENVIRONMENT', 'development') == 'development';
+  bool get isDevelopment =>
+      getOptional('ENVIRONMENT', 'development') == 'development';
 
   /// Check if running in production environment
-  bool get isProduction => getOptional('ENVIRONMENT', 'development') == 'production';
+  bool get isProduction =>
+      getOptional('ENVIRONMENT', 'development') == 'production';
 
   /// Get Firebase configuration for current platform
   FirebaseConfig getFirebaseConfig() {

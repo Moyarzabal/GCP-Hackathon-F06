@@ -17,9 +17,7 @@ class CategoryService {
           .orderBy('order')
           .get();
 
-      return snapshot.docs
-          .map((doc) => Category.fromFirestore(doc))
-          .toList();
+      return snapshot.docs.map((doc) => Category.fromFirestore(doc)).toList();
     } catch (e) {
       print('Error getting categories: $e');
       // エラーの場合はデフォルトカテゴリを返す
@@ -36,9 +34,8 @@ class CategoryService {
           .where('isActive', isEqualTo: true)
           .orderBy('order')
           .snapshots()
-          .map((snapshot) => snapshot.docs
-              .map((doc) => Category.fromFirestore(doc))
-              .toList());
+          .map((snapshot) =>
+              snapshot.docs.map((doc) => Category.fromFirestore(doc)).toList());
     } catch (e) {
       print('Error watching categories: $e');
       // エラーの場合はデフォルトカテゴリのストリームを返す
@@ -106,10 +103,7 @@ class CategoryService {
   /// カテゴリを削除（論理削除）
   Future<void> deleteCategory(String categoryId) async {
     try {
-      await _firestore
-          .collection('categories')
-          .doc(categoryId)
-          .update({
+      await _firestore.collection('categories').doc(categoryId).update({
         'isActive': false,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -187,7 +181,8 @@ class CategoryService {
   }
 
   /// カテゴリ名の重複チェック
-  Future<bool> isCategoryNameUnique(String householdId, String name, {String? excludeId}) async {
+  Future<bool> isCategoryNameUnique(String householdId, String name,
+      {String? excludeId}) async {
     try {
       Query query = _firestore
           .collection('categories')

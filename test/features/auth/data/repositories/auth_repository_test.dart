@@ -13,8 +13,10 @@ import 'auth_repository_test.mocks.dart';
 @GenerateMocks([FirebaseAuthDatasource, firebase_auth.User])
 void main() {
   // Provide dummy values for Mockito
-  provideDummy<Result<User>>(const Result.failure(AuthFailure(message: 'dummy')));
-  provideDummy<Result<User?>>(const Result.failure(AuthFailure(message: 'dummy')));
+  provideDummy<Result<User>>(
+      const Result.failure(AuthFailure(message: 'dummy')));
+  provideDummy<Result<User?>>(
+      const Result.failure(AuthFailure(message: 'dummy')));
   provideDummy<Result<void>>(const Result.success(null));
   late AuthRepositoryImpl repository;
   late MockFirebaseAuthDatasource mockDatasource;
@@ -41,7 +43,8 @@ void main() {
             .thenAnswer((_) async => testUser);
 
         // Act
-        final result = await repository.signInWithEmail(testEmail, testPassword);
+        final result =
+            await repository.signInWithEmail(testEmail, testPassword);
 
         // Assert
         expect(result.isSuccess, true);
@@ -53,12 +56,13 @@ void main() {
         // Arrange
         when(mockDatasource.signInWithEmail(testEmail, testPassword))
             .thenThrow(firebase_auth.FirebaseAuthException(
-              code: 'user-not-found',
-              message: 'No user record found',
-            ));
+          code: 'user-not-found',
+          message: 'No user record found',
+        ));
 
         // Act
-        final result = await repository.signInWithEmail(testEmail, testPassword);
+        final result =
+            await repository.signInWithEmail(testEmail, testPassword);
 
         // Assert
         expect(result.isFailure, true);
@@ -70,12 +74,13 @@ void main() {
         // Arrange
         when(mockDatasource.signInWithEmail(testEmail, testPassword))
             .thenThrow(firebase_auth.FirebaseAuthException(
-              code: 'network-request-failed',
-              message: 'Network error',
-            ));
+          code: 'network-request-failed',
+          message: 'Network error',
+        ));
 
         // Act
-        final result = await repository.signInWithEmail(testEmail, testPassword);
+        final result =
+            await repository.signInWithEmail(testEmail, testPassword);
 
         // Assert
         expect(result.isFailure, true);
@@ -89,7 +94,8 @@ void main() {
             .thenThrow(Exception('Unexpected error'));
 
         // Act
-        final result = await repository.signInWithEmail(testEmail, testPassword);
+        final result =
+            await repository.signInWithEmail(testEmail, testPassword);
 
         // Assert
         expect(result.isFailure, true);
@@ -120,13 +126,14 @@ void main() {
         verify(mockDatasource.signInWithGoogle());
       });
 
-      test('should return ServerFailure when Google signin is cancelled', () async {
+      test('should return ServerFailure when Google signin is cancelled',
+          () async {
         // Arrange
         when(mockDatasource.signInWithGoogle())
             .thenThrow(firebase_auth.FirebaseAuthException(
-              code: 'sign_in_canceled',
-              message: 'Sign in cancelled by user',
-            ));
+          code: 'sign_in_canceled',
+          message: 'Sign in cancelled by user',
+        ));
 
         // Act
         final result = await repository.signInWithGoogle();
@@ -155,9 +162,9 @@ void main() {
         // Arrange
         when(mockDatasource.signOut())
             .thenThrow(firebase_auth.FirebaseAuthException(
-              code: 'unknown',
-              message: 'Sign out failed',
-            ));
+          code: 'unknown',
+          message: 'Sign out failed',
+        ));
 
         // Act
         final result = await repository.signOut();
@@ -172,8 +179,7 @@ void main() {
     group('getCurrentUser', () {
       test('should return User when user is authenticated', () async {
         // Arrange
-        when(mockDatasource.getCurrentUser())
-            .thenAnswer((_) async => testUser);
+        when(mockDatasource.getCurrentUser()).thenAnswer((_) async => testUser);
 
         // Act
         final result = await repository.getCurrentUser();
@@ -206,30 +212,35 @@ void main() {
             .thenAnswer((_) async => testUser);
 
         // Act
-        final result = await repository.createAccount(testEmail, testPassword, displayName);
+        final result = await repository.createAccount(
+            testEmail, testPassword, displayName);
 
         // Assert
         expect(result.isSuccess, true);
         expect(result.getOrNull(), testUser);
-        verify(mockDatasource.createAccount(testEmail, testPassword, displayName));
+        verify(
+            mockDatasource.createAccount(testEmail, testPassword, displayName));
       });
 
-      test('should return ValidationFailure when email is already in use', () async {
+      test('should return ValidationFailure when email is already in use',
+          () async {
         // Arrange
         const displayName = 'New User';
         when(mockDatasource.createAccount(testEmail, testPassword, displayName))
             .thenThrow(firebase_auth.FirebaseAuthException(
-              code: 'email-already-in-use',
-              message: 'Email is already registered',
-            ));
+          code: 'email-already-in-use',
+          message: 'Email is already registered',
+        ));
 
         // Act
-        final result = await repository.createAccount(testEmail, testPassword, displayName);
+        final result = await repository.createAccount(
+            testEmail, testPassword, displayName);
 
         // Assert
         expect(result.isFailure, true);
         expect(result.getError(), isA<ValidationFailure>());
-        verify(mockDatasource.createAccount(testEmail, testPassword, displayName));
+        verify(
+            mockDatasource.createAccount(testEmail, testPassword, displayName));
       });
     });
 
@@ -251,9 +262,9 @@ void main() {
         // Arrange
         when(mockDatasource.resetPassword(testEmail))
             .thenThrow(firebase_auth.FirebaseAuthException(
-              code: 'user-not-found',
-              message: 'No user found with this email',
-            ));
+          code: 'user-not-found',
+          message: 'No user found with this email',
+        ));
 
         // Act
         final result = await repository.resetPassword(testEmail);

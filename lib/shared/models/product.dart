@@ -65,11 +65,11 @@ class ProductLocation {
 
 /// 商品の画像段階を表す列挙型
 enum ImageStage {
-  veryFresh,    // 7日以上
-  fresh,        // 3-7日
-  warning,      // 1-3日
-  urgent,       // 1日未満
-  expired,      // 期限切れ
+  veryFresh, // 7日以上
+  fresh, // 3-7日
+  warning, // 1-3日
+  urgent, // 1日未満
+  expired, // 期限切れ
 }
 
 class Product {
@@ -110,7 +110,8 @@ class Product {
   int get daysUntilExpiry {
     if (expiryDate == null) return 999;
     final now = DateTime.now();
-    final difference = expiryDate!.difference(DateTime(now.year, now.month, now.day));
+    final difference =
+        expiryDate!.difference(DateTime(now.year, now.month, now.day));
     return difference.inDays;
   }
 

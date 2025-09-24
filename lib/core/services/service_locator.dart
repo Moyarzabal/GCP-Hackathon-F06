@@ -46,7 +46,8 @@ class ServiceLocator {
     // Register use cases
     _services[SignIn] = SignIn(_services[AuthRepository] as AuthRepository);
     _services[SignOut] = SignOut(_services[AuthRepository] as AuthRepository);
-    _services[CreateAccount] = CreateAccount(_services[AuthRepository] as AuthRepository);
+    _services[CreateAccount] =
+        CreateAccount(_services[AuthRepository] as AuthRepository);
 
     _initialized = true;
   }

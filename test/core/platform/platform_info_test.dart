@@ -11,14 +11,18 @@ void main() {
 
     test('should correctly identify mobile platforms', () {
       // モバイルプラットフォームの検出
-      expect(PlatformInfo.isMobile, equals(PlatformInfo.isIOS || PlatformInfo.isAndroid));
+      expect(PlatformInfo.isMobile,
+          equals(PlatformInfo.isIOS || PlatformInfo.isAndroid));
     });
 
     test('should return correct platform name', () {
       // プラットフォーム名が適切に返されること
       final platformName = PlatformInfo.platformName;
       expect(platformName, isNotEmpty);
-      expect(['Web', 'iOS', 'Android', 'macOS', 'Windows', 'Linux', 'Unknown'].contains(platformName), isTrue);
+      expect(
+          ['Web', 'iOS', 'Android', 'macOS', 'Windows', 'Linux', 'Unknown']
+              .contains(platformName),
+          isTrue);
     });
 
     test('should have mutually exclusive platform flags', () {
@@ -29,11 +33,11 @@ void main() {
         PlatformInfo.isAndroid,
         PlatformInfo.isDesktop,
       ];
-      
+
       // 少なくとも一つがtrueであること
       final trueCount = platforms.where((p) => p).length;
       expect(trueCount, greaterThan(0));
-      
+
       // テスト環境の特性を考慮
       if (PlatformInfo.isWeb) {
         expect(PlatformInfo.isMobile, isFalse);

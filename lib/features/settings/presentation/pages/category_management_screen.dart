@@ -9,10 +9,12 @@ class CategoryManagementScreen extends ConsumerStatefulWidget {
   const CategoryManagementScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<CategoryManagementScreen> createState() => _CategoryManagementScreenState();
+  ConsumerState<CategoryManagementScreen> createState() =>
+      _CategoryManagementScreenState();
 }
 
-class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScreen> {
+class _CategoryManagementScreenState
+    extends ConsumerState<CategoryManagementScreen> {
   final CategoryService _categoryService = CategoryService();
   List<Category> _categories = [];
   Map<String, int> _categoryUsage = {};
@@ -103,8 +105,8 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
               _error!,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+                    color: Colors.grey[600],
+                  ),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -135,8 +137,8 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
             Text(
               'カテゴリを追加して商品を整理しましょう',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+                    color: Colors.grey[600],
+                  ),
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
@@ -302,7 +304,8 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
       }
 
       // カテゴリ名の重複チェック
-      final isUnique = await _categoryService.isCategoryNameUnique(householdId, name);
+      final isUnique =
+          await _categoryService.isCategoryNameUnique(householdId, name);
       if (!isUnique) {
         throw Exception('このカテゴリ名は既に使用されています');
       }
@@ -355,11 +358,12 @@ class _CategoryManagementScreenState extends ConsumerState<CategoryManagementScr
         throw Exception('このカテゴリ名は既に使用されています');
       }
 
-      final updatedCategory = _categories.firstWhere((c) => c.name == name).copyWith(
-        name: name,
-        color: color,
-        icon: icon,
-      );
+      final updatedCategory =
+          _categories.firstWhere((c) => c.name == name).copyWith(
+                name: name,
+                color: color,
+                icon: icon,
+              );
 
       await _categoryService.updateCategory(updatedCategory);
       await _loadCategories();

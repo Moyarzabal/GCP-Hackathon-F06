@@ -11,12 +11,16 @@ abstract class Failure {
   });
 
   @override
-  String toString() => 'Failure: $message${code != null ? ' (Code: $code)' : ''}';
+  String toString() =>
+      'Failure: $message${code != null ? ' (Code: $code)' : ''}';
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Failure && runtimeType == other.runtimeType && message == other.message && code == other.code;
+      other is Failure &&
+          runtimeType == other.runtimeType &&
+          message == other.message &&
+          code == other.code;
 
   @override
   int get hashCode => message.hashCode ^ code.hashCode;
