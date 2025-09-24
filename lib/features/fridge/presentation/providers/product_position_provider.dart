@@ -178,7 +178,8 @@ List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
     final Size itemSize = Size(baseSize.width * scale, baseSize.height * scale);
     final double verticalGap = (itemSize.height * 0.28).clamp(6.0, 18.0);
     final double minHorizontalGap = math.max(2.0, itemSize.width * 0.08);
-    final double maxHorizontalGap = math.max(minHorizontalGap + 4.0, itemSize.width * 0.25);
+    final double maxHorizontalGap =
+        math.max(minHorizontalGap + 4.0, itemSize.width * 0.25);
 
     final int maxColumns = math.max(
       1,
@@ -211,14 +212,17 @@ List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
           maxGap: maxHorizontalGap,
         );
 
-        final double top =
-            baseTop - rowIndex * (itemSize.height + verticalGap);
+        final double top = baseTop - rowIndex * (itemSize.height + verticalGap);
 
         // Center the row horizontally within available width
-        final double totalRowWidth = rowItems.length * itemSize.width + (rowItems.length - 1) * gap;
-        final double rowStartX = bounds.left + (availableWidth - totalRowWidth) / 2;
+        final double totalRowWidth =
+            rowItems.length * itemSize.width + (rowItems.length - 1) * gap;
+        final double rowStartX =
+            bounds.left + (availableWidth - totalRowWidth) / 2;
 
-        for (int columnIndex = 0; columnIndex < rowItems.length; columnIndex++) {
+        for (int columnIndex = 0;
+            columnIndex < rowItems.length;
+            columnIndex++) {
           final Product product = rowItems[columnIndex];
           final double left = rowStartX + columnIndex * (itemSize.width + gap);
 
@@ -243,7 +247,8 @@ List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
   );
 
   final double minHorizontalGap = 2.0;
-  final int maxItemsInRow = (availableWidth / (fallbackSize.width + minHorizontalGap)).floor();
+  final int maxItemsInRow =
+      (availableWidth / (fallbackSize.width + minHorizontalGap)).floor();
   final int itemsToShow = math.min(products.length, maxItemsInRow);
 
   if (itemsToShow == 0) {
@@ -251,15 +256,17 @@ List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
   }
 
   final double actualGap = itemsToShow <= 1
-    ? 0.0
-    : (availableWidth - itemsToShow * fallbackSize.width) / (itemsToShow - 1);
-  final double clampedGap = actualGap.clamp(minHorizontalGap, availableWidth * 0.1);
+      ? 0.0
+      : (availableWidth - itemsToShow * fallbackSize.width) / (itemsToShow - 1);
+  final double clampedGap =
+      actualGap.clamp(minHorizontalGap, availableWidth * 0.1);
 
   final double baseTop = bounds.bottom - fallbackSize.height;
   final List<_PlannedPlacement> placements = [];
 
   // Center the fallback row horizontally
-  final double totalRowWidth = itemsToShow * fallbackSize.width + (itemsToShow - 1) * clampedGap;
+  final double totalRowWidth =
+      itemsToShow * fallbackSize.width + (itemsToShow - 1) * clampedGap;
   final double rowStartX = bounds.left + (availableWidth - totalRowWidth) / 2;
 
   for (int index = 0; index < itemsToShow; index++) {
