@@ -6,6 +6,8 @@ import '../providers/drawer_state_provider.dart';
 import '../../../products/presentation/pages/product_detail_screen.dart';
 import '../../../home/presentation/widgets/product_card.dart';
 import '../../../products/presentation/providers/product_provider.dart';
+import '../../../products/presentation/providers/product_selection_provider.dart';
+import '../../../products/presentation/states/product_selection_state.dart';
 
 class FridgeSectionView extends ConsumerWidget {
   const FridgeSectionView({super.key});
@@ -15,6 +17,8 @@ class FridgeSectionView extends ConsumerWidget {
     final fridgeState = ref.watch(fridgeViewProvider);
     final notifier = ref.read(fridgeViewProvider.notifier);
     final productState = ref.watch(productProvider);
+    final selectionState = ref.watch(productSelectionProvider);
+    final selectionNotifier = ref.read(productSelectionProvider.notifier);
 
     final products = _resolveProducts(
       productState.filteredProducts,
@@ -54,7 +58,26 @@ class FridgeSectionView extends ConsumerWidget {
                     final product = products[index];
                     return ProductCard(
                       product: product,
-                      onTap: () => _showProductDetail(context, product),
+                      onTap: () => _handleProductTap(
+                        context,
+                        ref,
+                        product,
+                        selectionNotifier,
+                      ),
+                      onLongPress: () => _handleLongPress(
+                        ref,
+                        product,
+                        selectionNotifier,
+                      ),
+                      isSelectionMode: selectionState.isSelectionMode,
+                      isSelected: selectionState.selectedProductIds
+                          .contains(product.id ?? ''),
+                      onSelectionToggle: () {
+                        final id = product.id;
+                        if (id != null) {
+                          selectionNotifier.toggleProductSelection(id);
+                        }
+                      },
                     );
                   },
                 ),
@@ -119,5 +142,41 @@ class FridgeSectionView extends ConsumerWidget {
         builder: (context) => ProductDetailScreen(product: product),
       ),
     );
+  }
+
+  void _handleProductTap(
+    BuildContext context,
+    WidgetRef ref,
+    Product product,
+    ProductSelectionNotifier selectionNotifier,
+  ) {
+    final currentState = ref.read(productSelectionProvider);
+    if (currentState.isSelectionMode) {
+      final id = product.id;
+      if (id != null) {
+        selectionNotifier.toggleProductSelection(id);
+      }
+    } else {
+      _showProductDetail(context, product);
+    }
+  }
+
+  void _handleLongPress(
+    WidgetRef ref,
+    Product product,
+    ProductSelectionNotifier selectionNotifier,
+  ) {
+    final id = product.id;
+    if (id == null) {
+      return;
+    }
+
+    final currentState = ref.read(productSelectionProvider);
+    if (!currentState.isSelectionMode) {
+      selectionNotifier.toggleSelectionMode();
+      return;
+    }
+
+    selectionNotifier.toggleProductSelection(id);
   }
 }
