@@ -145,6 +145,7 @@ class _TopViewFridgeWidgetState extends ConsumerState<TopViewFridgeWidget> {
                 vegetableDrawerOpen: vegetableOpen,
                 freezerDrawerOpen: freezerOpen,
                 onTapProduct: _handleProductTap,
+                isTopView: true,
               ),
             ),
         ],
