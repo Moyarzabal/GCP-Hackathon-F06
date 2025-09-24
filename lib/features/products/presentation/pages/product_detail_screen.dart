@@ -340,6 +340,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           DropdownMenuItem(value: '飲料', child: Text('飲料')),
                           DropdownMenuItem(value: '食品', child: Text('食品')),
                           DropdownMenuItem(value: '調味料', child: Text('調味料')),
+                          DropdownMenuItem(value: '野菜', child: Text('野菜')),
                           DropdownMenuItem(value: '冷凍食品', child: Text('冷凍食品')),
                           DropdownMenuItem(value: 'その他', child: Text('その他')),
                         ],

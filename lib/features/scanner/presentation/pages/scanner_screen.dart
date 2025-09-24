@@ -14,7 +14,14 @@ import '../../../../core/services/image_generation_service.dart';
 import '../../../../core/services/product_image_generation_service.dart';
 
 // 共通のカテゴリリスト
-const List<String> _defaultCategories = ['飲料', '食品', '調味料', '冷凍食品', 'その他'];
+const List<String> _defaultCategories = [
+  '飲料',
+  '食品',
+  '調味料',
+  '野菜',
+  '冷凍食品',
+  'その他'
+];
 
 // AI予測系UIの色
 const Color _aiPredictionColor = Color(0xFFEECAD5);
@@ -34,6 +41,7 @@ const Map<String, IconData> _categoryIcons = {
   '飲料': Icons.local_drink,
   '食品': Icons.restaurant,
   '調味料': Icons.kitchen,
+  '野菜': Icons.eco,
   '冷凍食品': Icons.ac_unit,
   'その他': Icons.category,
 };

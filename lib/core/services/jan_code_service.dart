@@ -172,7 +172,7 @@ class JanCodeService {
       productName: product['itemName']?.toString() ?? '',
       manufacturer: product['makerName']?.toString(),
       brandName: product['brandName']?.toString(),
-      categoryOptions: ['飲料', '食品', '調味料', '冷凍食品', 'その他'],
+      categoryOptions: ['飲料', '食品', '調味料', '野菜', '冷凍食品', 'その他'],
     );
     return analysis.category;
   }
@@ -207,7 +207,7 @@ class JanCodeService {
       final productDetails = product['ProductDetails']?.toString() ?? '';
 
       // ユーザー定義のカテゴリリスト
-      final availableCategories = ['飲料', '食品', '調味料', '冷凍食品', 'その他'];
+      final availableCategories = ['飲料', '食品', '調味料', '野菜', '冷凍食品', 'その他'];
 
       final prompt = '''
 商品のカテゴリを判定してください。
@@ -286,6 +286,19 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
         itemName.contains('醤油') ||
         itemName.contains('味噌')) {
       return '調味料';
+    } else if (itemName.contains('野菜') ||
+        itemName.contains('トマト') ||
+        itemName.contains('きゅうり') ||
+        itemName.contains('にんじん') ||
+        itemName.contains('たまねぎ') ||
+        itemName.contains('キャベツ') ||
+        itemName.contains('レタス') ||
+        itemName.contains('ほうれん草') ||
+        itemName.contains('じゃがいも') ||
+        itemName.contains('大根') ||
+        itemName.contains('ブロッコリー') ||
+        itemName.contains('ピーマン')) {
+      return '野菜';
     }
 
     return 'その他';
@@ -384,6 +397,7 @@ ${availableCategories.map((cat) => '- $cat').join('\n')}
       'dairy': '乳製品',
       'frozen': '冷凍食品',
       'condiments': '調味料',
+      'vegetables': '野菜',
       'alcohol': '酒類',
       'health': '健康食品',
       'beauty': '化粧品',
