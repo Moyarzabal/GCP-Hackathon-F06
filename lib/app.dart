@@ -10,6 +10,7 @@ import 'features/meal_planning/presentation/pages/meal_plan_screen.dart';
 import 'shared/providers/app_state_provider.dart';
 import 'shared/widgets/adaptive/adaptive_navigation.dart';
 import 'shared/widgets/adaptive/adaptive_scaffold.dart';
+import 'shared/widgets/device_warning_banner.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -79,17 +80,19 @@ class MainScreen extends ConsumerWidget {
       ),
     ];
 
-    return AdaptiveScaffold(
-      body: IndexedStack(
-        index: appState.selectedBottomNavIndex,
-        children: pages,
-      ),
-      bottomNavigationBar: AdaptiveNavigation(
-        selectedIndex: appState.selectedBottomNavIndex,
-        onDestinationSelected: (index) {
-          appNotifier.setBottomNavIndex(index);
-        },
-        destinations: destinations,
+    return DeviceWarningWrapper(
+      child: AdaptiveScaffold(
+        body: IndexedStack(
+          index: appState.selectedBottomNavIndex,
+          children: pages,
+        ),
+        bottomNavigationBar: AdaptiveNavigation(
+          selectedIndex: appState.selectedBottomNavIndex,
+          onDestinationSelected: (index) {
+            appNotifier.setBottomNavIndex(index);
+          },
+          destinations: destinations,
+        ),
       ),
     );
   }
