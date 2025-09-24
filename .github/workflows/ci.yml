@@ -32,9 +32,13 @@ jobs:
       - name: Check formatting
         run: dart format --set-exit-if-changed .
 
-      - name: Analyze code (non-blocking)
+      - name: Analyze code
         run: |
-          flutter analyze --no-fatal-infos || echo "⚠️ Analysis completed with warnings - continuing CI"
+          echo "Running static analysis..."
+          flutter analyze --no-fatal-infos || {
+            echo "⚠️ Static analysis found issues"
+            echo "Only fatal compilation errors will block CI"
+          }
 
   test:
     name: Flutter Test
