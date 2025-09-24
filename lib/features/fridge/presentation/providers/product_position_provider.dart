@@ -243,7 +243,7 @@ List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
   );
 
   final double minHorizontalGap = 2.0;
-  final double maxItemsInRow = (availableWidth / (fallbackSize.width + minHorizontalGap)).floor();
+  final int maxItemsInRow = (availableWidth / (fallbackSize.width + minHorizontalGap)).floor();
   final int itemsToShow = math.min(products.length, maxItemsInRow);
 
   if (itemsToShow == 0) {
