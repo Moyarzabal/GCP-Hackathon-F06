@@ -49,6 +49,9 @@ app.*.map.json
 .env.local
 .env.*.local
 *.env
+.env.backup
+.env.example.backup
+*.env.backup
 
 # Firebase config files (contain sensitive data)
 firebase-debug.log
