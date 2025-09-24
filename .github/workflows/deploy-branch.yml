@@ -83,7 +83,7 @@ jobs:
 
       - name: Build web for branch
         run: |
-          flutter build web --release --web-renderer html \
+          flutter build web --release \
             --dart-define=ENVIRONMENT=development \
             --dart-define=BRANCH=${{ steps.extract_branch.outputs.branch }} \
             --dart-define=API_BASE_URL=https://dev-api.gcp-f06-barcode.com

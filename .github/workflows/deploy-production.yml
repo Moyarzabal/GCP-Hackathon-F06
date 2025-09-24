@@ -112,7 +112,7 @@ jobs:
 
       - name: Build web
         run: |
-          flutter build web --release --web-renderer html \
+          flutter build web --release \
             --dart-define=ENVIRONMENT=production \
             --dart-define=API_BASE_URL=https://api.gcp-f06-barcode.com \
             --no-tree-shake-icons
