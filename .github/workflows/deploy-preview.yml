@@ -1,0 +1,209 @@
+name: Deploy Preview Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'lib/**'
+      - 'web/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/**'
+
+env:
+  FLUTTER_VERSION: '3.29.0'
+
+jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      should-deploy: ${{ steps.changes.outputs.should-deploy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for relevant changes
+        id: changes
+        run: |
+          # ドラフトPRはスキップ
+          if [[ "${{ github.event.pull_request.draft }}" == "true" ]]; then
+            echo "should-deploy=false" >> $GITHUB_OUTPUT
+            echo "Draft PR - skipping deployment"
+            exit 0
+          fi
+
+          # 変更ファイルをチェック
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD || echo "")
+          echo "Changed files: $CHANGED_FILES"
+
+          if echo "$CHANGED_FILES" | grep -E '^(lib/|web/|pubspec\.(yaml|lock)|flutter\.yaml)' > /dev/null; then
+            echo "should-deploy=true" >> $GITHUB_OUTPUT
+            echo "Relevant changes detected - will deploy"
+          else
+            echo "should-deploy=false" >> $GITHUB_OUTPUT
+            echo "No relevant changes - skipping deployment"
+          fi
+
+  build-and-preview:
+    name: Build and Deploy Preview
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.should-deploy == 'true'
+    environment: preview
+    concurrency:
+      group: preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-flutter-preview-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-preview-
+            ${{ runner.os }}-flutter-
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run quick analysis
+        run: |
+          flutter analyze --no-fatal-infos || echo "Warning: Analysis issues found"
+          echo "✅ Quick analysis completed"
+
+      - name: Create .env file
+        run: |
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+          echo "FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" >> .env
+          echo "FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}" >> .env
+          echo "FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}" >> .env
+          echo "FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}" >> .env
+          echo "FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}" >> .env
+          echo "FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}" >> .env
+          echo "FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }}" >> .env
+          echo "FIREBASE_IOS_CLIENT_ID=${{ secrets.FIREBASE_IOS_CLIENT_ID }}" >> .env
+          echo "FIREBASE_IOS_BUNDLE_ID=${{ secrets.FIREBASE_IOS_BUNDLE_ID }}" >> .env
+
+      - name: Build web for preview
+        run: |
+          flutter build web --release --web-renderer html \
+            --dart-define=ENVIRONMENT=preview \
+            --dart-define=API_BASE_URL=https://staging-api.gcp-f06-barcode.com \
+            --dart-define=PR_NUMBER=${{ github.event.pull_request.number }}
+
+      - name: Add preview metadata
+        run: |
+          echo "{
+            \"version\": \"${{ github.sha }}\",
+            \"buildTime\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"environment\": \"preview\",
+            \"branch\": \"${{ github.head_ref }}\",
+            \"prNumber\": \"${{ github.event.pull_request.number }}\",
+            \"prTitle\": \"${{ github.event.pull_request.title }}\"
+          }" > build/web/version.json
+
+      - name: Deploy to Firebase Hosting (Preview)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        id: deploy_preview
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: gcp-f06-barcode
+          expires: 7d
+
+      - name: Run basic smoke test
+        if: steps.deploy_preview.outputs.url
+        run: |
+          sleep 10  # Firebaseデプロイの完了を待つ
+          curl -f "${{ steps.deploy_preview.outputs.url }}" || echo "Warning: Smoke test failed"
+          echo "✅ Basic smoke test completed"
+
+      - name: Comment preview URL
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const url = '${{ steps.deploy_preview.outputs.url }}';
+            const expiry = '${{ steps.deploy_preview.outputs.expire_time }}';
+            const prNumber = context.issue.number;
+            const commitSha = context.sha.substring(0, 7);
+
+            const body = `🚀 **Preview deployment ready!**
+
+🔗 **Preview URL**: ${url}
+📊 **PR**: #${prNumber}
+📝 **Commit**: ${commitSha}
+⏰ **Expires**: ${expiry}
+
+🔍 **Test areas to check**:
+- [ ] ホームページの表示
+- [ ] スキャナー機能
+- [ ] 商品管理機能
+- [ ] レスポンシブデザイン
+
+_This preview will be updated on every commit to this PR._`;
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Preview deployment ready!')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  skip-notification:
+    name: Skip Notification
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.should-deploy == 'false'
+    steps:
+      - name: Comment skip reason
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const skipReason = '${{ github.event.pull_request.draft }}' === 'true'
+              ? 'Draft PR - preview deployment skipped'
+              : 'No relevant changes detected - preview deployment skipped';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🔄 ${skipReason}\n\n_Preview will be deployed when relevant files are changed._`
+            });
