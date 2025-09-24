@@ -75,7 +75,8 @@ class _ErrorDisplayState extends State<ErrorDisplay> {
                       _showingDetails = !_showingDetails;
                     });
                   },
-                  icon: Icon(_showingDetails ? Icons.expand_less : Icons.expand_more),
+                  icon: Icon(
+                      _showingDetails ? Icons.expand_less : Icons.expand_more),
                   label: Text(_showingDetails ? '詳細を隠す' : '詳細を表示'),
                 ),
               ],
@@ -132,7 +133,8 @@ class _ErrorDisplayState extends State<ErrorDisplay> {
                   icon: const Icon(Icons.refresh),
                   label: const Text('再試行'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 12),
                   ),
                 ),
               ],
@@ -320,8 +322,8 @@ class ErrorDisplayUtils {
                   child: Text(
                     message ?? ErrorMessages.getUserFriendlyMessage(error),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
                   ),
                 ),
               ],

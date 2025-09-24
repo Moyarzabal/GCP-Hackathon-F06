@@ -6,7 +6,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 class ImagenService {
   static const String _projectId = 'gcp-f06-barcode';
   static const String _location = 'asia-northeast1';
-  static const String _apiEndpoint = 'https://asia-northeast1-aiplatform.googleapis.com';
+  static const String _apiEndpoint =
+      'https://asia-northeast1-aiplatform.googleapis.com';
 
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
@@ -24,7 +25,8 @@ class ImagenService {
 
       // Call Vertex AI Imagen API
       final response = await http.post(
-        Uri.parse('$_apiEndpoint/v1/projects/$_projectId/locations/$_location/publishers/google/models/imagen-3.0-generate-001:predict'),
+        Uri.parse(
+            '$_apiEndpoint/v1/projects/$_projectId/locations/$_location/publishers/google/models/imagen-3.0-generate-001:predict'),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
@@ -51,7 +53,8 @@ class ImagenService {
           final imageBase64 = data['predictions'][0]['bytesBase64Encoded'];
 
           // Upload to Firebase Storage
-          final imageUrl = await _uploadToStorage(imageBase64, productName, emotionState);
+          final imageUrl =
+              await _uploadToStorage(imageBase64, productName, emotionState);
           return imageUrl;
         }
       }
@@ -61,51 +64,61 @@ class ImagenService {
     } catch (e) {
       print('❌ キャラクター画像生成エラー: $e');
       // 認証エラーの場合はフォールバック画像を返す
-      if (e.toString().contains('Authentication') || e.toString().contains('access token')) {
+      if (e.toString().contains('Authentication') ||
+          e.toString().contains('access token')) {
         print('🔑 認証エラーのため、フォールバック画像を使用します');
       }
       return _getFallbackImage(emotionState);
     }
   }
 
-  String _createPrompt(String productName, String emotionState, String category) {
+  String _createPrompt(
+      String productName, String emotionState, String category) {
     // 商品名に基づくキャラクター生成（文字表示は防ぐ）
     final categoryTraits = _getCategoryTraits(category);
-    final basePrompt = 'Cute kawaii Japanese mascot character representing $productName ($category food item) with $categoryTraits characteristics, ';
-    
+    final basePrompt =
+        'Cute kawaii Japanese mascot character representing $productName ($category food item) with $categoryTraits characteristics, ';
+
     // テキスト表示防止の明示的な指示
-    final textPreventionDirective = 'NO text, letters, words, or product names visible in the image, focus purely on character design and visual representation, ';
+    final textPreventionDirective =
+        'NO text, letters, words, or product names visible in the image, focus purely on character design and visual representation, ';
 
     switch (emotionState) {
       case '😊':
-        return basePrompt + textPreventionDirective +
-               'happy and fresh, bright vibrant colors, big smiling face, energetic pose, '
-               'clear bright atmosphere with no fog, sparkling clean air around character, '
-               'chibi style, simple design, wholesome healthy appearance';
+        return basePrompt +
+            textPreventionDirective +
+            'happy and fresh, bright vibrant colors, big smiling face, energetic pose, '
+                'clear bright atmosphere with no fog, sparkling clean air around character, '
+                'chibi style, simple design, wholesome healthy appearance';
       case '😐':
-        return basePrompt + textPreventionDirective +
-               'neutral expression with slight concern, gentle pastel colors, thoughtful pose, '
-               'light misty atmosphere, subtle fog around character, gentle worry in eyes, '
-               'chibi style, simple design, slightly cloudy background';
+        return basePrompt +
+            textPreventionDirective +
+            'neutral expression with slight concern, gentle pastel colors, thoughtful pose, '
+                'light misty atmosphere, subtle fog around character, gentle worry in eyes, '
+                'chibi style, simple design, slightly cloudy background';
       case '😟':
-        return basePrompt + textPreventionDirective +
-               'worried anxious expression, muted colors, nervous gestures, sweat drops, '
-               'moderate fog surrounding character, cloudy atmosphere, visible concern, '
-               'chibi style, simple design, foggy environment';
+        return basePrompt +
+            textPreventionDirective +
+            'worried anxious expression, muted colors, nervous gestures, sweat drops, '
+                'moderate fog surrounding character, cloudy atmosphere, visible concern, '
+                'chibi style, simple design, foggy environment';
       case '😰':
-        return basePrompt + textPreventionDirective +
-               'very worried panicking expression, darker colors, frantic movements, urgent expression, '
-               'thick dense fog enveloping character, heavy fog atmosphere, intense worry, '
-               'chibi style, simple design, ominous misty surroundings';
+        return basePrompt +
+            textPreventionDirective +
+            'very worried panicking expression, darker colors, frantic movements, urgent expression, '
+                'thick dense fog enveloping character, heavy fog atmosphere, intense worry, '
+                'chibi style, simple design, ominous misty surroundings';
       case '💀':
-        return basePrompt + textPreventionDirective +
-               'zombie-like expired appearance, dark spooky colors, ghost-like transparency, deteriorated look, '
-               'extremely thick ominous fog, supernatural fog, eerie mist completely surrounding character, '
-               'chibi style, simple design, haunting atmospheric effects';
+        return basePrompt +
+            textPreventionDirective +
+            'zombie-like expired appearance, dark spooky colors, ghost-like transparency, deteriorated look, '
+                'extremely thick ominous fog, supernatural fog, eerie mist completely surrounding character, '
+                'chibi style, simple design, haunting atmospheric effects';
       default:
-        return basePrompt + textPreventionDirective +
-               'neutral kawaii expression, gentle colors, light atmosphere, '
-               'chibi style, simple design, clear background';
+        return basePrompt +
+            textPreventionDirective +
+            'neutral kawaii expression, gentle colors, light atmosphere, '
+                'chibi style, simple design, clear background';
     }
   }
 
@@ -145,10 +158,12 @@ class ImagenService {
     }
   }
 
-  Future<String> _uploadToStorage(String base64Image, String productName, String emotionState) async {
+  Future<String> _uploadToStorage(
+      String base64Image, String productName, String emotionState) async {
     try {
       final bytes = base64Decode(base64Image);
-      final fileName = '${productName}_${emotionState}_${DateTime.now().millisecondsSinceEpoch}.png';
+      final fileName =
+          '${productName}_${emotionState}_${DateTime.now().millisecondsSinceEpoch}.png';
       final ref = _storage.ref().child('character_images/$fileName');
 
       final uploadTask = ref.putData(
@@ -172,7 +187,8 @@ class ImagenService {
       // 本番環境では、Google Cloud認証が設定されている必要があります
 
       // まず、環境変数からサービスアカウントキーを確認
-      final serviceAccountKey = Platform.environment['GOOGLE_APPLICATION_CREDENTIALS'];
+      final serviceAccountKey =
+          Platform.environment['GOOGLE_APPLICATION_CREDENTIALS'];
       if (serviceAccountKey != null) {
         print('🔑 サービスアカウントキーが見つかりました: $serviceAccountKey');
         // 実際の実装では、サービスアカウントキーを使用してトークンを取得

@@ -6,12 +6,14 @@ import '../../../../core/errors/result.dart';
 import '../../../../shared/models/product.dart';
 import '../../../../core/services/jan_code_service.dart';
 import '../../../../core/services/gemini_service.dart';
+import '../../../../shared/utils/category_location_mapper.dart';
 
 // 共通のカテゴリリスト
 const List<String> _defaultCategories = [
   '飲料',
   '食品',
   '調味料',
+  '野菜',
   '冷凍食品',
   'その他'
 ];
@@ -165,6 +167,9 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
       // 分析結果から賞味期限を取得
       final expiryDate = analysis.expiryDate;
 
+      // カテゴリに基づいて適切な配置場所を決定
+      final location = CategoryLocationMapper.getDefaultLocationForCategory(analysis.category);
+
       final product = Product(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         janCode: code,
@@ -175,6 +180,7 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
         expiryDate: expiryDate,
         manufacturer: productInfo['manufacturer'] as String?,
         imageUrl: productInfo['imageUrl'] as String?,
+        location: location,
       );
 
       print('🎉 商品処理完了: ${product.name}');
@@ -183,7 +189,8 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
         isScanning: false,
         isProcessingProduct: false,
       );
-      print('✅ 最終状態: isScanning=${state.isScanning}, isProcessingProduct=${state.isProcessingProduct}');
+      print(
+          '✅ 最終状態: isScanning=${state.isScanning}, isProcessingProduct=${state.isProcessingProduct}');
 
       return Result.success(product);
     } catch (e, stackTrace) {
@@ -206,7 +213,8 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
   }
 
   /// 賞味期限を予測する（統合版Gemini使用）
-  Future<DateTime?> _predictExpiryDate(String productName, String? category) async {
+  Future<DateTime?> _predictExpiryDate(
+      String productName, String? category) async {
     try {
       // 統合版Geminiで分析
       final analysis = await _geminiService.analyzeProduct(
@@ -319,7 +327,8 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
 }
 
 /// スキャナープロバイダー
-final scannerProvider = StateNotifierProvider<ScannerNotifier, ScannerState>((ref) {
+final scannerProvider =
+    StateNotifierProvider<ScannerNotifier, ScannerState>((ref) {
   try {
     return ScannerNotifier(ref);
   } catch (e) {

@@ -91,6 +91,6 @@ class User extends Equatable {
   @override
   String toString() {
     return 'User(id: $id, email: $email, displayName: $displayName, '
-           'isEmailVerified: $isEmailVerified)';
+        'isEmailVerified: $isEmailVerified)';
   }
 }

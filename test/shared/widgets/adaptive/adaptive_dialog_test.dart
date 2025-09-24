@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../../../../lib/shared/widgets/adaptive/adaptive_dialog.dart';
-import '../../../../lib/core/platform/platform_info.dart';
+
+import 'package:barcode_scanner/shared/widgets/adaptive/adaptive_dialog.dart';
 
 void main() {
   group('AdaptiveDialog', () {
     const testTitle = 'テストダイアログ';
     const testContent = 'これはテスト用のダイアログです。';
-    
-    testWidgets('should display dialog with title and content', (WidgetTester tester) async {
+
+    testWidgets('should display dialog with title and content',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -38,10 +38,11 @@ void main() {
       expect(find.text(testContent), findsOneWidget);
     });
 
-    testWidgets('should display dialog with custom actions', (WidgetTester tester) async {
+    testWidgets('should display dialog with custom actions',
+        (WidgetTester tester) async {
       bool confirmPressed = false;
       bool cancelPressed = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -96,9 +97,10 @@ void main() {
       expect(cancelPressed, isFalse);
     });
 
-    testWidgets('should display dialog with destructive action', (WidgetTester tester) async {
+    testWidgets('should display dialog with destructive action',
+        (WidgetTester tester) async {
       bool deletePressed = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -150,7 +152,8 @@ void main() {
       expect(deletePressed, isTrue);
     });
 
-    testWidgets('should display simple dialog without actions', (WidgetTester tester) async {
+    testWidgets('should display simple dialog without actions',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

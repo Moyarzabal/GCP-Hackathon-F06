@@ -3,9 +3,9 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:logging/logging.dart';
 
-import '../../../lib/core/errors/error_reporter.dart';
-import '../../../lib/core/errors/app_exception.dart';
-import '../../../lib/core/errors/error_messages.dart';
+import 'package:barcode_scanner/core/errors/error_reporter.dart';
+import 'package:barcode_scanner/core/errors/app_exception.dart';
+import 'package:barcode_scanner/core/errors/error_messages.dart';
 
 import 'error_reporter_test.mocks.dart';
 
@@ -46,15 +46,15 @@ void main() {
       test('should classify error severity correctly', () {
         // Test severity classification
         expect(errorReporter.getErrorSeverity(NetworkException('error')),
-               ErrorSeverity.warning);
+            ErrorSeverity.warning);
         expect(errorReporter.getErrorSeverity(AuthException('error')),
-               ErrorSeverity.error);
+            ErrorSeverity.error);
         expect(errorReporter.getErrorSeverity(DatabaseException('error')),
-               ErrorSeverity.critical);
+            ErrorSeverity.critical);
         expect(errorReporter.getErrorSeverity(ValidationException('error')),
-               ErrorSeverity.info);
+            ErrorSeverity.info);
         expect(errorReporter.getErrorSeverity(Exception('generic')),
-               ErrorSeverity.warning);
+            ErrorSeverity.warning);
       });
 
       test('should collect device info for error context', () async {
@@ -112,7 +112,7 @@ void main() {
       test('should filter duplicate errors within time window', () async {
         // Arrange
         final exception = NetworkException('Same error');
-        
+
         // Act
         await errorReporter.reportError(exception);
         await errorReporter.reportError(exception);
@@ -130,7 +130,7 @@ void main() {
         // Arrange
         final error1 = NetworkException('Error 1');
         final error2 = NetworkException('Error 2');
-        
+
         // Act
         await errorReporter.reportError(error1);
         await errorReporter.reportError(error2);
@@ -141,7 +141,7 @@ void main() {
           error1,
           null,
         )).called(1);
-        
+
         verify(mockLogger.severe(
           'Error reported: Error 2',
           error2,
@@ -195,7 +195,7 @@ void main() {
       test('should clear user context', () {
         // Arrange
         errorReporter.setUserContext(userId: 'user123');
-        
+
         // Act
         errorReporter.clearUserContext();
 
@@ -222,7 +222,7 @@ void main() {
       test('should measure error reporting performance', () async {
         // Arrange
         final exception = NetworkException('Test error');
-        
+
         // Act
         final stopwatch = Stopwatch()..start();
         await errorReporter.reportError(exception);

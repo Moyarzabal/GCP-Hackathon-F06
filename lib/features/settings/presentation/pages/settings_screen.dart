@@ -318,7 +318,7 @@ class SettingsScreen extends StatelessWidget {
     showCustomAdaptiveDialog(
       context: context,
       title: 'アプリについて',
-      content: '冷蔵庫管理AI v1.0.0\n\n食材の賞味期限を管理し、食品ロスを削減するアプリです。',
+      content: 'Edibuddy v1.0.0\n\n食べ物の相棒として、食材の賞味期限を管理し、食品ロスを削減するアプリです。',
       actions: [
         AdaptiveDialogAction(
           text: 'OK',
@@ -366,5 +366,4 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
-
 }

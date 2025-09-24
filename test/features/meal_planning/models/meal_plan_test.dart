@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../../lib/shared/models/meal_plan.dart';
+
+import 'package:barcode_scanner/shared/models/meal_plan.dart';
 
 void main() {
   group('MealPlan', () {
@@ -77,8 +77,10 @@ void main() {
 
       final missingIngredients = mealPlan.missingIngredients;
       expect(missingIngredients.length, 2);
-      expect(missingIngredients.any((ingredient) => ingredient.name == '材料2'), true);
-      expect(missingIngredients.any((ingredient) => ingredient.name == '材料4'), true);
+      expect(missingIngredients.any((ingredient) => ingredient.name == '材料2'),
+          true);
+      expect(missingIngredients.any((ingredient) => ingredient.name == '材料4'),
+          true);
     });
 
     test('should convert to and from Firestore correctly', () {
@@ -103,7 +105,8 @@ void main() {
 
       expect(restoredMealPlan.householdId, originalMealPlan.householdId);
       expect(restoredMealPlan.status, originalMealPlan.status);
-      expect(restoredMealPlan.totalCookingTime, originalMealPlan.totalCookingTime);
+      expect(
+          restoredMealPlan.totalCookingTime, originalMealPlan.totalCookingTime);
       expect(restoredMealPlan.difficulty, originalMealPlan.difficulty);
       expect(restoredMealPlan.nutritionScore, originalMealPlan.nutritionScore);
       expect(restoredMealPlan.confidence, originalMealPlan.confidence);
@@ -188,7 +191,6 @@ void main() {
     });
 
     test('should calculate days until expiry correctly', () {
-      final today = DateTime(2024, 1, 1);
       final tomorrow = DateTime(2024, 1, 2);
       final nextWeek = DateTime(2024, 1, 8);
 
@@ -311,4 +313,3 @@ NutritionInfo _createMockNutritionInfo() {
     sodium: 500.0,
   );
 }
-

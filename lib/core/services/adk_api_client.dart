@@ -14,21 +14,23 @@ class ADKApiClient {
   final String baseUrl;
 
   ADKApiClient({String? baseUrl})
-      : baseUrl = baseUrl ?? dotenv.env['ADK_API_BASE_URL'] ?? 'http://localhost:8000' {
+      : baseUrl = baseUrl ??
+            dotenv.env['ADK_API_BASE_URL'] ??
+            'http://localhost:8000' {
     _initializeDio();
   }
 
   /// シンプルな画像生成API用のクライアント
   static ADKApiClient forSimpleImageApi() {
-    return ADKApiClient(baseUrl: 'http://localhost:8003');
+    return ADKApiClient();
   }
 
   void _initializeDio() {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 1200),  // 接続タイムアウトを20分に延長
+      connectTimeout: const Duration(seconds: 1200), // 接続タイムアウトを20分に延長
       receiveTimeout: const Duration(seconds: 1800), // 受信タイムアウトを30分に延長
-      sendTimeout: const Duration(seconds: 1200),     // 送信タイムアウトを20分に延長
+      sendTimeout: const Duration(seconds: 1200), // 送信タイムアウトを20分に延長
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -100,16 +102,18 @@ class ADKApiClient {
       });
 
       final requestData = {
-        'refrigerator_items': refrigeratorItems.map((product) => {
-          'id': product.id,
-          'name': product.name,
-          'category': product.category,
-          'quantity': product.quantity,
-          'unit': product.unit,
-          'expiry_date': product.expiryDate?.toIso8601String(),
-          'days_until_expiry': product.daysUntilExpiry,
-          'current_image_url': product.currentImageUrl,
-        }).toList(),
+        'refrigerator_items': refrigeratorItems
+            .map((product) => {
+                  'id': product.id,
+                  'name': product.name,
+                  'category': product.category,
+                  'quantity': product.quantity,
+                  'unit': product.unit,
+                  'expiry_date': product.expiryDate?.toIso8601String(),
+                  'days_until_expiry': product.daysUntilExpiry,
+                  'current_image_url': product.currentImageUrl,
+                })
+            .toList(),
         'household_id': householdId,
         'user_preferences': {
           'max_cooking_time': preferences.maxCookingTime,
@@ -121,15 +125,15 @@ class ADKApiClient {
         },
       };
 
-      final response = await _dio.post('/api/v1/meal-planning/suggest', data: requestData);
+      final response =
+          await _dio.post('/api/v1/meal-planning/suggest', data: requestData);
 
       final mealPlanData = response.data['meal_plan'];
       final shoppingListData = response.data['shopping_list'] as List<dynamic>;
 
       final mealPlan = _parseMealPlan(mealPlanData);
-      final shoppingList = shoppingListData
-          .map((item) => _parseShoppingItem(item))
-          .toList();
+      final shoppingList =
+          shoppingListData.map((item) => _parseShoppingItem(item)).toList();
 
       _logger.info('ADK献立提案完了', {
         'householdId': householdId,
@@ -165,16 +169,18 @@ class ADKApiClient {
 
       final requestData = {
         'original_meal_plan': _mealPlanToJson(originalMealPlan),
-        'refrigerator_items': refrigeratorItems.map((product) => {
-          'id': product.id,
-          'name': product.name,
-          'category': product.category,
-          'quantity': product.quantity,
-          'unit': product.unit,
-          'expiry_date': product.expiryDate?.toIso8601String(),
-          'days_until_expiry': product.daysUntilExpiry,
-          'current_image_url': product.currentImageUrl,
-        }).toList(),
+        'refrigerator_items': refrigeratorItems
+            .map((product) => {
+                  'id': product.id,
+                  'name': product.name,
+                  'category': product.category,
+                  'quantity': product.quantity,
+                  'unit': product.unit,
+                  'expiry_date': product.expiryDate?.toIso8601String(),
+                  'days_until_expiry': product.daysUntilExpiry,
+                  'current_image_url': product.currentImageUrl,
+                })
+            .toList(),
         'household_id': householdId,
         'user_preferences': {
           'max_cooking_time': preferences.maxCookingTime,
@@ -187,10 +193,12 @@ class ADKApiClient {
         'reason': reason,
       };
 
-      final response = await _dio.post('/api/v1/meal-planning/alternatives', data: requestData);
+      final response = await _dio.post('/api/v1/meal-planning/alternatives',
+          data: requestData);
 
       final alternativesData = response.data as List<dynamic>;
-      final alternatives = alternativesData.map((data) => _parseMealPlan(data)).toList();
+      final alternatives =
+          alternativesData.map((data) => _parseMealPlan(data)).toList();
 
       _logger.info('ADK代替献立提案完了', {
         'householdId': householdId,
@@ -247,7 +255,8 @@ class ADKApiClient {
       category: MealCategory.main, // デフォルト値
       description: data['description'] as String? ?? '',
       ingredients: (data['ingredients'] as List<dynamic>)
-          .map((ingredient) => _parseIngredient(ingredient as Map<String, dynamic>))
+          .map((ingredient) =>
+              _parseIngredient(ingredient as Map<String, dynamic>))
           .toList(),
       recipe: _parseRecipe(data['recipe'] as Map<String, dynamic>),
       cookingTime: data['cooking_time'] as int? ?? 30,
@@ -255,7 +264,8 @@ class ADKApiClient {
         (e) => e.name == data['difficulty'],
         orElse: () => DifficultyLevel.easy,
       ),
-      nutritionInfo: _parseNutritionInfo(data['nutrition_info'] as Map<String, dynamic>),
+      nutritionInfo:
+          _parseNutritionInfo(data['nutrition_info'] as Map<String, dynamic>),
       createdAt: DateTime.now(),
     );
   }
@@ -279,7 +289,8 @@ class ADKApiClient {
       ),
       tips: (data['tips'] as List<dynamic>?)?.cast<String>() ?? [],
       servingSize: data['serving_size'] as int? ?? 4,
-      nutritionInfo: _parseNutritionInfo(data['nutrition_info'] as Map<String, dynamic>),
+      nutritionInfo:
+          _parseNutritionInfo(data['nutrition_info'] as Map<String, dynamic>),
     );
   }
 
@@ -356,16 +367,18 @@ class ADKApiClient {
     return {
       'name': mealItem.name,
       'description': mealItem.description,
-      'ingredients': mealItem.ingredients.map((ingredient) => {
-        'name': ingredient.name,
-        'quantity': ingredient.quantity,
-        'unit': ingredient.unit,
-        'available': ingredient.available,
-        'shopping_required': ingredient.shoppingRequired,
-        'priority': ingredient.priority.name,
-        'category': ingredient.category,
-        'notes': ingredient.notes,
-      }).toList(),
+      'ingredients': mealItem.ingredients
+          .map((ingredient) => {
+                'name': ingredient.name,
+                'quantity': ingredient.quantity,
+                'unit': ingredient.unit,
+                'available': ingredient.available,
+                'shopping_required': ingredient.shoppingRequired,
+                'priority': ingredient.priority.name,
+                'category': ingredient.category,
+                'notes': ingredient.notes,
+              })
+          .toList(),
       'recipe': {
         'steps': mealItem.recipe.steps.map((step) => step.description).toList(),
         'cooking_time': mealItem.recipe.cookingTime,
@@ -480,7 +493,8 @@ extension ImageGeneration on ADKApiClient {
           final duration = endTime.difference(startTime);
           print('✅ シンプル画像生成API成功');
           print('   終了時刻: ${endTime.toIso8601String()}');
-          print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
+          print(
+              '   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
           print('   レスポンスヘッダー: ${response.headers}');
           print('   レスポンスデータ型: ${response.data.runtimeType}');
           print('   レスポンスデータ: ${response.data}');
@@ -514,7 +528,8 @@ extension ImageGeneration on ADKApiClient {
           final duration = endTime.difference(startTime);
           print('❌ シンプル画像生成API失敗: ${response.statusCode}');
           print('   終了時刻: ${endTime.toIso8601String()}');
-          print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
+          print(
+              '   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
 
           // ステータスコードエラーの場合、リトライ
           if (attempt < maxRetries) {
@@ -529,7 +544,8 @@ extension ImageGeneration on ADKApiClient {
         final duration = endTime.difference(startTime);
         print('❌ シンプル画像生成APIエラー (試行 $attempt/$maxRetries): $e');
         print('   終了時刻: ${endTime.toIso8601String()}');
-        print('   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
+        print(
+            '   所要時間: ${duration.inMilliseconds}ms (${duration.inSeconds}.${(duration.inMilliseconds % 1000).toString().padLeft(3, '0')}秒)');
         print('   エラー詳細: ${e.toString()}');
 
         // エラーの種類を判定
@@ -554,7 +570,9 @@ extension ImageGeneration on ADKApiClient {
         print('📝 エラーメッセージ: $errorMessage');
 
         // リトライ可能なエラーの場合、リトライ
-        if (attempt < maxRetries && (e.toString().contains('timeout') || e.toString().contains('Connection refused'))) {
+        if (attempt < maxRetries &&
+            (e.toString().contains('timeout') ||
+                e.toString().contains('Connection refused'))) {
           print('🔄 リトライ可能なエラーのためリトライします... (${attempt + 1}/$maxRetries)');
           await Future.delayed(Duration(seconds: 5 * attempt));
           continue;

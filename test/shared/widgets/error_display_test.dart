@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../lib/shared/widgets/error_display.dart';
-import '../../../lib/core/errors/app_exception.dart';
+import 'package:barcode_scanner/shared/widgets/error_display.dart';
+import 'package:barcode_scanner/core/errors/app_exception.dart';
 
 void main() {
   group('ErrorDisplay', () {
@@ -52,7 +52,8 @@ void main() {
       expect(find.text('Invalid input'), findsOneWidget);
     });
 
-    testWidgets('should hide retry button when onRetry is null', (tester) async {
+    testWidgets('should hide retry button when onRetry is null',
+        (tester) async {
       // Arrange
       const error = NetworkException('Connection failed');
 
@@ -69,7 +70,8 @@ void main() {
       expect(find.text('再試行'), findsNothing);
     });
 
-    testWidgets('should call onRetry when retry button is tapped', (tester) async {
+    testWidgets('should call onRetry when retry button is tapped',
+        (tester) async {
       // Arrange
       bool retryCalled = false;
       const error = NetworkException('Connection failed');
@@ -94,7 +96,8 @@ void main() {
       expect(retryCalled, isTrue);
     });
 
-    testWidgets('should display error details when showDetails is true', (tester) async {
+    testWidgets('should display error details when showDetails is true',
+        (tester) async {
       // Arrange
       const error = ApiException(
         'API Error',
@@ -116,7 +119,7 @@ void main() {
 
       // Assert
       expect(find.text('詳細を表示'), findsOneWidget);
-      
+
       // Tap to show details
       await tester.tap(find.text('詳細を表示'));
       await tester.pump();
@@ -125,7 +128,8 @@ void main() {
       expect(find.text('Status: 500'), findsOneWidget);
     });
 
-    testWidgets('should hide error details when showDetails is false', (tester) async {
+    testWidgets('should hide error details when showDetails is false',
+        (tester) async {
       // Arrange
       const error = ApiException(
         'API Error',
@@ -150,7 +154,8 @@ void main() {
       expect(find.text('Internal server error'), findsNothing);
     });
 
-    testWidgets('should display appropriate icon for different error types', (tester) async {
+    testWidgets('should display appropriate icon for different error types',
+        (tester) async {
       // Test NetworkException icon
       await tester.pumpWidget(
         MaterialApp(
@@ -221,7 +226,8 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
-    testWidgets('should show dismiss button when onDismiss is provided', (tester) async {
+    testWidgets('should show dismiss button when onDismiss is provided',
+        (tester) async {
       // Arrange
       bool dismissCalled = false;
       const error = ValidationException('Validation error');
@@ -242,12 +248,13 @@ void main() {
 
       // Assert
       expect(find.byIcon(Icons.close), findsOneWidget);
-      
+
       await tester.tap(find.byIcon(Icons.close));
       expect(dismissCalled, isTrue);
     });
 
-    testWidgets('should hide dismiss button when onDismiss is null', (tester) async {
+    testWidgets('should hide dismiss button when onDismiss is null',
+        (tester) async {
       // Arrange
       const error = ValidationException('Validation error');
 
@@ -305,7 +312,7 @@ void main() {
 
       // Assert
       expect(find.text('再試行'), findsOneWidget);
-      
+
       await tester.tap(find.text('再試行'));
       expect(retryCalled, isTrue);
     });

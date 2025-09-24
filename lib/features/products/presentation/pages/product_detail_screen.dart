@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../../shared/models/product.dart';
 import '../../../../shared/providers/app_state_provider.dart';
+import '../../../../shared/utils/category_location_mapper.dart';
 import '../../../scanner/presentation/pages/scanner_screen.dart';
 import '../providers/product_provider.dart';
 
@@ -16,11 +17,11 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   @override
-  ConsumerState<ProductDetailScreen> createState() => _ProductDetailScreenState();
+  ConsumerState<ProductDetailScreen> createState() =>
+      _ProductDetailScreenState();
 }
 
 class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
-
   @override
   Widget build(BuildContext context) {
     // 商品の状態を監視して最新の商品情報を取得
@@ -53,17 +54,18 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   color: currentProduct.statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: currentProduct.currentImageUrl != null && currentProduct.currentImageUrl!.isNotEmpty
-              ? _buildImageWidget(currentProduct)
-              : Center(
-                  child: Text(
-                    currentProduct.emotionState,
-                    style: const TextStyle(fontSize: 96),
-                  ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: currentProduct.currentImageUrl != null &&
+                          currentProduct.currentImageUrl!.isNotEmpty
+                      ? _buildImageWidget(currentProduct)
+                      : Center(
+                          child: Text(
+                            currentProduct.emotionState,
+                            style: const TextStyle(fontSize: 96),
+                          ),
+                        ),
                 ),
-        ),
               ),
             ),
             const SizedBox(height: 24),
@@ -127,6 +129,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       ),
     );
   }
+
   Widget _buildImageWidget(Product product) {
     try {
       // Base64画像データかどうかを判定
@@ -200,7 +203,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     }
   }
 
-
   /// 編集ダイアログを表示
   void _showEditDialog(BuildContext context) {
     final appState = ref.read(appStateProvider);
@@ -209,7 +211,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       orElse: () => widget.product,
     );
     final nameController = TextEditingController(text: currentProduct.name);
-    final manufacturerController = TextEditingController(text: currentProduct.manufacturer ?? '');
+    final manufacturerController =
+        TextEditingController(text: currentProduct.manufacturer ?? '');
     String selectedCategory = currentProduct.category;
     DateTime? selectedDate = currentProduct.expiryDate;
 
@@ -260,7 +263,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(color: _blockAccentColor),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
                           fillColor: _innerUIBackgroundColor,
                           filled: true,
                         ),
@@ -293,7 +297,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(color: _blockAccentColor),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
                           fillColor: _innerUIBackgroundColor,
                           filled: true,
                         ),
@@ -325,7 +330,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(color: _blockAccentColor),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
                           fillColor: _innerUIBackgroundColor,
                           filled: true,
                         ),
@@ -335,6 +341,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           DropdownMenuItem(value: '飲料', child: Text('飲料')),
                           DropdownMenuItem(value: '食品', child: Text('食品')),
                           DropdownMenuItem(value: '調味料', child: Text('調味料')),
+                          DropdownMenuItem(value: '野菜', child: Text('野菜')),
                           DropdownMenuItem(value: '冷凍食品', child: Text('冷凍食品')),
                           DropdownMenuItem(value: 'その他', child: Text('その他')),
                         ],
@@ -385,7 +392,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                         ? '${selectedDate!.year}/${selectedDate!.month}/${selectedDate!.day}'
                                         : '日付を選択',
                                     style: TextStyle(
-                                      color: selectedDate != null ? _textColor : Colors.grey,
+                                      color: selectedDate != null
+                                          ? _textColor
+                                          : Colors.grey,
                                       fontSize: 16,
                                     ),
                                   ),
@@ -394,12 +403,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                       _formatExpiryDate(selectedDate!),
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: _getExpiryDateColor(selectedDate!),
+                                        color:
+                                            _getExpiryDateColor(selectedDate!),
                                       ),
                                     ),
                                 ],
                               ),
-                              Icon(Icons.edit_calendar, size: 20, color: _textColor.withOpacity(0.6)),
+                              Icon(Icons.edit_calendar,
+                                  size: 20, color: _textColor.withOpacity(0.6)),
                             ],
                           ),
                         ),
@@ -422,29 +433,42 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
+                    // カテゴリが変更された場合は適切な配置場所を自動設定
+                    final newLocation = selectedCategory != currentProduct.category
+                        ? CategoryLocationMapper.getDefaultLocationForCategory(selectedCategory)
+                        : currentProduct.location;
+
                     final updatedProduct = currentProduct.copyWith(
                       name: nameController.text,
-                      manufacturer: manufacturerController.text.isNotEmpty ? manufacturerController.text : null,
+                      manufacturer: manufacturerController.text.isNotEmpty
+                          ? manufacturerController.text
+                          : null,
                       category: selectedCategory,
                       expiryDate: selectedDate,
+                      location: newLocation,
                     );
 
                     // Firebaseで商品を更新
-                    ref.read(productProvider.notifier).editProduct(
-                      currentProduct.id!,
-                      updatedProduct,
-                    ).then((result) {
+                    ref
+                        .read(productProvider.notifier)
+                        .editProduct(
+                          currentProduct.id!,
+                          updatedProduct,
+                        )
+                        .then((result) {
                       if (result.isSuccess) {
                         // ダイアログを閉じる
                         Navigator.pop(context);
 
                         // 編集完了の通知
-                        _showProductUpdatedSnackBar(context, nameController.text);
+                        _showProductUpdatedSnackBar(
+                            context, nameController.text);
                       } else {
                         // エラー表示
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('商品の更新に失敗しました: ${result.exception?.message}'),
+                            content: Text(
+                                '商品の更新に失敗しました: ${result.exception?.message}'),
                             backgroundColor: Colors.red,
                           ),
                         );
@@ -563,7 +587,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           shape: BoxShape.circle,
                         ),
                         todayDecoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.5),
                           shape: BoxShape.circle,
                         ),
                         defaultDecoration: const BoxDecoration(
@@ -594,7 +621,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         CalendarFormat.month: '月表示',
                       },
                       locale: 'ja_JP',
-                      onHeaderTapped: (date) => _showMonthYearPicker(context, date, firstDate, lastDate, setState, (newDate) {
+                      onHeaderTapped: (date) => _showMonthYearPicker(
+                          context, date, firstDate, lastDate, setState,
+                          (newDate) {
                         setState(() {
                           // 選択した日付が有効な範囲内になるように調整
                           if (newDate.isBefore(firstDate)) {
@@ -624,7 +653,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             });
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.blue[100],
                               borderRadius: BorderRadius.circular(8),
@@ -677,7 +707,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
 
   /// 月年選択ダイアログを表示
-  void _showMonthYearPicker(BuildContext context, DateTime currentDate, DateTime firstDate, DateTime lastDate, StateSetter setState, Function(DateTime) onDateSelected) {
+  void _showMonthYearPicker(
+      BuildContext context,
+      DateTime currentDate,
+      DateTime firstDate,
+      DateTime lastDate,
+      StateSetter setState,
+      Function(DateTime) onDateSelected) {
     int selectedYear = currentDate.year;
     int selectedMonth = currentDate.month;
 
@@ -701,7 +737,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 Expanded(
                   child: Column(
                     children: [
-                      const Text('年', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('年',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       Expanded(
                         child: ListWheelScrollView.useDelegate(
@@ -744,7 +781,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 Expanded(
                   child: Column(
                     children: [
-                      const Text('月', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('月',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       Expanded(
                         child: ListWheelScrollView.useDelegate(
@@ -877,7 +915,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       }
     });
   }
-
 }
 
 class _DetailRow extends StatelessWidget {

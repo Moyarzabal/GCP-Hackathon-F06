@@ -20,15 +20,16 @@ class EnhancedMealPlanningService {
   EnhancedMealPlanningService({
     MultiAgentMealPlanningService? adkService,
     AIMealPlanningService? fallbackService,
-  }) : _adkService = adkService ?? MultiAgentMealPlanningService(),
-       _fallbackService = fallbackService ?? AIMealPlanningService(
-         MealPlanningConfig(
-           apiKey: '', // Will be set from environment
-           model: 'gemini-1.5-flash',
-           temperature: 0.7,
-           maxTokens: 2048,
-         ),
-       ) {
+  })  : _adkService = adkService ?? MultiAgentMealPlanningService(),
+        _fallbackService = fallbackService ??
+            AIMealPlanningService(
+              MealPlanningConfig(
+                apiKey: '', // Will be set from environment
+                model: 'gemini-1.5-flash',
+                temperature: 0.7,
+                maxTokens: 2048,
+              ),
+            ) {
     _checkADKAvailability();
   }
 

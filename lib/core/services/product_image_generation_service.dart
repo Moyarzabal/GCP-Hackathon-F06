@@ -12,7 +12,8 @@ import '../../shared/models/product.dart';
 
 /// 商品追加専用の画像生成サービス
 class ProductImageGenerationService {
-  static const String _baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
+  static const String _baseUrl =
+      'https://generativelanguage.googleapis.com/v1beta';
   static const String _modelId = 'gemini-2.5-flash-image-preview';
   static const String _generateContentApi = 'streamGenerateContent';
 
@@ -122,9 +123,7 @@ The character should look like it's living happily in a refrigerator, representi
           {
             'role': 'user',
             'parts': [
-              {
-                'text': prompt
-              }
+              {'text': prompt}
             ]
           }
         ],
@@ -134,7 +133,8 @@ The character should look like it's living happily in a refrigerator, representi
       };
 
       final response = await http.post(
-        Uri.parse('$_baseUrl/models/$_modelId:$_generateContentApi?key=$apiKey'),
+        Uri.parse(
+            '$_baseUrl/models/$_modelId:$_generateContentApi?key=$apiKey'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -142,9 +142,11 @@ The character should look like it's living happily in a refrigerator, representi
       );
 
       if (response.statusCode == 200) {
-        return await _parseImageFromResponse(response.body, productName, category, stage);
+        return await _parseImageFromResponse(
+            response.body, productName, category, stage);
       } else {
-        print('❌ Gemini API error for ${stage.name}: ${response.statusCode} - ${response.body}');
+        print(
+            '❌ Gemini API error for ${stage.name}: ${response.statusCode} - ${response.body}');
         return _getCharacterFallbackImageUrl(productName, category);
       }
     } catch (e) {
@@ -226,9 +228,7 @@ The character should look like it's living happily in a refrigerator, representi
           {
             'role': 'user',
             'parts': [
-              {
-                'text': prompt
-              }
+              {'text': prompt}
             ]
           }
         ],
@@ -241,7 +241,8 @@ The character should look like it's living happily in a refrigerator, representi
       print('📝 プロンプト: ${prompt.substring(0, 100)}...');
 
       final response = await http.post(
-        Uri.parse('$_baseUrl/models/$_modelId:$_generateContentApi?key=$apiKey'),
+        Uri.parse(
+            '$_baseUrl/models/$_modelId:$_generateContentApi?key=$apiKey'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -272,7 +273,6 @@ The character should look like it's living happily in a refrigerator, representi
               if (chunk['candidates'] != null &&
                   chunk['candidates'] is List &&
                   chunk['candidates'].isNotEmpty) {
-
                 final candidates = chunk['candidates'] as List;
                 for (int j = 0; j < candidates.length; j++) {
                   final candidate = candidates[j];
@@ -280,7 +280,6 @@ The character should look like it's living happily in a refrigerator, representi
 
                   if (candidate['content'] != null &&
                       candidate['content']['parts'] != null) {
-
                     final parts = candidate['content']['parts'] as List;
                     print('📦 パーツ数: ${parts.length}');
 
@@ -291,7 +290,8 @@ The character should look like it's living happily in a refrigerator, representi
                       // 画像データを探す
                       if (part['inlineData'] != null) {
                         final inlineData = part['inlineData'];
-                        if (inlineData['mimeType'] != null && inlineData['data'] != null) {
+                        if (inlineData['mimeType'] != null &&
+                            inlineData['data'] != null) {
                           print('🖼️ 画像データ発見: ${inlineData['mimeType']}');
 
                           // Base64データをFirebase Storageにアップロード
@@ -300,11 +300,7 @@ The character should look like it's living happily in a refrigerator, representi
 
                           // Firebase StorageにアップロードしてURLを取得
                           final imageUrl = await _uploadBase64ToFirebaseStorage(
-                            base64Data,
-                            mimeType,
-                            productName,
-                            stage
-                          );
+                              base64Data, mimeType, productName, stage);
 
                           if (imageUrl != null) {
                             print('✅ Firebase Storageアップロード完了: $imageUrl');
@@ -327,7 +323,6 @@ The character should look like it's living happily in a refrigerator, representi
             if (data['candidates'] != null &&
                 data['candidates'] is List &&
                 data['candidates'].isNotEmpty) {
-
               final candidates = data['candidates'] as List;
               for (int j = 0; j < candidates.length; j++) {
                 final candidate = candidates[j];
@@ -335,7 +330,6 @@ The character should look like it's living happily in a refrigerator, representi
 
                 if (candidate['content'] != null &&
                     candidate['content']['parts'] != null) {
-
                   final parts = candidate['content']['parts'] as List;
                   print('📦 パーツ数: ${parts.length}');
 
@@ -346,7 +340,8 @@ The character should look like it's living happily in a refrigerator, representi
                     // 画像データを探す
                     if (part['inlineData'] != null) {
                       final inlineData = part['inlineData'];
-                      if (inlineData['mimeType'] != null && inlineData['data'] != null) {
+                      if (inlineData['mimeType'] != null &&
+                          inlineData['data'] != null) {
                         print('🖼️ 画像データ発見: ${inlineData['mimeType']}');
 
                         // Base64データをFirebase Storageにアップロード
@@ -355,17 +350,14 @@ The character should look like it's living happily in a refrigerator, representi
 
                         // Firebase StorageにアップロードしてURLを取得
                         final imageUrl = await _uploadBase64ToFirebaseStorage(
-                          base64Data,
-                          mimeType,
-                          productName,
-                          stage
-                        );
+                            base64Data, mimeType, productName, stage);
 
                         if (imageUrl != null) {
                           // 商品IDが提供されている場合、商品を更新
                           if (productId != null) {
                             if (ref != null) {
-                              _updateProductWithImageRef(ref, productId, imageUrl);
+                              _updateProductWithImageRef(
+                                  ref, productId, imageUrl);
                             } else {
                               _updateProductWithImage(productId, imageUrl);
                             }
@@ -374,7 +366,8 @@ The character should look like it's living happily in a refrigerator, representi
                           return imageUrl;
                         } else {
                           print('❌ Firebase Storageアップロード失敗');
-                          return _getCharacterFallbackImageUrl(productName, category);
+                          return _getCharacterFallbackImageUrl(
+                              productName, category);
                         }
                       }
                     }
@@ -401,7 +394,8 @@ The character should look like it's living happily in a refrigerator, representi
   }
 
   /// レスポンスから画像を解析
-  static Future<String?> _parseImageFromResponse(String responseBody, String productName, String category, ImageStage stage) async {
+  static Future<String?> _parseImageFromResponse(String responseBody,
+      String productName, String category, ImageStage stage) async {
     try {
       final data = jsonDecode(responseBody);
 
@@ -411,17 +405,16 @@ The character should look like it's living happily in a refrigerator, representi
           if (chunk['candidates'] != null &&
               chunk['candidates'] is List &&
               chunk['candidates'].isNotEmpty) {
-
             final candidates = chunk['candidates'] as List;
             for (final candidate in candidates) {
               if (candidate['content'] != null &&
                   candidate['content']['parts'] != null) {
-
                 final parts = candidate['content']['parts'] as List;
                 for (final part in parts) {
                   if (part['inlineData'] != null) {
                     final inlineData = part['inlineData'];
-                    if (inlineData['mimeType'] != null && inlineData['data'] != null) {
+                    if (inlineData['mimeType'] != null &&
+                        inlineData['data'] != null) {
                       print('🖼️ 画像データ発見: ${inlineData['mimeType']}');
 
                       // Base64データをFirebase Storageにアップロード
@@ -430,11 +423,7 @@ The character should look like it's living happily in a refrigerator, representi
 
                       // Firebase StorageにアップロードしてURLを取得
                       final imageUrl = await _uploadBase64ToFirebaseStorage(
-                        base64Data,
-                        mimeType,
-                        productName,
-                        stage
-                      );
+                          base64Data, mimeType, productName, stage);
 
                       if (imageUrl != null) {
                         print('✅ Firebase Storageアップロード完了: $imageUrl');
@@ -455,17 +444,16 @@ The character should look like it's living happily in a refrigerator, representi
         if (data['candidates'] != null &&
             data['candidates'] is List &&
             data['candidates'].isNotEmpty) {
-
           final candidates = data['candidates'] as List;
           for (final candidate in candidates) {
             if (candidate['content'] != null &&
                 candidate['content']['parts'] != null) {
-
               final parts = candidate['content']['parts'] as List;
               for (final part in parts) {
                 if (part['inlineData'] != null) {
                   final inlineData = part['inlineData'];
-                  if (inlineData['mimeType'] != null && inlineData['data'] != null) {
+                  if (inlineData['mimeType'] != null &&
+                      inlineData['data'] != null) {
                     print('🖼️ 画像データ発見: ${inlineData['mimeType']}');
 
                     // Base64データをFirebase Storageにアップロード
@@ -474,11 +462,7 @@ The character should look like it's living happily in a refrigerator, representi
 
                     // Firebase StorageにアップロードしてURLを取得
                     final imageUrl = await _uploadBase64ToFirebaseStorage(
-                      base64Data,
-                      mimeType,
-                      productName,
-                      stage
-                    );
+                        base64Data, mimeType, productName, stage);
 
                     if (imageUrl != null) {
                       print('✅ Firebase Storageアップロード完了: $imageUrl');
@@ -715,18 +699,22 @@ Emotion: Sad and defeated
   }
 
   /// キャラクター用のフォールバック画像URLを取得
-  static String _getCharacterFallbackImageUrl(String productName, String category) {
+  static String _getCharacterFallbackImageUrl(
+      String productName, String category) {
     // 実際のアセット画像が存在する場合はそのパスを返す
     // 現在はプレースホルダーとしてnullを返す
     return 'assets/images/default_character.png';
   }
 
   /// 商品を複数段階画像で更新（ref使用）
-  static void _updateProductWithMultiStageImages(String productId, Map<ImageStage, String> imageUrls, WidgetRef? ref) {
+  static void _updateProductWithMultiStageImages(
+      String productId, Map<ImageStage, String> imageUrls, WidgetRef? ref) {
     if (ref != null) {
       try {
         // ローカル状態を更新
-        ref.read(appStateProvider.notifier).updateProductImages(productId, imageUrls);
+        ref
+            .read(appStateProvider.notifier)
+            .updateProductImages(productId, imageUrls);
 
         // 現在の商品情報を取得してFirebaseに保存
         final appState = ref.read(appStateProvider);
@@ -755,7 +743,8 @@ Emotion: Sad and defeated
   }
 
   /// Firebaseに直接商品画像を更新（refなし）
-  static void _updateProductImagesDirectly(String productId, Map<ImageStage, String> imageUrls) {
+  static void _updateProductImagesDirectly(
+      String productId, Map<ImageStage, String> imageUrls) {
     try {
       print('🔥 Firebaseに直接商品画像を更新中: $productId');
 
@@ -777,16 +766,18 @@ Emotion: Sad and defeated
       }).catchError((error) {
         print('❌ Firebase直接更新エラー: $error');
       });
-
     } catch (e) {
       print('❌ Firebase直接更新エラー: $e');
     }
   }
 
   /// 商品を画像で更新（ref使用）
-  static void _updateProductWithImageRef(WidgetRef ref, String productId, String imageUrl) {
+  static void _updateProductWithImageRef(
+      WidgetRef ref, String productId, String imageUrl) {
     try {
-      ref.read(appStateProvider.notifier).updateProductImage(productId, imageUrl);
+      ref
+          .read(appStateProvider.notifier)
+          .updateProductImage(productId, imageUrl);
       print('✅ 商品画像更新完了 (ref使用): $productId');
     } catch (e) {
       print('❌ 商品画像更新エラー (ref使用): $e');
@@ -851,7 +842,6 @@ Emotion: Sad and defeated
 
       print('✅ Firebase Storageアップロード完了: $downloadUrl');
       return downloadUrl;
-
     } catch (e) {
       print('❌ Firebase Storageアップロードエラー: $e');
       return null;

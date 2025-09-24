@@ -33,11 +33,13 @@ class AdaptiveNavigation extends StatelessWidget {
     return CupertinoTabBar(
       currentIndex: selectedIndex,
       onTap: onDestinationSelected,
-      items: destinations.map((destination) => BottomNavigationBarItem(
-        icon: destination.icon,
-        activeIcon: destination.selectedIcon ?? destination.icon,
-        label: destination.label,
-      )).toList(),
+      items: destinations
+          .map((destination) => BottomNavigationBarItem(
+                icon: destination.icon,
+                activeIcon: destination.selectedIcon ?? destination.icon,
+                label: destination.label,
+              ))
+          .toList(),
       backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
       activeColor: CupertinoColors.activeBlue.resolveFrom(context),
       inactiveColor: CupertinoColors.inactiveGray.resolveFrom(context),

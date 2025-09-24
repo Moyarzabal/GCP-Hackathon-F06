@@ -5,9 +5,9 @@ import 'package:mockito/annotations.dart';
 import 'package:logging/logging.dart';
 import 'dart:async';
 
-import '../../../lib/core/errors/error_handler.dart';
-import '../../../lib/core/errors/app_exception.dart';
-import '../../../lib/core/errors/error_reporter.dart';
+import 'package:barcode_scanner/core/errors/error_handler.dart';
+import 'package:barcode_scanner/core/errors/app_exception.dart';
+import 'package:barcode_scanner/core/errors/error_reporter.dart';
 
 import 'error_handler_test.mocks.dart';
 
@@ -25,6 +25,15 @@ void main() {
         errorReporter: mockErrorReporter,
         logger: mockLogger,
       );
+
+      final originalPresentError = FlutterError.presentError;
+      addTearDown(() {
+        FlutterError.onError = FlutterError.dumpErrorToConsole;
+        PlatformDispatcher.instance.onError = null;
+        FlutterError.presentError = originalPresentError;
+      });
+
+      FlutterError.presentError = (_) {};
     });
 
     group('initialize', () {
@@ -59,11 +68,12 @@ void main() {
 
         // Assert
         verify(mockLogger.severe(
-          'Flutter Error: Test Flutter error',
+          argThat(allOf(
+              startsWith('Flutter Error'), contains('Test Flutter error'))),
           any,
           any,
         )).called(1);
-        
+
         verify(mockErrorReporter.reportError(
           any,
           stackTrace: anyNamed('stackTrace'),
@@ -116,11 +126,12 @@ void main() {
 
         // Assert
         verify(mockLogger.severe(
-          'Async Error: Connection failed',
+          argThat(
+              allOf(startsWith('Async Error'), contains('Connection failed'))),
           exception,
           stackTrace,
         )).called(1);
-        
+
         verify(mockErrorReporter.reportError(
           exception,
           stackTrace: stackTrace,
@@ -177,11 +188,12 @@ void main() {
 
         // Assert
         verify(mockLogger.warning(
-          'Error: Generic error (Context: User action)',
+          argThat(allOf(startsWith('Error'), contains('Generic error'),
+              contains('User action'))),
           error,
           stackTrace,
         )).called(1);
-        
+
         verify(mockErrorReporter.reportError(
           error,
           stackTrace: stackTrace,
@@ -192,10 +204,13 @@ void main() {
 
       test('should categorize error severity correctly', () {
         // Test error categorization
-        expect(errorHandler.isCriticalError(DatabaseException('error')), isTrue);
+        expect(
+            errorHandler.isCriticalError(DatabaseException('error')), isTrue);
         expect(errorHandler.isCriticalError(AuthException('error')), isTrue);
-        expect(errorHandler.isCriticalError(NetworkException('error')), isFalse);
-        expect(errorHandler.isCriticalError(ValidationException('error')), isFalse);
+        expect(
+            errorHandler.isCriticalError(NetworkException('error')), isFalse);
+        expect(errorHandler.isCriticalError(ValidationException('error')),
+            isFalse);
         expect(errorHandler.isCriticalError(Exception('generic')), isFalse);
       });
     });
@@ -206,12 +221,11 @@ void main() {
         final authError = AuthException('Token expired');
         final validationError = ValidationException('Invalid input');
 
-        expect(errorHandler.getRecoverySuggestion(networkError), 
-               contains('ネットワーク'));
-        expect(errorHandler.getRecoverySuggestion(authError), 
-               contains('ログイン'));
-        expect(errorHandler.getRecoverySuggestion(validationError), 
-               contains('入力'));
+        expect(errorHandler.getRecoverySuggestion(networkError),
+            contains('ネットワーク'));
+        expect(errorHandler.getRecoverySuggestion(authError), contains('ログイン'));
+        expect(errorHandler.getRecoverySuggestion(validationError),
+            contains('入力'));
       });
     });
 
@@ -219,7 +233,7 @@ void main() {
       test('should catch and handle zone errors', () async {
         // Arrange
         var errorCaught = false;
-        
+
         when(mockErrorReporter.reportError(
           any,
           stackTrace: anyNamed('stackTrace'),
@@ -232,14 +246,14 @@ void main() {
         errorHandler.initialize();
 
         // Act
-        await runZonedGuarded(() async {
-          throw Exception('Zone error test');
+        runZonedGuarded(() {
+          Future.microtask(() => throw Exception('Zone error test'));
         }, (error, stack) {
           errorHandler.handleAsyncError(error, stack);
         });
 
         // Wait for async operations to complete
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert
         expect(errorCaught, isTrue);

@@ -18,6 +18,7 @@ const List<String> _defaultCategories = [
   '飲料',
   '食品',
   '調味料',
+  '野菜',
   '冷凍食品',
   'その他'
 ];
@@ -40,6 +41,7 @@ const Map<String, IconData> _categoryIcons = {
   '飲料': Icons.local_drink,
   '食品': Icons.restaurant,
   '調味料': Icons.kitchen,
+  '野菜': Icons.eco,
   '冷凍食品': Icons.ac_unit,
   'その他': Icons.category,
 };
@@ -52,7 +54,6 @@ class ScannerScreen extends ConsumerStatefulWidget {
 }
 
 class _ScannerScreenState extends ConsumerState<ScannerScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -65,7 +66,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
 
   void _showProductDialog(Product product) {
     DateTime? selectedDate = product.expiryDate; // AI予測日付をデフォルト値に設定
-    String selectedCategory = _defaultCategories.contains(product.category) ? product.category : _defaultCategories.first;
+    String selectedCategory = _defaultCategories.contains(product.category)
+        ? product.category
+        : _defaultCategories.first;
     final aiPredictedDate = product.expiryDate; // AI予測日付を保存
 
     showDialog(
@@ -74,189 +77,209 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       builder: (context) => Consumer(
         builder: (context, ref, child) {
           return StatefulBuilder(
-        builder: (context, setState) {
+            builder: (context, setState) {
               // 共通のカテゴリリストを使用
               final categoryOptions = _defaultCategories;
 
               // デバッグ情報を追加
               print('Category options: $categoryOptions');
               print('Selected category: $selectedCategory');
-          return AlertDialog(
-            backgroundColor: _dialogBackgroundColor,
-            title: const Text('商品情報'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 商品名セクション
-                  _buildInfoSection(
-                    context: context,
-                    icon: Icons.shopping_bag,
-                    title: '商品名',
-                    backgroundColor: _blockBackgroundColor,
-                    iconColor: _blockAccentColor,
-                    textColor: _textColor,
-                    child: Text(
-                      product.name,
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: _textColor),
-                    ),
-                  ),
-                  // メーカー情報セクション
-                  if (product.manufacturer != null && product.manufacturer!.isNotEmpty)
-                    _buildInfoSection(
-                      context: context,
-                      icon: Icons.business,
-                      title: 'メーカー',
-                      backgroundColor: _blockBackgroundColor,
-                      iconColor: _blockAccentColor,
-                      textColor: _textColor,
-                      child: Text(
-                        product.manufacturer!,
-                        style: TextStyle(fontSize: 16, color: _textColor),
-                      ),
-                    ),
-                  // カテゴリセクション
-                  _buildInfoSection(
-                    context: context,
-                    icon: Icons.category,
-                    title: 'カテゴリ',
-                    backgroundColor: _blockBackgroundColor,
-                    iconColor: _blockAccentColor,
-                    textColor: _textColor,
-                    child: DropdownButtonFormField<String>(
-                      value: selectedCategory,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: _innerUIBackgroundColor,
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: _innerUIBorderColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: _innerUIBorderColor),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: _blockAccentColor),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      items: _defaultCategories.map((String category) {
-                        return DropdownMenuItem<String>(
-                          value: category,
-                          child: Row(
-                            children: [
-                              Icon(
-                                _categoryIcons[category] ?? Icons.category,
-                                size: 16,
-                                color: _textColor,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(category, style: TextStyle(color: _textColor)),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            selectedCategory = newValue;
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                  // 賞味期限セクション
-                  _buildInfoSection(
-                    context: context,
-                    icon: Icons.calendar_today,
-                    title: '賞味期限',
-                    backgroundColor: _blockBackgroundColor,
-                    iconColor: _blockAccentColor,
-                    textColor: _textColor,
-                    child: InkWell(
-                    onTap: () async {
-                        final date = await _showCustomDatePicker(
+              return AlertDialog(
+                backgroundColor: _dialogBackgroundColor,
+                title: const Text('商品情報'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 商品名セクション
+                      _buildInfoSection(
                         context: context,
-                          initialDate: selectedDate ?? aiPredictedDate ?? DateTime.now().add(const Duration(days: 7)),
-                          firstDate: DateTime(DateTime.now().year - 10, 1, 1),
-                        lastDate: DateTime(DateTime.now().year + 10, 12, 31),
-                          aiPredictedDate: aiPredictedDate,
-                      );
-                      if (date != null) {
-                        setState(() {
-                          selectedDate = date;
-                        });
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _innerUIBackgroundColor,
-                        border: Border.all(color: _innerUIBorderColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            selectedDate != null
-                                ? '${selectedDate!.year}/${selectedDate!.month}/${selectedDate!.day}'
-                                      : (aiPredictedDate != null
-                                          ? '${aiPredictedDate!.year}/${aiPredictedDate!.month}/${aiPredictedDate!.day}'
-                                          : '日付を選択'),
-                            style: TextStyle(
-                                    color: (selectedDate != null || aiPredictedDate != null) ? _textColor : Colors.grey,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                if (selectedDate != null || aiPredictedDate != null)
-                                  Text(
-                                    _formatExpiryDate(selectedDate ?? aiPredictedDate!),
-                            style: TextStyle(
-                                      fontSize: 12,
-                                      color: _getExpiryDateColor(selectedDate ?? aiPredictedDate!),
-                                    ),
-                            ),
-                              ],
-                          ),
-                          Icon(Icons.edit_calendar, size: 20, color: _textColor.withOpacity(0.6)),
-                        ],
+                        icon: Icons.shopping_bag,
+                        title: '商品名',
+                        backgroundColor: _blockBackgroundColor,
+                        iconColor: _blockAccentColor,
+                        textColor: _textColor,
+                        child: Text(
+                          product.name,
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: _textColor),
                         ),
                       ),
-                    ),
+                      // メーカー情報セクション
+                      if (product.manufacturer != null &&
+                          product.manufacturer!.isNotEmpty)
+                        _buildInfoSection(
+                          context: context,
+                          icon: Icons.business,
+                          title: 'メーカー',
+                          backgroundColor: _blockBackgroundColor,
+                          iconColor: _blockAccentColor,
+                          textColor: _textColor,
+                          child: Text(
+                            product.manufacturer!,
+                            style: TextStyle(fontSize: 16, color: _textColor),
+                          ),
+                        ),
+                      // カテゴリセクション
+                      _buildInfoSection(
+                        context: context,
+                        icon: Icons.category,
+                        title: 'カテゴリ',
+                        backgroundColor: _blockBackgroundColor,
+                        iconColor: _blockAccentColor,
+                        textColor: _textColor,
+                        child: DropdownButtonFormField<String>(
+                          value: selectedCategory,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: _innerUIBackgroundColor,
+                            border: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: _innerUIBorderColor),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: _innerUIBorderColor),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: _blockAccentColor),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                          ),
+                          items: _defaultCategories.map((String category) {
+                            return DropdownMenuItem<String>(
+                              value: category,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    _categoryIcons[category] ?? Icons.category,
+                                    size: 16,
+                                    color: _textColor,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(category,
+                                      style: TextStyle(color: _textColor)),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              setState(() {
+                                selectedCategory = newValue;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      // 賞味期限セクション
+                      _buildInfoSection(
+                        context: context,
+                        icon: Icons.calendar_today,
+                        title: '賞味期限',
+                        backgroundColor: _blockBackgroundColor,
+                        iconColor: _blockAccentColor,
+                        textColor: _textColor,
+                        child: InkWell(
+                          onTap: () async {
+                            final date = await _showCustomDatePicker(
+                              context: context,
+                              initialDate: selectedDate ??
+                                  aiPredictedDate ??
+                                  DateTime.now().add(const Duration(days: 7)),
+                              firstDate:
+                                  DateTime(DateTime.now().year - 10, 1, 1),
+                              lastDate:
+                                  DateTime(DateTime.now().year + 10, 12, 31),
+                              aiPredictedDate: aiPredictedDate,
+                            );
+                            if (date != null) {
+                              setState(() {
+                                selectedDate = date;
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: _innerUIBackgroundColor,
+                              border: Border.all(color: _innerUIBorderColor),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      selectedDate != null
+                                          ? '${selectedDate!.year}/${selectedDate!.month}/${selectedDate!.day}'
+                                          : (aiPredictedDate != null
+                                              ? '${aiPredictedDate!.year}/${aiPredictedDate!.month}/${aiPredictedDate!.day}'
+                                              : '日付を選択'),
+                                      style: TextStyle(
+                                        color: (selectedDate != null ||
+                                                aiPredictedDate != null)
+                                            ? _textColor
+                                            : Colors.grey,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    if (selectedDate != null ||
+                                        aiPredictedDate != null)
+                                      Text(
+                                        _formatExpiryDate(
+                                            selectedDate ?? aiPredictedDate!),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: _getExpiryDateColor(
+                                              selectedDate ?? aiPredictedDate!),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                Icon(Icons.edit_calendar,
+                                    size: 20,
+                                    color: _textColor.withOpacity(0.6)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ref.read(scannerProvider.notifier).clearLastScannedCode();
+                    },
+                    child: const Text('キャンセル'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // 賞味期限とカテゴリを更新
+                      final updatedProduct = product.copyWith(
+                        expiryDate: selectedDate,
+                        category: selectedCategory,
+                      );
+
+                      // 画像生成を非同期で実行
+                      _generateAndAddProduct(updatedProduct, ref, context);
+
+                      Navigator.pop(context);
+                      ref.read(scannerProvider.notifier).clearLastScannedCode();
+                    },
+                    child: const Text('保存'),
                   ),
                 ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ref.read(scannerProvider.notifier).clearLastScannedCode();
-                },
-                child: const Text('キャンセル'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // 賞味期限とカテゴリを更新
-                  final updatedProduct = product.copyWith(
-                    expiryDate: selectedDate,
-                    category: selectedCategory,
-                  );
-
-                  // 画像生成を非同期で実行
-                  _generateAndAddProduct(updatedProduct, ref, context);
-
-                  Navigator.pop(context);
-                  ref.read(scannerProvider.notifier).clearLastScannedCode();
-                },
-                child: const Text('保存'),
-              ),
-            ],
-          );
+              );
             },
           );
         },
@@ -283,191 +306,201 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               width: double.maxFinite,
               height: MediaQuery.of(context).size.height * 0.5,
               child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 商品名セクション
-                  _buildInfoSection(
-                    context: context,
-                    icon: Icons.shopping_bag,
-                    title: '商品名',
-                    backgroundColor: _blockBackgroundColor,
-                    iconColor: _blockAccentColor,
-                    textColor: _textColor,
-                    child: TextField(
-                    controller: nameController,
-                      decoration: InputDecoration(
-                        hintText: '商品名を入力してください',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: _innerUIBorderColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: _innerUIBorderColor),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: _blockAccentColor),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        fillColor: _innerUIBackgroundColor,
-                        filled: true,
-                      ),
-                      style: TextStyle(color: _textColor),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // メーカーセクション
-                  _buildInfoSection(
-                    context: context,
-                    icon: Icons.business,
-                    title: 'メーカー',
-                    backgroundColor: _blockBackgroundColor,
-                    iconColor: _blockAccentColor,
-                    textColor: _textColor,
-                    child: TextField(
-                    controller: manufacturerController,
-                      decoration: InputDecoration(
-                        hintText: 'メーカー名を入力してください（任意）',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: _innerUIBorderColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: _innerUIBorderColor),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: _blockAccentColor),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        fillColor: _innerUIBackgroundColor,
-                        filled: true,
-                      ),
-                      style: TextStyle(color: _textColor),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // カテゴリセクション
-                  _buildInfoSection(
-                    context: context,
-                    icon: Icons.category,
-                    title: 'カテゴリ',
-                    backgroundColor: _blockBackgroundColor,
-                    iconColor: _blockAccentColor,
-                    textColor: _textColor,
-                    child: DropdownButtonFormField<String>(
-                    value: selectedCategory,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: _innerUIBorderColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: _innerUIBorderColor),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: _blockAccentColor),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        fillColor: _innerUIBackgroundColor,
-                        filled: true,
-                      ),
-                      items: _defaultCategories
-                        .map((cat) => DropdownMenuItem(
-                              value: cat,
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      _categoryIcons[cat] ?? Icons.category,
-                                      size: 16,
-                                      color: _textColor,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(cat, style: TextStyle(color: _textColor)),
-                                  ],
-                                ),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          selectedCategory = value;
-                        });
-                      }
-                    },
-                  ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // 賞味期限セクション
-                  _buildInfoSection(
-                    context: context,
-                    icon: Icons.calendar_today,
-                    title: '賞味期限',
-                    backgroundColor: _blockBackgroundColor,
-                    iconColor: _blockAccentColor,
-                    textColor: _textColor,
-                    child: InkWell(
-                    onTap: () async {
-                        final date = await _showCustomDatePicker(
-                        context: context,
-                          initialDate: selectedDate ?? DateTime.now().add(const Duration(days: 7)),
-                          firstDate: DateTime(DateTime.now().year - 10, 1, 1),
-                        lastDate: DateTime(DateTime.now().year + 10, 12, 31),
-                      );
-                      if (date != null) {
-                        setState(() {
-                          selectedDate = date;
-                        });
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _innerUIBackgroundColor,
-                        border: Border.all(color: _innerUIBorderColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            selectedDate != null
-                                ? '${selectedDate!.year}/${selectedDate!.month}/${selectedDate!.day}'
-                                      : '日付を選択',
-                            style: TextStyle(
-                                    color: (selectedDate != null) ? _textColor : Colors.grey,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                if (selectedDate != null)
-                                  Text(
-                                    _formatExpiryDate(selectedDate!),
-                            style: TextStyle(
-                                      fontSize: 12,
-                                      color: _getExpiryDateColor(selectedDate!),
-                                    ),
-                            ),
-                              ],
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 商品名セクション
+                    _buildInfoSection(
+                      context: context,
+                      icon: Icons.shopping_bag,
+                      title: '商品名',
+                      backgroundColor: _blockBackgroundColor,
+                      iconColor: _blockAccentColor,
+                      textColor: _textColor,
+                      child: TextField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          hintText: '商品名を入力してください',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _innerUIBorderColor),
                           ),
-                          Icon(Icons.edit_calendar, size: 20, color: _textColor.withOpacity(0.6)),
-                        ],
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _innerUIBorderColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _blockAccentColor),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          fillColor: _innerUIBackgroundColor,
+                          filled: true,
+                        ),
+                        style: TextStyle(color: _textColor),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // メーカーセクション
+                    _buildInfoSection(
+                      context: context,
+                      icon: Icons.business,
+                      title: 'メーカー',
+                      backgroundColor: _blockBackgroundColor,
+                      iconColor: _blockAccentColor,
+                      textColor: _textColor,
+                      child: TextField(
+                        controller: manufacturerController,
+                        decoration: InputDecoration(
+                          hintText: 'メーカー名を入力してください（任意）',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _innerUIBorderColor),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _innerUIBorderColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _blockAccentColor),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          fillColor: _innerUIBackgroundColor,
+                          filled: true,
+                        ),
+                        style: TextStyle(color: _textColor),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // カテゴリセクション
+                    _buildInfoSection(
+                      context: context,
+                      icon: Icons.category,
+                      title: 'カテゴリ',
+                      backgroundColor: _blockBackgroundColor,
+                      iconColor: _blockAccentColor,
+                      textColor: _textColor,
+                      child: DropdownButtonFormField<String>(
+                        value: selectedCategory,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _innerUIBorderColor),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _innerUIBorderColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: _blockAccentColor),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          fillColor: _innerUIBackgroundColor,
+                          filled: true,
+                        ),
+                        items: _defaultCategories
+                            .map((cat) => DropdownMenuItem(
+                                  value: cat,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _categoryIcons[cat] ?? Icons.category,
+                                        size: 16,
+                                        color: _textColor,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(cat,
+                                          style: TextStyle(color: _textColor)),
+                                    ],
+                                  ),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              selectedCategory = value;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 賞味期限セクション
+                    _buildInfoSection(
+                      context: context,
+                      icon: Icons.calendar_today,
+                      title: '賞味期限',
+                      backgroundColor: _blockBackgroundColor,
+                      iconColor: _blockAccentColor,
+                      textColor: _textColor,
+                      child: InkWell(
+                        onTap: () async {
+                          final date = await _showCustomDatePicker(
+                            context: context,
+                            initialDate: selectedDate ??
+                                DateTime.now().add(const Duration(days: 7)),
+                            firstDate: DateTime(DateTime.now().year - 10, 1, 1),
+                            lastDate:
+                                DateTime(DateTime.now().year + 10, 12, 31),
+                          );
+                          if (date != null) {
+                            setState(() {
+                              selectedDate = date;
+                            });
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _innerUIBackgroundColor,
+                            border: Border.all(color: _innerUIBorderColor),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    selectedDate != null
+                                        ? '${selectedDate!.year}/${selectedDate!.month}/${selectedDate!.day}'
+                                        : '日付を選択',
+                                    style: TextStyle(
+                                      color: (selectedDate != null)
+                                          ? _textColor
+                                          : Colors.grey,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  if (selectedDate != null)
+                                    Text(
+                                      _formatExpiryDate(selectedDate!),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color:
+                                            _getExpiryDateColor(selectedDate!),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              Icon(Icons.edit_calendar,
+                                  size: 20, color: _textColor.withOpacity(0.6)),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
                 ),
               ),
             ),
@@ -490,9 +523,12 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     try {
                       final product = Product(
                         id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        janCode: 'MANUAL_${DateTime.now().millisecondsSinceEpoch}',
+                        janCode:
+                            'MANUAL_${DateTime.now().millisecondsSinceEpoch}',
                         name: nameController.text,
-                        manufacturer: manufacturerController.text.isNotEmpty ? manufacturerController.text : null,
+                        manufacturer: manufacturerController.text.isNotEmpty
+                            ? manufacturerController.text
+                            : null,
                         category: selectedCategory,
                         scannedAt: DateTime.now(),
                         addedDate: DateTime.now(),
@@ -500,7 +536,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                       );
 
                       // 画像生成を非同期で実行
-                      print('🔍 手動入力商品追加: ${product.name} (${product.category})');
+                      print(
+                          '🔍 手動入力商品追加: ${product.name} (${product.category})');
                       await _generateAndAddProduct(product, ref, context);
 
                       Navigator.pop(context);
@@ -539,281 +576,308 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     try {
-    final scannerState = ref.watch(scannerProvider);
-    final scannerNotifier = ref.watch(scannerProvider.notifier);
-    // デバッグ用ログ
-    print('🖥️ UI状態: isScanning=${scannerState.isScanning}, isProcessingProduct=${scannerState.isProcessingProduct}, isCameraActive=${scannerState.isCameraActive}');
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('バーコードスキャン'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: _showManualInput,
-            tooltip: '手動入力',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // エラー表示
-          if (scannerState.error != null)
-            InlineErrorWidget(
-              message: scannerState.error!,
-              onDismiss: () => scannerNotifier.clearError(),
+      final scannerState = ref.watch(scannerProvider);
+      final scannerNotifier = ref.watch(scannerProvider.notifier);
+      // デバッグ用ログ
+      print(
+          '🖥️ UI状態: isScanning=${scannerState.isScanning}, isProcessingProduct=${scannerState.isProcessingProduct}, isCameraActive=${scannerState.isCameraActive}');
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('バーコードスキャン'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: _showManualInput,
+              tooltip: '手動入力',
             ),
+          ],
+        ),
+        body: Column(
+          children: [
+            // エラー表示
+            if (scannerState.error != null)
+              InlineErrorWidget(
+                message: scannerState.error!,
+                onDismiss: () => scannerNotifier.clearError(),
+              ),
 
-          Expanded(
-            child: (scannerState.isCameraActive && scannerState.isScanning)
-                ? Stack(
-                    children: [
-                      MobileScanner(
-                        controller: scannerNotifier.controller,
-                        onDetect: (capture) {
-                          _handleBarcodeDetection(capture, scannerNotifier);
-                        },
-                      ),
-                      // スキャンガイド
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          color: Colors.black54,
-                          child: Column(
-                            children: [
-                              const Text(
-                            'バーコードを枠内に合わせてください',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.qr_code_scanner,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'カメラを商品のバーコードに向けてください',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+            Expanded(
+              child: (scannerState.isCameraActive && scannerState.isScanning)
+                  ? Stack(
+                      children: [
+                        MobileScanner(
+                          controller: scannerNotifier.controller,
+                          onDetect: (capture) {
+                            _handleBarcodeDetection(capture, scannerNotifier);
+                          },
                         ),
-                      ),
-                      // スキャン枠のオーバーレイ
-                      Center(
-                        child: Container(
-                          width: 280,
-                          height: 180,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Stack(
-                            children: [
-                              // コーナーマーカー
-                              Positioned(
-                                top: 0,
-                                left: 0,
-                                child: Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      top: BorderSide(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        width: 3,
-                                      ),
-                                      left: BorderSide(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        width: 3,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                top: 0,
-                                right: 0,
-                                child: Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      top: BorderSide(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        width: 3,
-                                      ),
-                                      right: BorderSide(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        width: 3,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                child: Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        width: 3,
-                                      ),
-                                      left: BorderSide(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        width: 3,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        width: 3,
-                                      ),
-                                      right: BorderSide(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        width: 3,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // 商品情報処理中のローディング表示
-                      if (scannerState.isProcessingProduct)
-                        Container(
-                          color: Colors.black54,
-                          child: Center(
+                        // スキャンガイド
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            color: Colors.black54,
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const CircularProgressIndicator(
-                            color: Colors.white,
-                                  strokeWidth: 3,
-                                ),
-                                const SizedBox(height: 16),
                                 const Text(
-                                  '商品情報を検索中...',
+                                  'バーコードを枠内に合わせてください',
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
-                            color: Colors.white,
+                                    color: Colors.white,
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Text(
-                                  'JAN Code: ${scannerState.lastScannedCode}',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.qr_code_scanner,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'カメラを商品のバーコードに向けてください',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // スキャン枠のオーバーレイ
+                        Center(
+                          child: Container(
+                            width: 280,
+                            height: 180,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Stack(
+                              children: [
+                                // コーナーマーカー
+                                Positioned(
+                                  top: 0,
+                                  left: 0,
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        top: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          width: 3,
+                                        ),
+                                        left: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          width: 3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        top: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          width: 3,
+                                        ),
+                                        right: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          width: 3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          width: 3,
+                                        ),
+                                        left: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          width: 3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          width: 3,
+                                        ),
+                                        right: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          width: 3,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                    ],
-                  )
-                : (scannerState.isProcessingProduct)
-                    ? _buildProcessingState(context, scannerState)
-                : _buildIdleState(context),
-          ),
+                        // 商品情報処理中のローディング表示
+                        if (scannerState.isProcessingProduct)
+                          Container(
+                            color: Colors.black54,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    '商品情報を検索中...',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'JAN Code: ${scannerState.lastScannedCode}',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    )
+                  : (scannerState.isProcessingProduct)
+                      ? _buildProcessingState(context, scannerState)
+                      : _buildIdleState(context),
+            ),
 
-          // スキャンボタン
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (scannerState.isScanning || scannerState.isProcessingProduct) {
-                    scannerNotifier.stopScanning();
-                    scannerNotifier.resetProcessingState();
-                  } else {
-                    // スキャン開始時にカメラを初期化
-                    scannerNotifier.initializeCamera();
-                    scannerNotifier.startScanning();
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: (scannerState.isScanning || scannerState.isProcessingProduct)
-                      ? _textColor.withOpacity(0.1)
-                      : _blockAccentColor,
-                  foregroundColor: (scannerState.isScanning || scannerState.isProcessingProduct)
-                      ? _textColor
-                      : Colors.white,
-                  elevation: (scannerState.isScanning || scannerState.isProcessingProduct) ? 0 : 2,
-                  shadowColor: _blockAccentColor.withOpacity(0.3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: (scannerState.isScanning || scannerState.isProcessingProduct)
-                        ? BorderSide(color: _textColor.withOpacity(0.3), width: 1)
-                        : BorderSide.none,
+            // スキャンボタン
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (scannerState.isScanning ||
+                        scannerState.isProcessingProduct) {
+                      scannerNotifier.stopScanning();
+                      scannerNotifier.resetProcessingState();
+                    } else {
+                      // スキャン開始時にカメラを初期化
+                      scannerNotifier.initializeCamera();
+                      scannerNotifier.startScanning();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: (scannerState.isScanning ||
+                            scannerState.isProcessingProduct)
+                        ? _textColor.withOpacity(0.1)
+                        : _blockAccentColor,
+                    foregroundColor: (scannerState.isScanning ||
+                            scannerState.isProcessingProduct)
+                        ? _textColor
+                        : Colors.white,
+                    elevation: (scannerState.isScanning ||
+                            scannerState.isProcessingProduct)
+                        ? 0
+                        : 2,
+                    shadowColor: _blockAccentColor.withOpacity(0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: (scannerState.isScanning ||
+                              scannerState.isProcessingProduct)
+                          ? BorderSide(
+                              color: _textColor.withOpacity(0.3), width: 1)
+                          : BorderSide.none,
+                    ),
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      (scannerState.isScanning || scannerState.isProcessingProduct)
-                          ? Icons.stop_circle_outlined
-                          : Icons.qr_code_scanner,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      (scannerState.isScanning || scannerState.isProcessingProduct)
-                          ? 'スキャンを停止'
-                          : 'スキャンを開始',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        (scannerState.isScanning ||
+                                scannerState.isProcessingProduct)
+                            ? Icons.stop_circle_outlined
+                            : Icons.qr_code_scanner,
+                        size: 20,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Text(
+                        (scannerState.isScanning ||
+                                scannerState.isProcessingProduct)
+                            ? 'スキャンを停止'
+                            : 'スキャンを開始',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
     } catch (e) {
       // プロバイダーが初期化されていない場合のフォールバック
       return Scaffold(
@@ -864,9 +928,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
               // メインアイコンコンテナ
               Container(
                 width: 160,
@@ -883,7 +947,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                   borderRadius: BorderRadius.circular(80),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -897,16 +964,19 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.1),
                         borderRadius: BorderRadius.circular(60),
                       ),
                     ),
                     // メインアイコン
-          Icon(
-            Icons.qr_code_scanner,
+                    Icon(
+                      Icons.qr_code_scanner,
                       size: 60,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     // アニメーション用の波紋効果
                     Positioned(
                       child: Container(
@@ -914,7 +984,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                         height: 140,
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.3),
                             width: 2,
                           ),
                           borderRadius: BorderRadius.circular(70),
@@ -927,10 +1000,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               const SizedBox(height: 40),
 
               // メインタイトル
-          Text(
+              Text(
                 'バーコードをスキャン',
-            textAlign: TextAlign.center,
-            style: TextStyle(
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -946,11 +1019,12 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 48),
+                ),
+              ),
+              const SizedBox(height: 48),
 
               // 機能説明カード
               Container(
@@ -959,7 +1033,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.outline.withOpacity(0.1),
                     width: 1,
                   ),
                 ),
@@ -970,7 +1045,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -998,7 +1076,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -1030,7 +1111,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     );
   }
 
-  void _handleBarcodeDetection(BarcodeCapture capture, ScannerNotifier notifier) async {
+  void _handleBarcodeDetection(
+      BarcodeCapture capture, ScannerNotifier notifier) async {
     final barcodes = capture.barcodes;
     for (final barcode in barcodes) {
       if (barcode.rawValue != null) {
@@ -1148,7 +1230,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   }
 
   /// 商品情報処理中の状態を表示
-  Widget _buildProcessingState(BuildContext context, ScannerState scannerState) {
+  Widget _buildProcessingState(
+      BuildContext context, ScannerState scannerState) {
     return Container(
       color: Colors.grey[100],
       child: Center(
@@ -1206,9 +1289,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   }
 
   /// 画像生成完了後に商品追加を実行
-  Future<void> _generateAndAddProduct(Product product, WidgetRef ref, BuildContext context) async {
+  Future<void> _generateAndAddProduct(
+      Product product, WidgetRef ref, BuildContext context) async {
     try {
-      print('🔄 _generateAndAddProduct開始: ${product.name} (${product.category})');
+      print(
+          '🔄 _generateAndAddProduct開始: ${product.name} (${product.category})');
 
       // 画像生成ローディングダイアログを表示
       if (context.mounted) {
@@ -1219,7 +1304,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
 
       try {
         // 画像生成を先に実行
-        final imageUrls = await ProductImageGenerationService.generateMultiStageProductIcons(
+        final imageUrls =
+            await ProductImageGenerationService.generateMultiStageProductIcons(
           productName: product.name,
           category: product.category,
           productId: null, // まだFirestoreに保存していないのでnull
@@ -1241,11 +1327,13 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
         );
 
         // 生成された画像を商品に関連付け
-        if (imageUrls != null && imageUrls.isNotEmpty && updatedProduct.id != null) {
+        if (imageUrls != null &&
+            imageUrls.isNotEmpty &&
+            updatedProduct.id != null) {
           ref.read(appStateProvider.notifier).updateProductImages(
-            updatedProduct.id!,
-            imageUrls,
-          );
+                updatedProduct.id!,
+                imageUrls,
+              );
         }
 
         // ローディングダイアログを閉じる
@@ -1257,7 +1345,6 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
         if (context.mounted) {
           _showProductAddedSuccessPopup(context, product.name);
         }
-
       } catch (imageError) {
         print('❌ 画像生成エラー: $imageError');
 
@@ -1273,10 +1360,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
 
         // 成功ポップアップを表示（画像生成失敗の旨を含む）
         if (context.mounted) {
-          _showProductAddedSuccessPopup(context, product.name, imageGenerationFailed: true);
+          _showProductAddedSuccessPopup(context, product.name,
+              imageGenerationFailed: true);
         }
       }
-
     } catch (e) {
       print('❌ 商品追加エラー: $e');
 
@@ -1309,7 +1396,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       print('🔍 商品ID: ${product.id}');
 
       // refを使用せずに画像生成を実行
-      final imageUrls = await ProductImageGenerationService.generateMultiStageProductIcons(
+      final imageUrls =
+          await ProductImageGenerationService.generateMultiStageProductIcons(
         productName: product.name,
         category: product.category,
         productId: product.id,
@@ -1317,7 +1405,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       );
 
       if (imageUrls != null && imageUrls.isNotEmpty) {
-        final successCount = imageUrls.values.where((url) => url != null).length;
+        final successCount =
+            imageUrls.values.where((url) => url != null).length;
         print('✅ 複数段階キャラクター生成完了: ${product.name}');
         print('🖼️ 生成された画像数: $successCount/${imageUrls.length}');
 
@@ -1380,7 +1469,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   }
 
   /// 商品追加完了の成功ポップアップを表示
-  void _showProductAddedSuccessPopup(BuildContext context, String productName, {bool imageGenerationFailed = false}) {
+  void _showProductAddedSuccessPopup(BuildContext context, String productName,
+      {bool imageGenerationFailed = false}) {
     final message = imageGenerationFailed
         ? '$productNameを冷蔵庫に追加しました\n（画像生成は失敗しました）'
         : '$productNameを冷蔵庫に追加しました';
@@ -1513,7 +1603,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                           shape: BoxShape.circle,
                         ),
                         todayDecoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.5),
                           shape: BoxShape.circle,
                         ),
                         defaultDecoration: const BoxDecoration(
@@ -1532,7 +1625,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                       ),
                       calendarBuilders: CalendarBuilders(
                         markerBuilder: (context, day, events) {
-                          if (aiPredictedDate != null && isSameDay(day, aiPredictedDate)) {
+                          if (aiPredictedDate != null &&
+                              isSameDay(day, aiPredictedDate)) {
                             return Container(
                               margin: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
@@ -1563,7 +1657,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                         CalendarFormat.month: '月表示',
                       },
                       locale: 'ja_JP',
-                      onHeaderTapped: (date) => _showMonthYearPicker(context, date, firstDate, lastDate, setState, (newDate) {
+                      onHeaderTapped: (date) => _showMonthYearPicker(
+                          context, date, firstDate, lastDate, setState,
+                          (newDate) {
                         setState(() {
                           // 選択した日付が有効な範囲内になるように調整
                           if (newDate.isBefore(firstDate)) {
@@ -1594,12 +1690,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                             },
                             child: Container(
                               margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: _aiPredictionColor.withOpacity(0.6),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: _aiPredictionDarkColor.withOpacity(0.8),
+                                  color:
+                                      _aiPredictionDarkColor.withOpacity(0.8),
                                   width: 1.5,
                                 ),
                               ),
@@ -1633,7 +1731,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                             });
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.blue[100],
                               borderRadius: BorderRadius.circular(8),
@@ -1686,7 +1785,13 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   }
 
   /// 月年選択ダイアログを表示
-  void _showMonthYearPicker(BuildContext context, DateTime currentDate, DateTime firstDate, DateTime lastDate, StateSetter setState, Function(DateTime) onDateSelected) {
+  void _showMonthYearPicker(
+      BuildContext context,
+      DateTime currentDate,
+      DateTime firstDate,
+      DateTime lastDate,
+      StateSetter setState,
+      Function(DateTime) onDateSelected) {
     int selectedYear = currentDate.year;
     int selectedMonth = currentDate.month;
 
@@ -1710,7 +1815,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                 Expanded(
                   child: Column(
                     children: [
-                      const Text('年', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('年',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       Expanded(
                         child: ListWheelScrollView.useDelegate(
@@ -1753,7 +1859,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                 Expanded(
                   child: Column(
                     children: [
-                      const Text('月', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('月',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       Expanded(
                         child: ListWheelScrollView.useDelegate(

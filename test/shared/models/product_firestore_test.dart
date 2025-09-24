@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import '../../../lib/shared/models/product.dart';
+import 'package:barcode_scanner/shared/models/product.dart';
 import 'product_firestore_test.mocks.dart';
 
 // Mock classes
@@ -14,7 +14,7 @@ void main() {
         // Arrange
         final mockTimestamp = MockTimestamp();
         when(mockTimestamp.toDate()).thenReturn(DateTime(2024, 12, 19, 10, 30));
-        
+
         final firestoreData = {
           'janCode': '1234567890123',
           'name': 'Test Product',
@@ -50,7 +50,8 @@ void main() {
         expect(product.category, equals('Food'));
         expect(product.imageUrl, equals('https://example.com/image.jpg'));
         expect(product.imageUrls, isNotNull);
-        expect(product.imageUrls![ImageStage.veryFresh], equals('https://example.com/very-fresh.jpg'));
+        expect(product.imageUrls![ImageStage.veryFresh],
+            equals('https://example.com/very-fresh.jpg'));
         expect(product.barcode, equals('1234567890123'));
         expect(product.manufacturer, equals('Test Manufacturer'));
         expect(product.quantity, equals(2));
@@ -58,7 +59,9 @@ void main() {
         expect(product.deletedAt, isNull);
       });
 
-      test('should parse millisecondsSinceEpoch correctly (backward compatibility)', () {
+      test(
+          'should parse millisecondsSinceEpoch correctly (backward compatibility)',
+          () {
         // Arrange
         final testDate = DateTime(2024, 12, 19, 10, 30);
         final firestoreData = {
@@ -185,13 +188,18 @@ void main() {
         // Assert
         expect(firestoreData['janCode'], equals('1234567890123'));
         expect(firestoreData['name'], equals('Test Product'));
-        expect(firestoreData['scannedAt'], equals(testDate.millisecondsSinceEpoch));
-        expect(firestoreData['addedDate'], equals(testDate.millisecondsSinceEpoch));
-        expect(firestoreData['expiryDate'], equals(testDate.millisecondsSinceEpoch));
+        expect(firestoreData['scannedAt'],
+            equals(testDate.millisecondsSinceEpoch));
+        expect(firestoreData['addedDate'],
+            equals(testDate.millisecondsSinceEpoch));
+        expect(firestoreData['expiryDate'],
+            equals(testDate.millisecondsSinceEpoch));
         expect(firestoreData['category'], equals('Food'));
-        expect(firestoreData['imageUrl'], equals('https://example.com/image.jpg'));
+        expect(
+            firestoreData['imageUrl'], equals('https://example.com/image.jpg'));
         expect(firestoreData['imageUrls'], isA<Map<String, String>>());
-        expect(firestoreData['imageUrls']['veryFresh'], equals('https://example.com/very-fresh.jpg'));
+        expect(firestoreData['imageUrls']['veryFresh'],
+            equals('https://example.com/very-fresh.jpg'));
         expect(firestoreData['barcode'], equals('1234567890123'));
         expect(firestoreData['manufacturer'], equals('Test Manufacturer'));
         expect(firestoreData['quantity'], equals(2));
@@ -227,7 +235,9 @@ void main() {
     });
 
     group('round-trip conversion', () {
-      test('should maintain data integrity through toFirestore -> fromFirestore', () {
+      test(
+          'should maintain data integrity through toFirestore -> fromFirestore',
+          () {
         // Arrange
         final originalProduct = Product(
           id: 'test-id',
@@ -250,20 +260,26 @@ void main() {
 
         // Act
         final firestoreData = originalProduct.toFirestore();
-        final reconstructedProduct = Product.fromFirestore('test-id', firestoreData);
+        final reconstructedProduct =
+            Product.fromFirestore('test-id', firestoreData);
 
         // Assert
         expect(reconstructedProduct.id, equals(originalProduct.id));
         expect(reconstructedProduct.janCode, equals(originalProduct.janCode));
         expect(reconstructedProduct.name, equals(originalProduct.name));
-        expect(reconstructedProduct.scannedAt, equals(originalProduct.scannedAt));
-        expect(reconstructedProduct.addedDate, equals(originalProduct.addedDate));
-        expect(reconstructedProduct.expiryDate, equals(originalProduct.expiryDate));
+        expect(
+            reconstructedProduct.scannedAt, equals(originalProduct.scannedAt));
+        expect(
+            reconstructedProduct.addedDate, equals(originalProduct.addedDate));
+        expect(reconstructedProduct.expiryDate,
+            equals(originalProduct.expiryDate));
         expect(reconstructedProduct.category, equals(originalProduct.category));
         expect(reconstructedProduct.imageUrl, equals(originalProduct.imageUrl));
-        expect(reconstructedProduct.imageUrls, equals(originalProduct.imageUrls));
+        expect(
+            reconstructedProduct.imageUrls, equals(originalProduct.imageUrls));
         expect(reconstructedProduct.barcode, equals(originalProduct.barcode));
-        expect(reconstructedProduct.manufacturer, equals(originalProduct.manufacturer));
+        expect(reconstructedProduct.manufacturer,
+            equals(originalProduct.manufacturer));
         expect(reconstructedProduct.quantity, equals(originalProduct.quantity));
         expect(reconstructedProduct.unit, equals(originalProduct.unit));
       });
