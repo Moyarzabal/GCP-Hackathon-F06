@@ -12,6 +12,8 @@ import '../../../fridge/presentation/pages/fridge_section_view.dart';
 // import '../../../fridge/presentation/widgets/tesla_style_fridge_widget.dart';
 import '../../../fridge/presentation/widgets/enhanced_fridge_widget.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import '../../../products/presentation/providers/product_selection_provider.dart';
+import '../../../products/presentation/states/product_selection_state.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -36,6 +38,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final productState = ref.watch(productProvider);
     final productNotifier = ref.watch(productProvider.notifier);
     final availableCategoriesAsync = ref.watch(availableCategoriesProvider);
+    final selectionState = ref.watch(productSelectionProvider);
+    final selectionNotifier = ref.read(productSelectionProvider.notifier);
 
     final fridgeState = ref.watch(fridgeViewProvider);
     final fridgeNotifier = ref.watch(fridgeViewProvider.notifier);
@@ -168,6 +172,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: _buildFridgeView(context, fridgeState, fridgeNotifier)),
         ],
       ),
+      floatingActionButton: _buildSelectionFab(
+        context,
+        selectionState,
+        selectionNotifier,
+      ),
     );
   }
 
@@ -189,6 +198,68 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const Expanded(child: FridgeSectionView()),
       ],
     );
+  }
+
+  Widget? _buildSelectionFab(
+    BuildContext context,
+    ProductSelectionState selectionState,
+    ProductSelectionNotifier selectionNotifier,
+  ) {
+    if (!selectionState.isSelectionMode ||
+        selectionState.selectedProductIds.isEmpty) {
+      return null;
+    }
+
+    return FloatingActionButton(
+      onPressed: () => _showDeleteConfirmationDialog(
+        context,
+        selectionNotifier,
+      ),
+      child: const Icon(Icons.delete),
+    );
+  }
+
+  Future<void> _showDeleteConfirmationDialog(
+    BuildContext context,
+    ProductSelectionNotifier selectionNotifier,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('商品を削除'),
+          content: const Text('選択した商品を削除しますか？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('キャンセル'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('削除'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    final result = await selectionNotifier.deleteSelectedProducts();
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (result.isSuccess) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('選択した商品を削除しました。')),
+      );
+    } else {
+      final message = result.exception?.message ?? '商品の削除に失敗しました';
+      messenger.showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
   }
 
   /// 商品データをリロード
