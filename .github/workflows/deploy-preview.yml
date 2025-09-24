@@ -143,20 +143,24 @@ jobs:
             const prNumber = context.issue.number;
             const commitSha = context.sha.substring(0, 7);
 
-            const body = `🚀 **Preview deployment ready!**
+            const bodyLines = [
+              '🚀 **Preview deployment ready!**',
+              '',
+              `🔗 **Preview URL**: ${url}`,
+              `📊 **PR**: #${prNumber}`,
+              `📝 **Commit**: ${commitSha}`,
+              `⏰ **Expires**: ${expiry}`,
+              '',
+              '🔍 **Test areas to check**:',
+              '- [ ] ホームページの表示',
+              '- [ ] スキャナー機能',
+              '- [ ] 商品管理機能',
+              '- [ ] レスポンシブデザイン',
+              '',
+              '_This preview will be updated on every commit to this PR._'
+            ];
 
-🔗 **Preview URL**: ${url}
-📊 **PR**: #${prNumber}
-📝 **Commit**: ${commitSha}
-⏰ **Expires**: ${expiry}
-
-🔍 **Test areas to check**:
-- [ ] ホームページの表示
-- [ ] スキャナー機能
-- [ ] 商品管理機能
-- [ ] レスポンシブデザイン
-
-_This preview will be updated on every commit to this PR._`;
+            const body = bodyLines.join('\n');
 
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
