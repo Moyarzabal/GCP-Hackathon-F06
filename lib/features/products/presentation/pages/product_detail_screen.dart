@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../../shared/models/product.dart';
 import '../../../../shared/providers/app_state_provider.dart';
+import '../../../../shared/utils/category_location_mapper.dart';
 import '../../../scanner/presentation/pages/scanner_screen.dart';
 import '../providers/product_provider.dart';
 
@@ -432,6 +433,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
+                    // カテゴリが変更された場合は適切な配置場所を自動設定
+                    final newLocation = selectedCategory != currentProduct.category
+                        ? CategoryLocationMapper.getDefaultLocationForCategory(selectedCategory)
+                        : currentProduct.location;
+
                     final updatedProduct = currentProduct.copyWith(
                       name: nameController.text,
                       manufacturer: manufacturerController.text.isNotEmpty
@@ -439,6 +445,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           : null,
                       category: selectedCategory,
                       expiryDate: selectedDate,
+                      location: newLocation,
                     );
 
                     // Firebaseで商品を更新
