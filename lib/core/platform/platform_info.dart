@@ -7,7 +7,8 @@ class PlatformInfo {
   static bool get isAndroid => !kIsWeb && Platform.isAndroid;
   static bool get isWeb => kIsWeb;
   static bool get isMobile => isIOS || isAndroid;
-  static bool get isDesktop => !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+  static bool get isDesktop =>
+      !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
   static String get platformName {
     if (isWeb) return 'Web';

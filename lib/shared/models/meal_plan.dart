@@ -4,37 +4,37 @@ import 'shopping_item.dart';
 
 /// 献立の状態を表す列挙型
 enum MealPlanStatus {
-  suggested,  // 提案中
-  accepted,   // 承認済み
-  cooking,    // 調理中
-  completed,  // 完了
-  cancelled,  // キャンセル
+  suggested, // 提案中
+  accepted, // 承認済み
+  cooking, // 調理中
+  completed, // 完了
+  cancelled, // キャンセル
 }
 
 /// メニューのカテゴリを表す列挙型
 enum MealCategory {
-  main,      // 主菜
-  side,      // 副菜
-  soup,      // 汁物
-  rice,      // 主食
-  dessert,   // デザート
-  beverage,  // 飲み物
+  main, // 主菜
+  side, // 副菜
+  soup, // 汁物
+  rice, // 主食
+  dessert, // デザート
+  beverage, // 飲み物
 }
 
 /// 難易度レベルを表す列挙型
 enum DifficultyLevel {
-  easy,      // 簡単
-  medium,    // 普通
-  hard,      // 難しい
-  expert,    // 上級
+  easy, // 簡単
+  medium, // 普通
+  hard, // 難しい
+  expert, // 上級
 }
 
 /// 賞味期限の優先度を表す列挙型
 enum ExpiryPriority {
-  urgent,     // 緊急（1日以内）
-  soon,       // 近い（3日以内）
-  fresh,      // 新鮮（7日以内）
-  longTerm,   // 長期（7日以上）
+  urgent, // 緊急（1日以内）
+  soon, // 近い（3日以内）
+  fresh, // 新鮮（7日以内）
+  longTerm, // 長期（7日以上）
 }
 
 /// 献立のメインモデル
@@ -108,9 +108,9 @@ class MealPlan {
   /// 総カロリーを計算
   double get totalCalories {
     return mainDish.nutritionInfo.calories +
-           sideDish.nutritionInfo.calories +
-           soup.nutritionInfo.calories +
-           rice.nutritionInfo.calories;
+        sideDish.nutritionInfo.calories +
+        soup.nutritionInfo.calories +
+        rice.nutritionInfo.calories;
   }
 
   /// 不足している材料のリスト
@@ -136,9 +136,11 @@ class MealPlan {
 
   /// 賞味期限が近い材料のリスト
   List<Ingredient> get expiringIngredients {
-    return allIngredients.where((ingredient) =>
-      ingredient.available && ingredient.priority == ExpiryPriority.urgent
-    ).toList();
+    return allIngredients
+        .where((ingredient) =>
+            ingredient.available &&
+            ingredient.priority == ExpiryPriority.urgent)
+        .toList();
   }
 
   /// 献立の表示名
@@ -288,7 +290,8 @@ class MealPlan {
       'createdAt': Timestamp.fromDate(createdAt),
       'createdBy': createdBy,
       'acceptedAt': acceptedAt != null ? Timestamp.fromDate(acceptedAt!) : null,
-      'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
+      'completedAt':
+          completedAt != null ? Timestamp.fromDate(completedAt!) : null,
       // 新しいフィールド
       'shoppingList': shoppingList?.map((item) => item.toFirestore()).toList(),
       'popularityScore': popularityScore,
@@ -307,24 +310,31 @@ class MealPlan {
         (e) => e.name == data['status'],
         orElse: () => MealPlanStatus.suggested,
       ),
-      mainDish: MealItem.fromFirestore(data['mainDish'] as Map<String, dynamic>),
-      sideDish: MealItem.fromFirestore(data['sideDish'] as Map<String, dynamic>),
+      mainDish:
+          MealItem.fromFirestore(data['mainDish'] as Map<String, dynamic>),
+      sideDish:
+          MealItem.fromFirestore(data['sideDish'] as Map<String, dynamic>),
       soup: MealItem.fromFirestore(data['soup'] as Map<String, dynamic>),
       rice: MealItem.fromFirestore(data['rice'] as Map<String, dynamic>),
       alternativeMainDish: data['alternativeMainDish'] != null
-          ? MealItem.fromFirestore(data['alternativeMainDish'] as Map<String, dynamic>)
+          ? MealItem.fromFirestore(
+              data['alternativeMainDish'] as Map<String, dynamic>)
           : null,
       alternativeSideDish: data['alternativeSideDish'] != null
-          ? MealItem.fromFirestore(data['alternativeSideDish'] as Map<String, dynamic>)
+          ? MealItem.fromFirestore(
+              data['alternativeSideDish'] as Map<String, dynamic>)
           : null,
       alternativeSoup: data['alternativeSoup'] != null
-          ? MealItem.fromFirestore(data['alternativeSoup'] as Map<String, dynamic>)
+          ? MealItem.fromFirestore(
+              data['alternativeSoup'] as Map<String, dynamic>)
           : null,
-      alternativeRice: data['alternativeRice'] != null 
-          ? MealItem.fromFirestore(data['alternativeRice'] as Map<String, dynamic>)
+      alternativeRice: data['alternativeRice'] != null
+          ? MealItem.fromFirestore(
+              data['alternativeRice'] as Map<String, dynamic>)
           : null,
-      additionalDish: data['additionalDish'] != null 
-          ? MealItem.fromFirestore(data['additionalDish'] as Map<String, dynamic>)
+      additionalDish: data['additionalDish'] != null
+          ? MealItem.fromFirestore(
+              data['additionalDish'] as Map<String, dynamic>)
           : null,
       totalCookingTime: data['totalCookingTime'] as int,
       difficulty: DifficultyLevel.values.firstWhere(
@@ -334,8 +344,10 @@ class MealPlan {
       nutritionScore: (data['nutritionScore'] as num).toDouble(),
       confidence: (data['confidence'] as num).toDouble(),
       alternatives: (data['alternatives'] as List<dynamic>?)
-          ?.map((alt) => MealPlan.fromFirestore('', alt as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((alt) =>
+                  MealPlan.fromFirestore('', alt as Map<String, dynamic>))
+              .toList() ??
+          [],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       createdBy: data['createdBy'] as String,
       acceptedAt: data['acceptedAt'] != null
@@ -346,7 +358,8 @@ class MealPlan {
           : null,
       // 新しいフィールド
       shoppingList: (data['shoppingList'] as List<dynamic>?)
-          ?.map((item) => ShoppingItem.fromFirestore('', item as Map<String, dynamic>))
+          ?.map((item) =>
+              ShoppingItem.fromFirestore('', item as Map<String, dynamic>))
           .toList(),
       popularityScore: data['popularityScore'] as int?,
       cookingFrequency: data['cookingFrequency'] as String?,
@@ -462,9 +475,11 @@ class MealItem {
 
   /// 賞味期限が近い材料のリスト
   List<Ingredient> get expiringIngredients {
-    return ingredients.where((ingredient) =>
-      ingredient.available && ingredient.priority == ExpiryPriority.urgent
-    ).toList();
+    return ingredients
+        .where((ingredient) =>
+            ingredient.available &&
+            ingredient.priority == ExpiryPriority.urgent)
+        .toList();
   }
 
   /// カテゴリの表示名
@@ -505,7 +520,8 @@ class MealItem {
       'name': name,
       'category': category.name,
       'description': description,
-      'ingredients': ingredients.map((ingredient) => ingredient.toFirestore()).toList(),
+      'ingredients':
+          ingredients.map((ingredient) => ingredient.toFirestore()).toList(),
       'recipe': recipe.toFirestore(),
       'cookingTime': cookingTime,
       'difficulty': difficulty.name,
@@ -526,7 +542,8 @@ class MealItem {
       ),
       description: data['description'] as String? ?? '',
       ingredients: (data['ingredients'] as List<dynamic>)
-          .map((ingredient) => Ingredient.fromFirestore(ingredient as Map<String, dynamic>))
+          .map((ingredient) =>
+              Ingredient.fromFirestore(ingredient as Map<String, dynamic>))
           .toList(),
       recipe: Recipe.fromFirestore(data['recipe'] as Map<String, dynamic>),
       cookingTime: data['cookingTime'] as int,
@@ -535,7 +552,8 @@ class MealItem {
         orElse: () => DifficultyLevel.easy,
       ),
       imageUrl: data['imageUrl'] as String?,
-      nutritionInfo: NutritionInfo.fromFirestore(data['nutritionInfo'] as Map<String, dynamic>),
+      nutritionInfo: NutritionInfo.fromFirestore(
+          data['nutritionInfo'] as Map<String, dynamic>),
       tags: (data['tags'] as List<dynamic>?)?.cast<String>() ?? [],
       rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
@@ -609,12 +627,14 @@ class Ingredient {
   int get daysUntilExpiry {
     if (expiryDate == null) return 999;
     final now = DateTime.now();
-    final difference = expiryDate!.difference(DateTime(now.year, now.month, now.day));
+    final difference =
+        expiryDate!.difference(DateTime(now.year, now.month, now.day));
     return difference.inDays;
   }
 
   /// 期限が近いかどうか
-  bool get isExpiring => priority == ExpiryPriority.urgent || priority == ExpiryPriority.soon;
+  bool get isExpiring =>
+      priority == ExpiryPriority.urgent || priority == ExpiryPriority.soon;
 
   /// 期限切れかどうか
   bool get isExpired => daysUntilExpiry < 0;
@@ -781,19 +801,18 @@ class Recipe {
   /// ベジタリアン対応かどうか
   bool get isVegetarian {
     return !steps.any((step) =>
-      step.description.toLowerCase().contains('肉') ||
-      step.description.toLowerCase().contains('魚') ||
-      step.description.toLowerCase().contains('鶏')
-    );
+        step.description.toLowerCase().contains('肉') ||
+        step.description.toLowerCase().contains('魚') ||
+        step.description.toLowerCase().contains('鶏'));
   }
 
   /// ビーガン対応かどうか
   bool get isVegan {
-    return isVegetarian && !steps.any((step) =>
-      step.description.toLowerCase().contains('卵') ||
-      step.description.toLowerCase().contains('乳') ||
-      step.description.toLowerCase().contains('バター')
-    );
+    return isVegetarian &&
+        !steps.any((step) =>
+            step.description.toLowerCase().contains('卵') ||
+            step.description.toLowerCase().contains('乳') ||
+            step.description.toLowerCase().contains('バター'));
   }
 
   // Firestore変換メソッド
@@ -824,7 +843,8 @@ class Recipe {
       ),
       tips: (data['tips'] as List<dynamic>?)?.cast<String>() ?? [],
       servingSize: data['servingSize'] as int,
-      nutritionInfo: NutritionInfo.fromFirestore(data['nutritionInfo'] as Map<String, dynamic>),
+      nutritionInfo: NutritionInfo.fromFirestore(
+          data['nutritionInfo'] as Map<String, dynamic>),
       equipment: (data['equipment'] as List<dynamic>?)?.cast<String>() ?? [],
       tags: (data['tags'] as List<dynamic>?)?.cast<String>() ?? [],
     );

@@ -6,8 +6,10 @@ import '../../../../shared/models/product.dart';
 enum DrawerViewMode {
   /// 正面ビュー（通常の冷蔵庫表示）
   frontView,
+
   /// 上から見たビュー（引き出しが開いた状態）
   topView,
+
   /// 引き出し内部の詳細ビュー（商品一覧）
   innerView,
 }
@@ -116,6 +118,7 @@ class DrawerStateNotifier extends StateNotifier<DrawerState> {
 }
 
 /// 引き出し状態プロバイダー
-final drawerStateProvider = StateNotifierProvider<DrawerStateNotifier, DrawerState>((ref) {
+final drawerStateProvider =
+    StateNotifierProvider<DrawerStateNotifier, DrawerState>((ref) {
   return DrawerStateNotifier();
 });

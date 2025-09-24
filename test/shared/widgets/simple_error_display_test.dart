@@ -26,7 +26,8 @@ void main() {
       expect(find.text('ネットワークエラー'), findsOneWidget);
     });
 
-    testWidgets('should show retry button when onRetry is provided', (tester) async {
+    testWidgets('should show retry button when onRetry is provided',
+        (tester) async {
       // Arrange
       bool retryPressed = false;
       const error = NetworkException('Connection failed');
@@ -52,7 +53,8 @@ void main() {
       expect(retryPressed, isTrue);
     });
 
-    testWidgets('should hide retry button when onRetry is null', (tester) async {
+    testWidgets('should hide retry button when onRetry is null',
+        (tester) async {
       // Arrange
       const error = NetworkException('Connection failed');
 
@@ -69,7 +71,8 @@ void main() {
       expect(find.text('再試行'), findsNothing);
     });
 
-    testWidgets('should display appropriate icons for different error types', (tester) async {
+    testWidgets('should display appropriate icons for different error types',
+        (tester) async {
       // Test NetworkException icon
       await tester.pumpWidget(
         MaterialApp(
@@ -111,7 +114,8 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
-    testWidgets('should show dismiss button when onDismiss is provided', (tester) async {
+    testWidgets('should show dismiss button when onDismiss is provided',
+        (tester) async {
       // Arrange
       bool dismissCalled = false;
       const error = ValidationException('Validation error');
@@ -132,7 +136,7 @@ void main() {
 
       // Assert
       expect(find.byIcon(Icons.close), findsOneWidget);
-      
+
       await tester.tap(find.byIcon(Icons.close));
       expect(dismissCalled, isTrue);
     });
