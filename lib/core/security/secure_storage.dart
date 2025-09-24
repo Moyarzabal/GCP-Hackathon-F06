@@ -9,7 +9,8 @@ class SecureStorageException implements Exception {
   const SecureStorageException(this.message, [this.cause]);
 
   @override
-  String toString() => 'SecureStorageException: $message${cause != null ? ' (Caused by: $cause)' : ''}';
+  String toString() =>
+      'SecureStorageException: $message${cause != null ? ' (Caused by: $cause)' : ''}';
 }
 
 /// Secure storage manager for sensitive data
@@ -34,20 +35,22 @@ class SecureStorage {
   static const WebOptions _webOptions = WebOptions();
 
   SecureStorage({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage(
-          aOptions: _androidOptions,
-          iOptions: _iosOptions,
-          lOptions: _linuxOptions,
-          wOptions: _windowsOptions,
-          webOptions: _webOptions,
-        );
+      : _storage = storage ??
+            const FlutterSecureStorage(
+              aOptions: _androidOptions,
+              iOptions: _iosOptions,
+              lOptions: _linuxOptions,
+              wOptions: _windowsOptions,
+              webOptions: _webOptions,
+            );
 
   /// Store a key-value pair securely
   Future<void> store(String key, String value) async {
     try {
       await _storage.write(key: key, value: value);
     } catch (e) {
-      throw SecureStorageException('Failed to store data for key: $key', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to store data for key: $key', Exception(e.toString()));
     }
   }
 
@@ -56,7 +59,8 @@ class SecureStorage {
     try {
       return await _storage.read(key: key);
     } catch (e) {
-      throw SecureStorageException('Failed to read data for key: $key', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to read data for key: $key', Exception(e.toString()));
     }
   }
 
@@ -65,7 +69,8 @@ class SecureStorage {
     try {
       await _storage.delete(key: key);
     } catch (e) {
-      throw SecureStorageException('Failed to delete data for key: $key', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to delete data for key: $key', Exception(e.toString()));
     }
   }
 
@@ -74,7 +79,8 @@ class SecureStorage {
     try {
       await _storage.deleteAll();
     } catch (e) {
-      throw SecureStorageException('Failed to clear all data', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to clear all data', Exception(e.toString()));
     }
   }
 
@@ -84,7 +90,8 @@ class SecureStorage {
       final secureKey = 'api_key_$keyName';
       await _storage.write(key: secureKey, value: apiKey);
     } catch (e) {
-      throw SecureStorageException('Failed to store API key: $keyName', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to store API key: $keyName', Exception(e.toString()));
     }
   }
 
@@ -94,7 +101,8 @@ class SecureStorage {
       final secureKey = 'api_key_$keyName';
       return await _storage.read(key: secureKey);
     } catch (e) {
-      throw SecureStorageException('Failed to retrieve API key: $keyName', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to retrieve API key: $keyName', Exception(e.toString()));
     }
   }
 
@@ -103,7 +111,8 @@ class SecureStorage {
     try {
       await _storage.write(key: 'biometric_enabled', value: enabled.toString());
     } catch (e) {
-      throw SecureStorageException('Failed to store biometric preference', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to store biometric preference', Exception(e.toString()));
     }
   }
 
@@ -113,7 +122,8 @@ class SecureStorage {
       final value = await _storage.read(key: 'biometric_enabled');
       return value?.toLowerCase() == 'true';
     } catch (e) {
-      throw SecureStorageException('Failed to retrieve biometric preference', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to retrieve biometric preference', Exception(e.toString()));
     }
   }
 
@@ -124,7 +134,9 @@ class SecureStorage {
       final secureKey = 'encrypted_$key';
       await _storage.write(key: secureKey, value: encryptedData);
     } catch (e) {
-      throw SecureStorageException('Failed to store encrypted data for key: $key', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to store encrypted data for key: $key',
+          Exception(e.toString()));
     }
   }
 
@@ -137,7 +149,9 @@ class SecureStorage {
 
       return _decrypt(encryptedData);
     } catch (e) {
-      throw SecureStorageException('Failed to read encrypted data for key: $key', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to read encrypted data for key: $key',
+          Exception(e.toString()));
     }
   }
 
@@ -159,10 +173,10 @@ class SecureStorage {
       final bytes = base64.decode(reversed);
       return utf8.decode(bytes);
     } catch (e) {
-      throw SecureStorageException('Failed to decrypt data', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to decrypt data', Exception(e.toString()));
     }
   }
-
 
   /// Check if all required data is present
   Future<bool> hasRequiredData() async {
@@ -188,7 +202,8 @@ class SecureStorage {
       final allKeys = await _storage.readAll();
       return allKeys.keys.toSet();
     } catch (e) {
-      throw SecureStorageException('Failed to retrieve all keys', Exception(e.toString()));
+      throw SecureStorageException(
+          'Failed to retrieve all keys', Exception(e.toString()));
     }
   }
 }

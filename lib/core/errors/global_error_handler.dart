@@ -7,7 +7,8 @@ import 'error_reporter.dart';
 /// アプリ全体でエラーハンドリングを統一管理
 class GlobalErrorHandler {
   static GlobalErrorHandler? _instance;
-  static GlobalErrorHandler get instance => _instance ??= GlobalErrorHandler._();
+  static GlobalErrorHandler get instance =>
+      _instance ??= GlobalErrorHandler._();
 
   late final ErrorHandler _errorHandler;
   late final ErrorReporter _errorReporter;
@@ -67,7 +68,8 @@ class GlobalErrorHandler {
   }
 
   /// パンくずリストに追加
-  void addBreadcrumb(String message, {String? category, Map<String, dynamic>? data}) {
+  void addBreadcrumb(String message,
+      {String? category, Map<String, dynamic>? data}) {
     _errorReporter.addBreadcrumb(message, category: category, data: data);
   }
 

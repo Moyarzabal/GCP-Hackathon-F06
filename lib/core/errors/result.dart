@@ -20,7 +20,8 @@ abstract class Result<T> {
   T? get data => isSuccess ? (this as Success<T>).data : null;
 
   /// 失敗の場合は例外を返し、成功の場合はnullを返す
-  AppException? get exception => isFailure ? (this as Failure<T>).exception : null;
+  AppException? get exception =>
+      isFailure ? (this as Failure<T>).exception : null;
 
   /// 成功の場合は変換関数を適用し、失敗の場合はそのまま返す
   Result<R> map<R>(R Function(T) mapper) {
@@ -29,7 +30,8 @@ abstract class Result<T> {
         return Success(mapper((this as Success<T>).data));
       } catch (e, stackTrace) {
         return Failure(
-          ValidationException('Mapping failed: $e', details: e.toString(), stackTrace: stackTrace),
+          ValidationException('Mapping failed: $e',
+              details: e.toString(), stackTrace: stackTrace),
         );
       }
     }
@@ -44,7 +46,8 @@ abstract class Result<T> {
         return Success(result);
       } catch (e, stackTrace) {
         return Failure(
-          ValidationException('Async mapping failed: $e', details: e.toString(), stackTrace: stackTrace),
+          ValidationException('Async mapping failed: $e',
+              details: e.toString(), stackTrace: stackTrace),
         );
       }
     }

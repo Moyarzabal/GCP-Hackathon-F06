@@ -23,34 +23,40 @@ abstract class AppException implements Exception {
 
 /// ネットワーク関連の例外
 class NetworkException extends AppException {
-  const NetworkException(super.message, {super.details, super.stackTrace, super.errorCode});
+  const NetworkException(super.message,
+      {super.details, super.stackTrace, super.errorCode});
 }
 
 /// 認証関連の例外
 class AuthException extends AppException {
-  const AuthException(super.message, {super.details, super.stackTrace, super.errorCode});
+  const AuthException(super.message,
+      {super.details, super.stackTrace, super.errorCode});
 }
 
 /// データベース関連の例外
 class DatabaseException extends AppException {
-  const DatabaseException(super.message, {super.details, super.stackTrace, super.errorCode});
+  const DatabaseException(super.message,
+      {super.details, super.stackTrace, super.errorCode});
 }
 
 /// バリデーション例外
 class ValidationException extends AppException {
-  const ValidationException(super.message, {super.details, super.stackTrace, super.errorCode});
+  const ValidationException(super.message,
+      {super.details, super.stackTrace, super.errorCode});
 }
 
 /// カメラ/スキャナー関連の例外
 class ScannerException extends AppException {
-  const ScannerException(super.message, {super.details, super.stackTrace, super.errorCode});
+  const ScannerException(super.message,
+      {super.details, super.stackTrace, super.errorCode});
 }
 
 /// API関連の例外
 class ApiException extends AppException {
   final int? statusCode;
 
-  const ApiException(super.message, {this.statusCode, super.details, super.stackTrace, super.errorCode});
+  const ApiException(super.message,
+      {this.statusCode, super.details, super.stackTrace, super.errorCode});
 
   @override
   String toString() {

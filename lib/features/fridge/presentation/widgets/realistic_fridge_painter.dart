@@ -12,7 +12,8 @@ class FridgeBodyPainter extends CustomPainter {
 
     // 本体のメタリックボディ
     final Rect bodyRect = Offset.zero & size;
-    final RRect body = RRect.fromRectAndRadius(bodyRect, Radius.circular(radius));
+    final RRect body =
+        RRect.fromRectAndRadius(bodyRect, Radius.circular(radius));
     final Paint bodyPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topLeft,
@@ -80,7 +81,8 @@ class FridgeBodyPainter extends CustomPainter {
           Colors.white.withOpacity(0.06),
           Colors.white.withOpacity(0.0),
         ],
-      ).createShader(Rect.fromLTWH(12, yStart, size.width - 24, size.height * 0.44));
+      ).createShader(
+          Rect.fromLTWH(12, yStart, size.width - 24, size.height * 0.44));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(12, yStart, size.width - 24, size.height * 0.44),
@@ -95,5 +97,3 @@ class FridgeBodyPainter extends CustomPainter {
     return oldDelegate.colorScheme != colorScheme;
   }
 }
-
-

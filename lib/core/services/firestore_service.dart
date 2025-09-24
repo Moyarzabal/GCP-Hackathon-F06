@@ -108,7 +108,8 @@ class FirestoreService {
     return itemId;
   }
 
-  Future<void> updateHouseholdItem(String itemId, Map<String, dynamic> updates) async {
+  Future<void> updateHouseholdItem(
+      String itemId, Map<String, dynamic> updates) async {
     await _firestore.collection('items').doc(itemId).update(updates);
   }
 
@@ -209,8 +210,10 @@ class FirestoreService {
     return _firestore
         .collection('items')
         .where('householdId', isEqualTo: householdId)
-        .where('expiryDate', isLessThanOrEqualTo: Timestamp.fromDate(futureDate))
-        .where('expiryDate', isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime.now()))
+        .where('expiryDate',
+            isLessThanOrEqualTo: Timestamp.fromDate(futureDate))
+        .where('expiryDate',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime.now()))
         .orderBy('expiryDate')
         .snapshots();
   }
@@ -231,7 +234,6 @@ class FirestoreService {
       return [];
     }
   }
-
 
   Future<Product?> getProduct(String id) async {
     try {
@@ -293,10 +295,10 @@ class FirestoreService {
           .orderBy('addedDate', descending: true)
           .snapshots()
           .map((snapshot) {
-            return snapshot.docs
-                .map((doc) => Product.fromFirestore(doc.id, doc.data()))
-                .toList();
-          });
+        return snapshot.docs
+            .map((doc) => Product.fromFirestore(doc.id, doc.data()))
+            .toList();
+      });
     } catch (e) {
       print('Error watching products: $e');
       return Stream.value([]);
@@ -315,12 +317,15 @@ class FirestoreService {
     }
   }
 
-  Future<void> updateMealPlanStatus(String mealPlanId, MealPlanStatus status) async {
+  Future<void> updateMealPlanStatus(
+      String mealPlanId, MealPlanStatus status) async {
     try {
       await _firestore.collection('meal_plans').doc(mealPlanId).update({
         'status': status.name,
-        if (status == MealPlanStatus.accepted) 'acceptedAt': FieldValue.serverTimestamp(),
-        if (status == MealPlanStatus.completed) 'completedAt': FieldValue.serverTimestamp(),
+        if (status == MealPlanStatus.accepted)
+          'acceptedAt': FieldValue.serverTimestamp(),
+        if (status == MealPlanStatus.completed)
+          'completedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
       print('Error updating meal plan status: $e');
@@ -353,15 +358,18 @@ class FirestoreService {
           .limit(limit);
 
       if (startDate != null) {
-        query = query.where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate));
+        query = query.where('createdAt',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startDate));
       }
       if (endDate != null) {
-        query = query.where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate));
+        query = query.where('createdAt',
+            isLessThanOrEqualTo: Timestamp.fromDate(endDate));
       }
 
       final snapshot = await query.get();
       return snapshot.docs
-          .map((doc) => MealPlan.fromFirestore(doc.id, doc.data() as Map<String, dynamic>))
+          .map((doc) => MealPlan.fromFirestore(
+              doc.id, doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
       print('Error getting meal plan history: $e');
@@ -371,9 +379,11 @@ class FirestoreService {
 
   Future<MealPlan?> getMealPlan(String mealPlanId) async {
     try {
-      final doc = await _firestore.collection('meal_plans').doc(mealPlanId).get();
+      final doc =
+          await _firestore.collection('meal_plans').doc(mealPlanId).get();
       if (doc.exists) {
-        return MealPlan.fromFirestore(doc.id, doc.data() as Map<String, dynamic>);
+        return MealPlan.fromFirestore(
+            doc.id, doc.data() as Map<String, dynamic>);
       }
       return null;
     } catch (e) {
@@ -396,10 +406,14 @@ class FirestoreService {
         'items': items.map((item) => item.toFirestore()).toList(),
         'status': ShoppingListStatus.active.name,
         'createdAt': FieldValue.serverTimestamp(),
-        'totalEstimatedPrice': items.fold(0.0, (sum, item) => sum + (item.estimatedPrice ?? 0.0)),
+        'totalEstimatedPrice':
+            items.fold(0.0, (sum, item) => sum + (item.estimatedPrice ?? 0.0)),
       };
 
-      await _firestore.collection('shopping_lists').doc(shoppingListId).set(data);
+      await _firestore
+          .collection('shopping_lists')
+          .doc(shoppingListId)
+          .set(data);
       return shoppingListId;
     } catch (e) {
       print('Error saving shopping list: $e');
@@ -418,7 +432,8 @@ class FirestoreService {
     }
   }
 
-  Future<void> updateShoppingItem(String itemId, Map<String, dynamic> updates) async {
+  Future<void> updateShoppingItem(
+      String itemId, Map<String, dynamic> updates) async {
     try {
       await _firestore.collection('shopping_items').doc(itemId).update(updates);
     } catch (e) {

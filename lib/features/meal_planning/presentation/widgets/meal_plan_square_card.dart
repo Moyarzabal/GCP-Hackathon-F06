@@ -58,7 +58,8 @@ class MealPlanSquareCard extends StatelessWidget {
               children: [
                 // ヘッダー（カテゴリラベル）
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: _getCategoryColor(context),
                     borderRadius: const BorderRadius.only(
@@ -101,14 +102,15 @@ class MealPlanSquareCard extends StatelessWidget {
 
                 // 料理名
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   child: Text(
                     mealItem?.name ?? '料理名',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: _textColor,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: _textColor,
+                        ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -299,20 +301,35 @@ class MealPlanSquareCard extends StatelessWidget {
 
     // 料理タイプに応じたフォールバック画像
     if (dishLower.contains('炒め') || dishLower.contains('焼き')) {
-      fallbackUrl = 'https://images.unsplash.com/photo-1559847844-5315695dadae?w=512&h=512&fit=crop';
+      fallbackUrl =
+          'https://images.unsplash.com/photo-1559847844-5315695dadae?w=512&h=512&fit=crop';
     } else if (dishLower.contains('煮') || dishLower.contains('煮物')) {
-      fallbackUrl = 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=512&h=512&fit=crop';
-    } else if (dishLower.contains('サラダ') || dishLower.contains('野菜') || dishLower.contains('キャベツ')) {
-      fallbackUrl = 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=512&h=512&fit=crop';
-    } else if (dishLower.contains('汁物') || dishLower.contains('スープ') || dishLower.contains('味噌汁')) {
-      fallbackUrl = 'https://images.unsplash.com/photo-1547592180-85f173990554?w=512&h=512&fit=crop';
-    } else if (dishLower.contains('肉') || dishLower.contains('豚') || dishLower.contains('鶏')) {
-      fallbackUrl = 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=512&h=512&fit=crop';
-    } else if (dishLower.contains('魚') || dishLower.contains('鮭') || dishLower.contains('鯖')) {
-      fallbackUrl = 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=512&h=512&fit=crop';
+      fallbackUrl =
+          'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('サラダ') ||
+        dishLower.contains('野菜') ||
+        dishLower.contains('キャベツ')) {
+      fallbackUrl =
+          'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('汁物') ||
+        dishLower.contains('スープ') ||
+        dishLower.contains('味噌汁')) {
+      fallbackUrl =
+          'https://images.unsplash.com/photo-1547592180-85f173990554?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('肉') ||
+        dishLower.contains('豚') ||
+        dishLower.contains('鶏')) {
+      fallbackUrl =
+          'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=512&h=512&fit=crop';
+    } else if (dishLower.contains('魚') ||
+        dishLower.contains('鮭') ||
+        dishLower.contains('鯖')) {
+      fallbackUrl =
+          'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=512&h=512&fit=crop';
     } else {
       // デフォルトの料理画像
-      fallbackUrl = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=512&h=512&fit=crop';
+      fallbackUrl =
+          'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=512&h=512&fit=crop';
     }
 
     return Image.network(

@@ -31,8 +31,7 @@ void main() {
         const key = 'test_key';
         const value = 'sensitive_value';
 
-        when(mockStorage.read(key: key))
-            .thenAnswer((_) async => value);
+        when(mockStorage.read(key: key)).thenAnswer((_) async => value);
 
         final result = await secureStorage.read(key);
 
@@ -135,10 +134,10 @@ void main() {
 
       test('should decrypt data when retrieving', () async {
         const originalData = 'user_token_12345';
-        
+
         // First, store the data to get proper encryption
         await secureStorage.storeEncrypted('user_token', originalData);
-        
+
         // Get the encrypted data that was stored
         final capturedEncrypted = verify(mockStorage.write(
           key: 'encrypted_user_token',

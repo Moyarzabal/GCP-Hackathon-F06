@@ -30,17 +30,18 @@ class AdaptiveScaffold extends StatelessWidget {
 
   Widget _buildCupertinoScaffold(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: backgroundColor ?? CupertinoColors.systemBackground.resolveFrom(context),
-      navigationBar: appBar is CupertinoNavigationBar ? appBar as CupertinoNavigationBar : null,
+      backgroundColor: backgroundColor ??
+          CupertinoColors.systemBackground.resolveFrom(context),
+      navigationBar: appBar is CupertinoNavigationBar
+          ? appBar as CupertinoNavigationBar
+          : null,
       child: Column(
         children: [
-          if (appBar != null && appBar is! CupertinoNavigationBar)
-            appBar!,
+          if (appBar != null && appBar is! CupertinoNavigationBar) appBar!,
           Expanded(
             child: body ?? const SizedBox.shrink(),
           ),
-          if (bottomNavigationBar != null)
-            bottomNavigationBar!,
+          if (bottomNavigationBar != null) bottomNavigationBar!,
         ],
       ),
     );
@@ -79,11 +80,11 @@ class AdaptiveAppBar extends StatelessWidget implements PreferredSizeWidget {
         middle: title,
         leading: leading,
         trailing: actions != null && actions!.isNotEmpty
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: actions!,
-            )
-          : null,
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: actions!,
+              )
+            : null,
         backgroundColor: backgroundColor,
       );
     } else {

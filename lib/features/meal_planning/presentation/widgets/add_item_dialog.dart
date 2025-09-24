@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AddItemDialog extends StatefulWidget {
-  final Function(String name, String quantity, String unit, String category) onAddItem;
+  final Function(String name, String quantity, String unit, String category)
+      onAddItem;
 
   const AddItemDialog({
     Key? key,
@@ -205,9 +206,9 @@ class _AddItemDialogState extends State<AddItemDialog> {
             child: Text(
               'アイテムを追加',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
           ),
           IconButton(
@@ -239,8 +240,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
         Text(
           label,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+                fontWeight: FontWeight.w500,
+              ),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -293,8 +294,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
         Text(
           label,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+                fontWeight: FontWeight.w500,
+              ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
@@ -403,4 +404,3 @@ class _AddItemDialogState extends State<AddItemDialog> {
     }
   }
 }
-

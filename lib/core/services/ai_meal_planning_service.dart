@@ -75,21 +75,21 @@ class AIMealPlanningService {
       print('🍽️ AI献立生成開始');
       print('   冷蔵庫の商品数: ${refrigeratorItems.length}');
       print('   世帯ID: $householdId');
-      
+
       // 冷蔵庫の食材を分析
       print('🔍 食材分析中...');
       final analyzedIngredients = _analyzeIngredients(refrigeratorItems);
       print('   分析された食材数: ${analyzedIngredients.length}');
-      
+
       // AIに献立生成を依頼
       print('🤖 AIに献立生成を依頼中...');
       final prompt = _buildMealPlanPrompt(analyzedIngredients, preferences);
       print('   プロンプト長: ${prompt.length}文字');
-      
+
       final response = await _model.generateContent([Content.text(prompt)]);
       print('   AIレスポンス受信: ${response.text?.length ?? 0}文字');
       print('   AIレスポンス内容: ${response.text}');
-      
+
       // レスポンスをパースしてMealPlanオブジェクトに変換
       print('📝 レスポンス解析中...');
       final mealPlan = _parseMealPlanResponse(
@@ -97,7 +97,7 @@ class AIMealPlanningService {
         householdId,
         analyzedIngredients,
       );
-      
+
       print('✅ 献立生成完了: ${mealPlan.displayName}');
       return mealPlan;
     } catch (e) {
@@ -116,21 +116,21 @@ class AIMealPlanningService {
   }) async {
     try {
       final analyzedIngredients = _analyzeIngredients(refrigeratorItems);
-      
+
       final prompt = _buildAlternativePrompt(
         originalMealPlan,
         analyzedIngredients,
         preferences,
         reason,
       );
-      
+
       final response = await _model.generateContent([Content.text(prompt)]);
       final alternatives = _parseAlternativesResponse(
         response.text ?? '',
         householdId,
         analyzedIngredients,
       );
-      
+
       return alternatives;
     } catch (e) {
       throw Exception('代替献立の生成に失敗しました: $e');
@@ -140,14 +140,14 @@ class AIMealPlanningService {
   /// 冷蔵庫の食材を分析
   List<Ingredient> _analyzeIngredients(List<Product> products) {
     final ingredients = <Ingredient>[];
-    
+
     for (final product in products) {
       // 賞味期限の優先度を決定
       final priority = _determineExpiryPriority(product.daysUntilExpiry);
-      
+
       // カテゴリを日本語に変換
       final category = _translateCategory(product.category);
-      
+
       final ingredient = Ingredient(
         name: product.name,
         quantity: product.quantity.toString(),
@@ -160,13 +160,13 @@ class AIMealPlanningService {
         category: category,
         imageUrl: product.currentImageUrl,
       );
-      
+
       ingredients.add(ingredient);
     }
-    
+
     // 優先度でソート（緊急度の高いものから）
     ingredients.sort((a, b) => a.priorityScore.compareTo(b.priorityScore));
-    
+
     return ingredients;
   }
 
@@ -193,23 +193,27 @@ class AIMealPlanningService {
       'snacks': 'お菓子',
       'frozen': '冷凍食品',
     };
-    
+
     return categoryMap[category.toLowerCase()] ?? category;
   }
 
   /// 献立生成のプロンプトを構築
-  String _buildMealPlanPrompt(List<Ingredient> ingredients, UserPreferences preferences) {
+  String _buildMealPlanPrompt(
+      List<Ingredient> ingredients, UserPreferences preferences) {
     final ingredientsText = ingredients.map((ingredient) {
-      final priorityText = ingredient.priority == ExpiryPriority.urgent ? '[URGENT]' : 
-                          ingredient.priority == ExpiryPriority.soon ? '[SOON]' : '';
+      final priorityText = ingredient.priority == ExpiryPriority.urgent
+          ? '[URGENT]'
+          : ingredient.priority == ExpiryPriority.soon
+              ? '[SOON]'
+              : '';
       return '$priorityText${ingredient.name} ${ingredient.quantity}${ingredient.unit}';
     }).join('\n');
 
-    final restrictionsText = preferences.dietaryRestrictions.isNotEmpty 
+    final restrictionsText = preferences.dietaryRestrictions.isNotEmpty
         ? 'Restrictions: ${preferences.dietaryRestrictions.join(', ')}'
         : '';
-    
-    final allergiesText = preferences.allergies.isNotEmpty 
+
+    final allergiesText = preferences.allergies.isNotEmpty
         ? 'Allergies: ${preferences.allergies.join(', ')}'
         : '';
 
@@ -504,16 +508,16 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       // JSON部分を抽出
       final jsonStart = response.indexOf('{');
       final jsonEnd = response.lastIndexOf('}') + 1;
-      
+
       if (jsonStart == -1 || jsonEnd == 0) {
         throw Exception('JSON形式のレスポンスが見つかりません');
       }
-      
+
       String jsonString = response.substring(jsonStart, jsonEnd);
-      
+
       // 日本語の数量文字列を数値に変換
       jsonString = _cleanJsonResponse(jsonString);
-      
+
       print('🔍 JSON解析対象文字列: $jsonString');
 
       // JSONが不完全な場合は修復を試みる
@@ -525,10 +529,10 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
 
       // さらに詳細な修復を試みる
       jsonString = _advancedJsonRepair(jsonString);
-      
+
       // confidenceフィールドの修復を試みる
       jsonString = _repairConfidenceField(jsonString);
-      
+
       // 途中で切れたJSONレスポンスの修復を試みる
       jsonString = _repairTruncatedResponse(jsonString);
 
@@ -549,11 +553,13 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       final mainDish = _parseMainMenu(mainMenuData, availableIngredients);
 
       // 買い物リスト情報を取得
-      final shoppingListData = jsonData['shoppingList'] as Map<String, dynamic>?;
+      final shoppingListData =
+          jsonData['shoppingList'] as Map<String, dynamic>?;
       final shoppingList = _parseShoppingList(shoppingListData);
 
       // 冷蔵庫使用情報を取得
-      final refrigeratorUsageData = jsonData['refrigeratorUsage'] as Map<String, dynamic>?;
+      final refrigeratorUsageData =
+          jsonData['refrigeratorUsage'] as Map<String, dynamic>?;
       final refrigeratorUsage = _parseRefrigeratorUsage(refrigeratorUsageData);
 
       // 新しい形式から4品構成を解析（null安全性を追加）
@@ -571,11 +577,15 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
         sideDishData = _safeCastToMap(jsonData['sideDish'], 'sideDish');
         soupData = _safeCastToMap(jsonData['soup'], 'soup');
         riceData = _safeCastToMap(jsonData['rice'], 'rice');
-        
-        alternativeMainDishData = _safeCastToMap(jsonData['alternativeMainDish'], 'alternativeMainDish');
-        alternativeSideDishData = _safeCastToMap(jsonData['alternativeSideDish'], 'alternativeSideDish');
-        alternativeSoupData = _safeCastToMap(jsonData['alternativeSoup'], 'alternativeSoup');
-        alternativeRiceData = _safeCastToMap(jsonData['alternativeRice'], 'alternativeRice');
+
+        alternativeMainDishData = _safeCastToMap(
+            jsonData['alternativeMainDish'], 'alternativeMainDish');
+        alternativeSideDishData = _safeCastToMap(
+            jsonData['alternativeSideDish'], 'alternativeSideDish');
+        alternativeSoupData =
+            _safeCastToMap(jsonData['alternativeSoup'], 'alternativeSoup');
+        alternativeRiceData =
+            _safeCastToMap(jsonData['alternativeRice'], 'alternativeRice');
       } catch (e) {
         print('⚠️ メニューデータの解析中にエラー: $e');
         // エラーが発生した場合はフォールバックに移行
@@ -591,7 +601,8 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       print('🔍 代替主食データ: $alternativeRiceData');
 
       final sideDish = sideDishData != null
-          ? _parseMealItem(sideDishData, availableIngredients, MealCategory.side)
+          ? _parseMealItem(
+              sideDishData, availableIngredients, MealCategory.side)
           : _createSideDishFromMainMenu(mainMenuData);
       final soup = soupData != null
           ? _parseMealItem(soupData, availableIngredients, MealCategory.soup)
@@ -602,18 +613,22 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
 
       // 代替メニューをパース
       final alternativeMainDish = alternativeMainDishData != null
-          ? _parseMealItem(alternativeMainDishData, availableIngredients, MealCategory.main)
+          ? _parseMealItem(
+              alternativeMainDishData, availableIngredients, MealCategory.main)
           : null;
       final alternativeSideDish = alternativeSideDishData != null
-          ? _parseMealItem(alternativeSideDishData, availableIngredients, MealCategory.side)
+          ? _parseMealItem(
+              alternativeSideDishData, availableIngredients, MealCategory.side)
           : null;
       final alternativeSoup = alternativeSoupData != null
-          ? _parseMealItem(alternativeSoupData, availableIngredients, MealCategory.soup)
+          ? _parseMealItem(
+              alternativeSoupData, availableIngredients, MealCategory.soup)
           : null;
       final alternativeRice = alternativeRiceData != null
-          ? _parseMealItem(alternativeRiceData, availableIngredients, MealCategory.rice)
+          ? _parseMealItem(
+              alternativeRiceData, availableIngredients, MealCategory.rice)
           : null;
-      
+
       return MealPlan(
         householdId: householdId,
         date: DateTime.now(),
@@ -631,51 +646,63 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
           (e) => e.name == jsonData['difficulty'],
           orElse: () => DifficultyLevel.easy,
         ),
-        nutritionScore: (jsonData['nutritionScore'] as num?)?.toDouble() ?? 80.0,
+        nutritionScore:
+            (jsonData['nutritionScore'] as num?)?.toDouble() ?? 80.0,
         confidence: (jsonData['confidence'] as num?)?.toDouble() ?? 0.8,
         createdAt: DateTime.now(),
         createdBy: 'ai_agent',
         // 新しいフィールドを追加（後でMealPlanモデルを拡張）
         shoppingList: shoppingList,
         popularityScore: mainMenuData['popularityScore'] as int? ?? 5,
-        cookingFrequency: mainMenuData['cookingFrequency'] as String? ?? 'monthly',
-        seasonalRelevance: mainMenuData['seasonalRelevance'] as String? ?? 'all',
+        cookingFrequency:
+            mainMenuData['cookingFrequency'] as String? ?? 'monthly',
+        seasonalRelevance:
+            mainMenuData['seasonalRelevance'] as String? ?? 'all',
         refrigeratorUsage: refrigeratorUsage,
       );
     } catch (e) {
       print('❌ JSON解析詳細エラー: $e');
-      print('❌ 解析対象のレスポンス（最初の500文字）: ${response.substring(0, response.length > 500 ? 500 : response.length)}');
+      print(
+          '❌ 解析対象のレスポンス（最初の500文字）: ${response.substring(0, response.length > 500 ? 500 : response.length)}');
       throw Exception('献立データの解析に失敗しました: $e');
     }
   }
 
   /// メインメニューをパース
-  MealItem _parseMainMenu(Map<String, dynamic> data, List<Ingredient> availableIngredients) {
+  MealItem _parseMainMenu(
+      Map<String, dynamic> data, List<Ingredient> availableIngredients) {
     final ingredients = (data['ingredients'] as List<dynamic>)
-        .map((ingredientData) => _parseIngredient(ingredientData as Map<String, dynamic>, availableIngredients))
+        .map((ingredientData) => _parseIngredient(
+            ingredientData as Map<String, dynamic>, availableIngredients))
         .toList();
-    
+
     final recipeData = data['recipe'] as Map<String, dynamic>?;
     final recipe = Recipe(
-      steps: recipeData != null ? (recipeData['steps'] as List<dynamic>?)
-          ?.asMap()
-          .entries
-          .map((entry) => RecipeStep(
-                stepNumber: entry.key + 1,
-                description: entry.value as String,
-              ))
-          .toList() ?? [] : [],
+      steps: recipeData != null
+          ? (recipeData['steps'] as List<dynamic>?)
+                  ?.asMap()
+                  .entries
+                  .map((entry) => RecipeStep(
+                        stepNumber: entry.key + 1,
+                        description: entry.value as String,
+                      ))
+                  .toList() ??
+              []
+          : [],
       cookingTime: data['cookingTime'] as int? ?? 30,
       prepTime: 10, // デフォルト値
       difficulty: DifficultyLevel.values.firstWhere(
         (e) => e.name == data['difficulty'],
         orElse: () => DifficultyLevel.easy,
       ),
-      tips: recipeData != null ? (recipeData['tips'] as List<dynamic>?)?.cast<String>() ?? [] : [],
+      tips: recipeData != null
+          ? (recipeData['tips'] as List<dynamic>?)?.cast<String>() ?? []
+          : [],
       servingSize: 4, // デフォルト値
-      nutritionInfo: _parseNutritionInfo(data['nutritionInfo'] as Map<String, dynamic>?),
+      nutritionInfo:
+          _parseNutritionInfo(data['nutritionInfo'] as Map<String, dynamic>?),
     );
-    
+
     return MealItem(
       name: data['name'] as String,
       category: MealCategory.main,
@@ -687,7 +714,8 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
         (e) => e.name == data['difficulty'],
         orElse: () => DifficultyLevel.easy,
       ),
-      nutritionInfo: _parseNutritionInfo(data['nutritionInfo'] as Map<String, dynamic>?),
+      nutritionInfo:
+          _parseNutritionInfo(data['nutritionInfo'] as Map<String, dynamic>?),
       createdAt: DateTime.now(),
     );
   }
@@ -696,11 +724,13 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
   List<ShoppingItem> _parseShoppingList(Map<String, dynamic>? data) {
     if (data == null) return [];
 
-    final requiredIngredients = data['requiredIngredients'] as List<dynamic>? ?? [];
+    final requiredIngredients =
+        data['requiredIngredients'] as List<dynamic>? ?? [];
     return requiredIngredients.map((item) {
       final itemData = item as Map<String, dynamic>;
       final quantityRaw = itemData['quantity'];
-      final quantity = quantityRaw is String ? quantityRaw : quantityRaw.toString();
+      final quantity =
+          quantityRaw is String ? quantityRaw : quantityRaw.toString();
       return ShoppingItem(
         name: itemData['name'] as String,
         quantity: quantity,
@@ -819,30 +849,39 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
   }
 
   /// メニューアイテムをパース（従来の形式用）
-  MealItem _parseMealItem(Map<String, dynamic> data, List<Ingredient> availableIngredients, [MealCategory? category]) {
+  MealItem _parseMealItem(
+      Map<String, dynamic> data, List<Ingredient> availableIngredients,
+      [MealCategory? category]) {
     final ingredients = (data['ingredients'] as List<dynamic>)
-        .map((ingredientData) => _parseIngredient(ingredientData as Map<String, dynamic>, availableIngredients))
+        .map((ingredientData) => _parseIngredient(
+            ingredientData as Map<String, dynamic>, availableIngredients))
         .toList();
 
     final recipeData = data['recipe'] as Map<String, dynamic>?;
     final recipe = Recipe(
-      steps: recipeData != null ? (recipeData['steps'] as List<dynamic>?)
-          ?.asMap()
-          .entries
-          .map((entry) => RecipeStep(
-                stepNumber: entry.key + 1,
-                description: entry.value as String,
-              ))
-          .toList() ?? [] : [],
+      steps: recipeData != null
+          ? (recipeData['steps'] as List<dynamic>?)
+                  ?.asMap()
+                  .entries
+                  .map((entry) => RecipeStep(
+                        stepNumber: entry.key + 1,
+                        description: entry.value as String,
+                      ))
+                  .toList() ??
+              []
+          : [],
       cookingTime: data['cookingTime'] as int? ?? 30,
       prepTime: 10, // デフォルト値
       difficulty: DifficultyLevel.values.firstWhere(
         (e) => e.name == data['difficulty'],
         orElse: () => DifficultyLevel.easy,
       ),
-      tips: recipeData != null ? (recipeData['tips'] as List<dynamic>?)?.cast<String>() ?? [] : [],
+      tips: recipeData != null
+          ? (recipeData['tips'] as List<dynamic>?)?.cast<String>() ?? []
+          : [],
       servingSize: 4, // デフォルト値
-      nutritionInfo: _parseNutritionInfo(data['nutritionInfo'] as Map<String, dynamic>?),
+      nutritionInfo:
+          _parseNutritionInfo(data['nutritionInfo'] as Map<String, dynamic>?),
     );
 
     return MealItem(
@@ -856,19 +895,22 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
         (e) => e.name == data['difficulty'],
         orElse: () => DifficultyLevel.easy,
       ),
-      nutritionInfo: _parseNutritionInfo(data['nutritionInfo'] as Map<String, dynamic>?),
+      nutritionInfo:
+          _parseNutritionInfo(data['nutritionInfo'] as Map<String, dynamic>?),
       createdAt: DateTime.now(),
     );
   }
 
   /// 材料をパース
-  Ingredient _parseIngredient(Map<String, dynamic> data, List<Ingredient> availableIngredients) {
+  Ingredient _parseIngredient(
+      Map<String, dynamic> data, List<Ingredient> availableIngredients) {
     final name = data['name'] as String;
     final available = data['available'] as bool? ?? true;
     final quantityRaw = data['quantity'];
-    final quantity = quantityRaw is String ? quantityRaw : quantityRaw.toString();
+    final quantity =
+        quantityRaw is String ? quantityRaw : quantityRaw.toString();
     final unit = data['unit'] as String? ?? '個';
-    
+
     // 利用可能な材料から詳細情報を取得
     final availableIngredient = availableIngredients.firstWhere(
       (ingredient) => ingredient.name == name,
@@ -885,7 +927,7 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
         category: 'その他',
       ),
     );
-    
+
     return availableIngredient.copyWith(
       quantity: quantity,
       unit: unit,
@@ -897,7 +939,7 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
   /// 栄養情報をパース
   NutritionInfo _parseNutritionInfo(Map<String, dynamic>? data) {
     if (data == null) return NutritionInfo.empty();
-    
+
     return NutritionInfo(
       calories: (data['calories'] as num?)?.toDouble() ?? 0.0,
       protein: (data['protein'] as num?)?.toDouble() ?? 0.0,
@@ -913,10 +955,10 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
   String _cleanJsonResponse(String jsonString) {
     // クォーテーションなしの文字列フィールドにクォーテーションを追加
     String cleaned = jsonString;
-    
+
     // quantity, unit, name, description などの文字列フィールドを処理
     final stringFields = ['quantity', 'unit', 'name', 'description'];
-    
+
     for (final field in stringFields) {
       // クォーテーションなしのパターンを検索して修正
       final unquotedPattern = RegExp('"$field":\\s*([^",}\\]]+?)(?=,|\\}|\\])');
@@ -926,15 +968,15 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
         if (value.startsWith('"') && value.endsWith('"')) {
           return match.group(0)!;
         }
-        
+
         // 重複を除去（例：「1本本」→「1本」、「大さじ1大さじ」→「大さじ1」）
         final cleanedValue = _removeDuplicates(value);
-        
+
         // クォーテーションを追加
         return '"$field": "$cleanedValue"';
       });
     }
-    
+
     return cleaned;
   }
 
@@ -946,12 +988,12 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       (RegExp(r'(大さじ|小さじ)(\d+)\1'), r'$1$2'), // 大さじ1大さじ → 大さじ1
       (RegExp(r'(\d+)(g|ml|kg|l)\1'), r'$1$2'), // 100g100g → 100g
     ];
-    
+
     String result = value;
     for (final (pattern, replacement) in patterns) {
       result = result.replaceAll(pattern, replacement);
     }
-    
+
     return result;
   }
 
@@ -1042,7 +1084,8 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
     // 不完全なオブジェクト要素を修復
     final incompleteObjectPattern = RegExp(r',\s*"([^"]*?)":\s*([^"]*?)$');
     if (incompleteObjectPattern.hasMatch(repaired)) {
-      repaired = repaired.replaceFirst(incompleteObjectPattern, r', "$1": "$2"');
+      repaired =
+          repaired.replaceFirst(incompleteObjectPattern, r', "$1": "$2"');
     }
 
     return repaired;
@@ -1080,9 +1123,12 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       }
 
       if (!inString) {
-        if (char == '{') braceCount++;
-        else if (char == '}') braceCount--;
-        else if (char == '[') bracketCount++;
+        if (char == '{')
+          braceCount++;
+        else if (char == '}')
+          braceCount--;
+        else if (char == '[')
+          bracketCount++;
         else if (char == ']') bracketCount--;
       }
     }
@@ -1108,17 +1154,17 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
         print('🔍 $fieldName: null');
         return null;
       }
-      
+
       if (value is Map<String, dynamic>) {
         print('🔍 $fieldName: Map型で正常');
         return value;
       }
-      
+
       if (value is Map) {
         print('🔍 $fieldName: Map型をMap<String, dynamic>に変換');
         return Map<String, dynamic>.from(value);
       }
-      
+
       print('⚠️ $fieldName: 予期しない型 ${value.runtimeType}, 値: $value');
       return null;
     } catch (e) {
@@ -1131,22 +1177,24 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
   String _repairConfidenceField(String jsonString) {
     try {
       String repaired = jsonString;
-      
+
       // confidenceフィールドの不正な形式を修復
       // "confidence"$1"} → "confidence": 0.8}
       final confidencePattern = RegExp(r'"confidence"\$?\d*"?\}?$');
       if (confidencePattern.hasMatch(repaired)) {
-        repaired = repaired.replaceFirst(confidencePattern, '"confidence": 0.8}');
+        repaired =
+            repaired.replaceFirst(confidencePattern, '"confidence": 0.8}');
         print('🔧 confidenceフィールドを修復しました');
       }
-      
+
       // 不完全なconfidenceフィールドを修復
       final incompleteConfidencePattern = RegExp(r'"confidence":\s*[^,}\d]*$');
       if (incompleteConfidencePattern.hasMatch(repaired)) {
-        repaired = repaired.replaceFirst(incompleteConfidencePattern, '"confidence": 0.8');
+        repaired = repaired.replaceFirst(
+            incompleteConfidencePattern, '"confidence": 0.8');
         print('🔧 不完全なconfidenceフィールドを修復しました');
       }
-      
+
       return repaired;
     } catch (e) {
       print('⚠️ confidenceフィールド修復に失敗: $e');
@@ -1159,13 +1207,13 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
     try {
       String repaired = jsonString;
       print('🔍 レスポンス修復開始: ${repaired.length}文字');
-      
+
       // 1. quantityフィールドの修復（文字列を数値に変換）
       repaired = repaired.replaceAllMapped(
         RegExp(r'"quantity":\s*"([0-9.]+)"'),
         (match) => '"quantity": ${match.group(1)}',
       );
-      
+
       // 1.5. フィールドが入れ替わっている問題の修復
       repaired = repaired.replaceAllMapped(
         RegExp(r'"quantity":\s*([^,}]+),\s*"unit":\s*"([^"]+)"'),
@@ -1180,40 +1228,41 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
           }
         },
       );
-      
+
       // 2. 不完全なフィールドの修復パターン
       final quantityPatterns = [
         RegExp(r'"quantity":\s*"大さじ[0-9]+"'),
         RegExp(r'"quantity":\s*"小さじ[0-9]+"'),
         RegExp(r'"quantity":\s*"小$'),
       ];
-      
+
       for (final pattern in quantityPatterns) {
         if (pattern.hasMatch(repaired)) {
           repaired = repaired.replaceFirst(pattern, '"quantity": 1');
           print('🔧 quantityフィールドを修復しました');
         }
       }
-      
+
       // unitフィールドの修復
       if (RegExp(r'"unit":\s*""').hasMatch(repaired)) {
-        repaired = repaired.replaceFirst(RegExp(r'"unit":\s*""'), '"unit": "大さじ"');
+        repaired =
+            repaired.replaceFirst(RegExp(r'"unit":\s*""'), '"unit": "大さじ"');
         print('🔧 unitフィールドを修復しました');
       }
-      
+
       // priorityフィールドの修復
       final priorityPatterns = [
         RegExp(r'"priority":\s*"fre$'),
         RegExp(r'"priority":\s*"fresh$'),
       ];
-      
+
       for (final pattern in priorityPatterns) {
         if (pattern.hasMatch(repaired)) {
           repaired = repaired.replaceFirst(pattern, '"priority": "fresh"');
           print('🔧 priorityフィールドを修復しました');
         }
       }
-      
+
       // 3. 不完全な配列の修復
       if (repaired.contains('"ingredients": [') && !repaired.contains(']')) {
         // 最後の不完全なオブジェクトを修復
@@ -1221,29 +1270,29 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
         repaired = repaired + ']';
         print('🔧 不完全なingredients配列を修復しました');
       }
-      
+
       // 4. 不完全なオブジェクトの修復
       if (repaired.contains('{') && !repaired.endsWith('}')) {
         // 最後のカンマを削除
         repaired = repaired.replaceAll(RegExp(r',\s*$'), '');
-        
+
         // 不完全なオブジェクトを閉じる
         int openBraces = repaired.split('{').length - 1;
         int closeBraces = repaired.split('}').length - 1;
         int missingBraces = openBraces - closeBraces;
-        
+
         for (int i = 0; i < missingBraces; i++) {
           repaired = repaired + '}';
         }
         print('🔧 不完全なオブジェクトを修復しました（$missingBraces個の閉じ括弧を追加）');
       }
-      
+
       // 5. 最終的なJSON構造の修復
       if (!repaired.trim().endsWith('}')) {
         repaired = repaired.trim() + '}';
         print('🔧 最終的なJSON構造を修復しました');
       }
-      
+
       print('✅ レスポンス修復完了: ${repaired.length}文字');
       return repaired;
     } catch (e) {
@@ -1253,7 +1302,8 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
   }
 
   /// フォールバック用の献立を作成
-  MealPlan _createFallbackMealPlan(String householdId, List<Ingredient> availableIngredients) {
+  MealPlan _createFallbackMealPlan(
+      String householdId, List<Ingredient> availableIngredients) {
     print('🔄 フォールバック献立を作成中...');
 
     // 利用可能な食材から簡単な献立を作成
@@ -1270,17 +1320,20 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       name: mainDishName,
       category: MealCategory.main,
       description: '冷蔵庫の食材を活用した簡単な炒め物',
-      ingredients: urgentIngredients.take(3).map((ingredient) => Ingredient(
-        name: ingredient.name,
-        quantity: '適量',
-        unit: '',
-        available: true,
-        expiryDate: ingredient.expiryDate,
-        shoppingRequired: false,
-        productId: ingredient.productId,
-        priority: ingredient.priority,
-        category: ingredient.category,
-      )).toList(),
+      ingredients: urgentIngredients
+          .take(3)
+          .map((ingredient) => Ingredient(
+                name: ingredient.name,
+                quantity: '適量',
+                unit: '',
+                available: true,
+                expiryDate: ingredient.expiryDate,
+                shoppingRequired: false,
+                productId: ingredient.productId,
+                priority: ingredient.priority,
+                category: ingredient.category,
+              ))
+          .toList(),
       recipe: Recipe(
         steps: [
           RecipeStep(stepNumber: 1, description: '材料を切る'),
@@ -1302,20 +1355,24 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
 
     // 代替主菜も同様に作成
     final alternativeMainDish = MealItem(
-      name: '${urgentIngredients.isNotEmpty ? urgentIngredients.first.name : '野菜'}の煮物',
+      name:
+          '${urgentIngredients.isNotEmpty ? urgentIngredients.first.name : '野菜'}の煮物',
       category: MealCategory.main,
       description: '代替としての煮物',
-      ingredients: urgentIngredients.take(2).map((ingredient) => Ingredient(
-        name: ingredient.name,
-        quantity: '適量',
-        unit: '',
-        available: true,
-        expiryDate: ingredient.expiryDate,
-        shoppingRequired: false,
-        productId: ingredient.productId,
-        priority: ingredient.priority,
-        category: ingredient.category,
-      )).toList(),
+      ingredients: urgentIngredients
+          .take(2)
+          .map((ingredient) => Ingredient(
+                name: ingredient.name,
+                quantity: '適量',
+                unit: '',
+                available: true,
+                expiryDate: ingredient.expiryDate,
+                shoppingRequired: false,
+                productId: ingredient.productId,
+                priority: ingredient.priority,
+                category: ingredient.category,
+              ))
+          .toList(),
       recipe: Recipe(
         steps: [
           RecipeStep(stepNumber: 1, description: '材料を切る'),
@@ -1399,17 +1456,26 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       final alternatives = <MealPlan>[];
       final jsonPattern = RegExp(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}');
       final matches = jsonPattern.allMatches(response);
-      
-      for (final match in matches.take(3)) { // 最大3つの代替案
+
+      for (final match in matches.take(3)) {
+        // 最大3つの代替案
         try {
           final jsonString = match.group(0)!;
           final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
-          
-          final mainDish = _parseMealItem(jsonData['mainDish'] as Map<String, dynamic>, availableIngredients, MealCategory.main);
-          final sideDish = _parseMealItem(jsonData['sideDish'] as Map<String, dynamic>, availableIngredients, MealCategory.side);
-          final soup = _parseMealItem(jsonData['soup'] as Map<String, dynamic>, availableIngredients, MealCategory.soup);
-          final rice = _parseMealItem(jsonData['rice'] as Map<String, dynamic>, availableIngredients, MealCategory.rice);
-          
+
+          final mainDish = _parseMealItem(
+              jsonData['mainDish'] as Map<String, dynamic>,
+              availableIngredients,
+              MealCategory.main);
+          final sideDish = _parseMealItem(
+              jsonData['sideDish'] as Map<String, dynamic>,
+              availableIngredients,
+              MealCategory.side);
+          final soup = _parseMealItem(jsonData['soup'] as Map<String, dynamic>,
+              availableIngredients, MealCategory.soup);
+          final rice = _parseMealItem(jsonData['rice'] as Map<String, dynamic>,
+              availableIngredients, MealCategory.rice);
+
           final mealPlan = MealPlan(
             householdId: householdId,
             date: DateTime.now(),
@@ -1423,19 +1489,20 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
               (e) => e.name == jsonData['difficulty'],
               orElse: () => DifficultyLevel.easy,
             ),
-            nutritionScore: (jsonData['nutritionScore'] as num?)?.toDouble() ?? 80.0,
+            nutritionScore:
+                (jsonData['nutritionScore'] as num?)?.toDouble() ?? 80.0,
             confidence: (jsonData['confidence'] as num?)?.toDouble() ?? 0.8,
             createdAt: DateTime.now(),
             createdBy: 'ai_agent',
           );
-          
+
           alternatives.add(mealPlan);
         } catch (e) {
           // 個別の代替案の解析に失敗した場合はスキップ
           continue;
         }
       }
-      
+
       return alternatives;
     } catch (e) {
       throw Exception('代替献立データの解析に失敗しました: $e');
@@ -1445,7 +1512,7 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
   /// 買い物リストを生成
   List<ShoppingItem> generateShoppingList(MealPlan mealPlan) {
     final shoppingItems = <ShoppingItem>[];
-    
+
     // すべての材料を収集
     final allIngredients = [
       ...mealPlan.mainDish.ingredients,
@@ -1453,7 +1520,7 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       ...mealPlan.soup.ingredients,
       ...mealPlan.rice.ingredients,
     ];
-    
+
     // 不足している材料を買い物リストに追加
     for (final ingredient in allIngredients) {
       if (ingredient.shoppingRequired) {
@@ -1467,11 +1534,11 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
           addedAt: DateTime.now(),
           notes: ingredient.notes,
         );
-        
+
         shoppingItems.add(shoppingItem);
       }
     }
-    
+
     return shoppingItems;
   }
 
@@ -1486,7 +1553,9 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       return 'らっきょうとピクルス';
     } else if (mainDishLower.contains('豚') || mainDishLower.contains('肉')) {
       return '千切りキャベツ';
-    } else if (mainDishLower.contains('魚') || mainDishLower.contains('鮭') || mainDishLower.contains('鯖')) {
+    } else if (mainDishLower.contains('魚') ||
+        mainDishLower.contains('鮭') ||
+        mainDishLower.contains('鯖')) {
       return '大根おろし';
     } else if (mainDishLower.contains('揚げ') || mainDishLower.contains('フライ')) {
       return 'レタスとトマトのサラダ';
@@ -1508,9 +1577,13 @@ ${ingredients.map((ingredient) => '${ingredient.name} ${ingredient.quantity}${in
       return 'わかめスープ';
     } else if (mainDishLower.contains('カレー')) {
       return 'コンソメスープ';
-    } else if (mainDishLower.contains('洋') || mainDishLower.contains('パスタ') || mainDishLower.contains('グラタン')) {
+    } else if (mainDishLower.contains('洋') ||
+        mainDishLower.contains('パスタ') ||
+        mainDishLower.contains('グラタン')) {
       return 'オニオンスープ';
-    } else if (mainDishLower.contains('魚') || mainDishLower.contains('鮭') || mainDishLower.contains('鯖')) {
+    } else if (mainDishLower.contains('魚') ||
+        mainDishLower.contains('鮭') ||
+        mainDishLower.contains('鯖')) {
       return 'あさりの味噌汁';
     } else if (mainDishLower.contains('豚') || mainDishLower.contains('肉')) {
       return '豆腐とわかめの味噌汁';

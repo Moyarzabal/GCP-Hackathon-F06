@@ -15,14 +15,17 @@ class FirebaseStorageService {
     required String stage,
   }) async {
     try {
-      print('📤 Firebase Storageに画像をアップロード開始: productId=$productId, stage=$stage');
+      print(
+          '📤 Firebase Storageに画像をアップロード開始: productId=$productId, stage=$stage');
 
       // Base64データをデコード
-      final base64String = base64Data.split(',').last; // data:image/png;base64, の部分を除去
+      final base64String =
+          base64Data.split(',').last; // data:image/png;base64, の部分を除去
       final bytes = base64Decode(base64String);
 
       // ファイル名を生成（安全な文字のみ使用）
-      final safeProductId = productId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+      final safeProductId =
+          productId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
       final fileName = '${safeProductId}_${stage}_${_uuid.v4()}.png';
 
       // Firebase Storageの参照を作成

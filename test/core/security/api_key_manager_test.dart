@@ -13,7 +13,7 @@ void main() {
     // Initialize EnvConfig for tests
     await EnvConfig.initialize();
   });
-  
+
   group('ApiKeyManager', () {
     late MockSecureStorage mockStorage;
     late MockEnvConfig mockEnvConfig;
@@ -31,9 +31,8 @@ void main() {
     group('API Key Retrieval', () {
       test('should get Gemini API key from secure storage first', () async {
         const apiKey = 'AIzaSyD02Wpf0jMl6cjnsfbx2epdEkQEaBKH64A';
-        
-        when(mockStorage.getApiKey('gemini'))
-            .thenAnswer((_) async => apiKey);
+
+        when(mockStorage.getApiKey('gemini')).thenAnswer((_) async => apiKey);
 
         final result = await apiKeyManager.getGeminiApiKey();
 
@@ -43,9 +42,8 @@ void main() {
       });
 
       test('should fallback to env config when storage is empty', () async {
-        when(mockStorage.getApiKey('gemini'))
-            .thenAnswer((_) async => null);
-        
+        when(mockStorage.getApiKey('gemini')).thenAnswer((_) async => null);
+
         // Skip actual env config test since it's static
         expect(
           () async => await apiKeyManager.getGeminiApiKey(),
@@ -54,8 +52,7 @@ void main() {
       });
 
       test('should throw exception when no API key is available', () async {
-        when(mockStorage.getApiKey('gemini'))
-            .thenAnswer((_) async => null);
+        when(mockStorage.getApiKey('gemini')).thenAnswer((_) async => null);
 
         expect(
           () async => await apiKeyManager.getGeminiApiKey(),
@@ -67,16 +64,16 @@ void main() {
     group('Firebase Configuration', () {
       test('should get Firebase API key securely', () async {
         const apiKey = 'firebase_api_key_123';
-        
-        when(mockStorage.getApiKey('firebase'))
-            .thenAnswer((_) async => apiKey);
+
+        when(mockStorage.getApiKey('firebase')).thenAnswer((_) async => apiKey);
 
         final result = await apiKeyManager.getFirebaseApiKey();
 
         expect(result, equals(apiKey));
       });
 
-      test('should get Firebase config with platform-specific settings', () async {
+      test('should get Firebase config with platform-specific settings',
+          () async {
         // Skip as mockEnvConfig doesn't work with instance methods
         expect(true, isTrue);
       });
@@ -112,8 +109,7 @@ void main() {
         const oldKey = 'AIzaSyD02Wpf0jMl6cjnsfbx2epdEkQEaBKH64A';
         const newKey = 'AIzaSyD02Wpf0jMl6cjnsfbx2epdEkQEaBKH65B';
 
-        when(mockStorage.getApiKey('gemini'))
-            .thenAnswer((_) async => oldKey);
+        when(mockStorage.getApiKey('gemini')).thenAnswer((_) async => oldKey);
         when(mockStorage.storeApiKey('gemini', newKey))
             .thenAnswer((_) async => {});
 
@@ -126,8 +122,7 @@ void main() {
         const oldKey = 'AIzaSyD02Wpf0jMl6cjnsfbx2epdEkQEaBKH64A';
         const newKey = 'AIzaSyD02Wpf0jMl6cjnsfbx2epdEkQEaBKH65B';
 
-        when(mockStorage.getApiKey('gemini'))
-            .thenAnswer((_) async => oldKey);
+        when(mockStorage.getApiKey('gemini')).thenAnswer((_) async => oldKey);
         when(mockStorage.storeApiKey('gemini_backup', oldKey))
             .thenAnswer((_) async => {});
         when(mockStorage.storeApiKey('gemini', newKey))
@@ -152,8 +147,7 @@ void main() {
     group('Security Monitoring', () {
       test('should detect excessive API key requests', () async {
         const validKey = 'AIzaSyD02Wpf0jMl6cjnsfbx2epdEkQEaBKH64A';
-        when(mockStorage.getApiKey('gemini'))
-            .thenAnswer((_) async => validKey);
+        when(mockStorage.getApiKey('gemini')).thenAnswer((_) async => validKey);
 
         // Make multiple requests quickly
         for (int i = 0; i < 10; i++) {
@@ -166,8 +160,7 @@ void main() {
 
       test('should clear request count after time window', () async {
         const validKey = 'AIzaSyD02Wpf0jMl6cjnsfbx2epdEkQEaBKH64A';
-        when(mockStorage.getApiKey('gemini'))
-            .thenAnswer((_) async => validKey);
+        when(mockStorage.getApiKey('gemini')).thenAnswer((_) async => validKey);
 
         await apiKeyManager.getGeminiApiKey();
         expect(apiKeyManager.getRequestCount(), equals(1));
@@ -198,7 +191,7 @@ void main() {
 
       test('should wipe sensitive data from memory', () {
         apiKeyManager.secureWipe();
-        
+
         // After wipe, cached keys should be cleared
         // This is implementation-specific verification
         expect(apiKeyManager.hasCachedKeys(), isFalse);

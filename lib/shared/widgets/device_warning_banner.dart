@@ -88,7 +88,8 @@ class DeviceWarningBanner extends ConsumerWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange.shade600,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),

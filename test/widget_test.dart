@@ -6,7 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:barcode_scanner/app.dart';
 
 void main() {
-  testWidgets('Futuristic 3D fridge interactions and animations', (tester) async {
+  testWidgets('Futuristic 3D fridge interactions and animations',
+      (tester) async {
     await tester.pumpWidget(const ProviderScope(child: MyApp()));
     await tester.pumpAndSettle();
 
@@ -19,7 +20,7 @@ void main() {
     final rightDoor = find.bySemanticsLabel('右ドア');
     final vegetable = find.bySemanticsLabel('野菜室');
     final freezer = find.bySemanticsLabel('冷凍庫');
-    
+
     expect(leftDoor, findsOneWidget);
     expect(rightDoor, findsOneWidget);
     expect(vegetable, findsOneWidget);
@@ -28,8 +29,9 @@ void main() {
     // 左ドアのタップとアニメーション
     await tester.tap(leftDoor);
     await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump(const Duration(milliseconds: 400)); // elasticOut animation
-    
+    await tester
+        .pump(const Duration(milliseconds: 400)); // elasticOut animation
+
     // 右ドアのタップとアニメーション
     await tester.tap(rightDoor);
     await tester.pump(const Duration(milliseconds: 100));
@@ -39,7 +41,7 @@ void main() {
     await tester.tap(vegetable);
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump(const Duration(milliseconds: 350)); // bounceOut animation
-    
+
     // 冷凍庫の3Dスライドアニメーション
     await tester.tap(freezer);
     await tester.pump(const Duration(milliseconds: 100));
@@ -50,7 +52,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     await tester.tap(leftDoor);
     await tester.pumpAndSettle();
-    
+
     // セクションビューが表示されることを確認
     expect(find.text('左ドアポケット'), findsOneWidget);
   });

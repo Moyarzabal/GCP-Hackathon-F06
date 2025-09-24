@@ -8,7 +8,8 @@ class PlatformInfo {
   static bool get isAndroid => !kIsWeb && Platform.isAndroid;
   static bool get isWeb => kIsWeb;
   static bool get isMobile => isIOS || isAndroid;
-  static bool get isDesktop => !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+  static bool get isDesktop =>
+      !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
   static String get platformName {
     if (isWeb) return 'Web';
@@ -26,7 +27,7 @@ class PlatformInfo {
   /// スマートフォンサイズかどうかを判定（Webの場合）
   static bool isMobileSize(BuildContext context) {
     if (!kIsWeb) return isMobile;
-    
+
     final screenWidth = MediaQuery.of(context).size.width;
     return screenWidth < 768; // タブレットサイズ以下をモバイルと判定
   }
@@ -34,7 +35,7 @@ class PlatformInfo {
   /// PCサイズかどうかを判定（Webの場合）
   static bool isDesktopSize(BuildContext context) {
     if (!kIsWeb) return isDesktop;
-    
+
     final screenWidth = MediaQuery.of(context).size.width;
     return screenWidth >= 768; // タブレットサイズ以上をデスクトップと判定
   }

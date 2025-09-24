@@ -178,7 +178,8 @@ List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
     final Size itemSize = Size(baseSize.width * scale, baseSize.height * scale);
     final double verticalGap = (itemSize.height * 0.28).clamp(6.0, 18.0);
     final double minHorizontalGap = math.max(6.0, itemSize.width * 0.12);
-    final double maxHorizontalGap = math.max(minHorizontalGap + 6.0, itemSize.width * 0.35);
+    final double maxHorizontalGap =
+        math.max(minHorizontalGap + 6.0, itemSize.width * 0.35);
 
     final int maxColumns = math.max(
       1,
@@ -211,10 +212,11 @@ List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {
           maxGap: maxHorizontalGap,
         );
 
-        final double top =
-            baseTop - rowIndex * (itemSize.height + verticalGap);
+        final double top = baseTop - rowIndex * (itemSize.height + verticalGap);
 
-        for (int columnIndex = 0; columnIndex < rowItems.length; columnIndex++) {
+        for (int columnIndex = 0;
+            columnIndex < rowItems.length;
+            columnIndex++) {
           final Product product = rowItems[columnIndex];
           final double left =
               bounds.left + columnIndex * (itemSize.width + gap);

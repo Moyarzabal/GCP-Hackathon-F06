@@ -124,7 +124,8 @@ class ShoppingItem {
       'isCustom': isCustom,
       'addedBy': addedBy,
       'addedAt': Timestamp.fromDate(addedAt),
-      'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
+      'completedAt':
+          completedAt != null ? Timestamp.fromDate(completedAt!) : null,
       'notes': notes,
       'estimatedPrice': estimatedPrice,
     };
@@ -279,7 +280,8 @@ class ShoppingList {
       'items': items.map((item) => item.toFirestore()).toList(),
       'status': status.name,
       'createdAt': Timestamp.fromDate(createdAt),
-      'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
+      'completedAt':
+          completedAt != null ? Timestamp.fromDate(completedAt!) : null,
       'totalEstimatedPrice': totalEstimatedPrice,
     };
   }
@@ -290,7 +292,8 @@ class ShoppingList {
       householdId: data['householdId'] as String,
       mealPlanId: data['mealPlanId'] as String?,
       items: (data['items'] as List<dynamic>)
-          .map((item) => ShoppingItem.fromFirestore('', item as Map<String, dynamic>))
+          .map((item) =>
+              ShoppingItem.fromFirestore('', item as Map<String, dynamic>))
           .toList(),
       status: ShoppingListStatus.values.firstWhere(
         (e) => e.name == data['status'],
@@ -329,8 +332,7 @@ class ShoppingList {
 
 /// 買い物リストの状態を表す列挙型
 enum ShoppingListStatus {
-  active,      // アクティブ
-  completed,   // 完了
-  cancelled,   // キャンセル
+  active, // アクティブ
+  completed, // 完了
+  cancelled, // キャンセル
 }
-
