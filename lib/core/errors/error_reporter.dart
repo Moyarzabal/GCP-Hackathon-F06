@@ -77,7 +77,6 @@ class ErrorReporter {
 
       // エラーキャッシュに追加
       _addToErrorCache(error);
-
     } catch (reportingError) {
       // エラーレポート自体でエラーが発生した場合
       logger.shout('Error reporting failed: $reportingError');
@@ -191,7 +190,8 @@ class ErrorReporter {
   }
 
   /// パンくずリストに追加
-  void addBreadcrumb(String message, {String? category, Map<String, dynamic>? data}) {
+  void addBreadcrumb(String message,
+      {String? category, Map<String, dynamic>? data}) {
     final breadcrumb = {
       'message': message,
       'timestamp': DateTime.now().toIso8601String(),
@@ -274,7 +274,8 @@ class ErrorReporter {
   Future<void> _reportToExternalService(Map<String, dynamic> errorData) async {
     // 将来的にCrashlyticsやSentryなどの外部サービスに送信
     // 現在はログ出力のみ
-    logger.info('Error data ready for external reporting: ${errorData['error_type']}');
+    logger.info(
+        'Error data ready for external reporting: ${errorData['error_type']}');
 
     // TODO: Firebase Crashlytics統合
     // FirebaseCrashlytics.instance.recordError(

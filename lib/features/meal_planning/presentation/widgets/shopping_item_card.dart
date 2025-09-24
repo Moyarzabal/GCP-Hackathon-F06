@@ -81,15 +81,14 @@ class ShoppingItemCard extends StatelessWidget {
                               decoration: item.isCompleted
                                   ? TextDecoration.lineThrough
                                   : TextDecoration.none,
-                              color: item.isCompleted
-                                  ? Colors.grey[600]
-                                  : null,
+                              color: item.isCompleted ? Colors.grey[600] : null,
                             ),
                           ),
                         ),
                         if (item.isCustom)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.blue.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
@@ -126,7 +125,8 @@ class ShoppingItemCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: item.categoryColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4),
@@ -173,7 +173,8 @@ class ShoppingItemCard extends StatelessWidget {
                     ],
 
                     // 価格情報
-                    if (item.estimatedPrice != null && item.estimatedPrice! > 0) ...[
+                    if (item.estimatedPrice != null &&
+                        item.estimatedPrice! > 0) ...[
                       const SizedBox(height: 4),
                       Text(
                         '予想価格: ¥${item.estimatedPrice!.toInt()}',
@@ -217,4 +218,3 @@ class ShoppingItemCard extends StatelessWidget {
     );
   }
 }
-

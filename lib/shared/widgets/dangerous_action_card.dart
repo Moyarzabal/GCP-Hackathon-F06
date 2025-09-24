@@ -76,4 +76,3 @@ class DangerousActionCard extends StatelessWidget {
     );
   }
 }
-

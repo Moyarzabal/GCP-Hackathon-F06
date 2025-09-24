@@ -73,9 +73,9 @@ class AlternativeMealPlansDialog extends StatelessWidget {
             child: Text(
               '代替献立を提案',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
           ),
           IconButton(
@@ -116,8 +116,8 @@ class AlternativeMealPlansDialog extends StatelessWidget {
               Text(
                 '現在の献立',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ],
           ),
@@ -125,8 +125,8 @@ class AlternativeMealPlansDialog extends StatelessWidget {
           Text(
             currentMealPlan.displayName,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey[600],
-            ),
+                  color: Colors.grey[600],
+                ),
           ),
           const SizedBox(height: 8),
           Row(
@@ -169,7 +169,8 @@ class AlternativeMealPlansDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildAlternativeCard(BuildContext context, MealPlan alternative, int number) {
+  Widget _buildAlternativeCard(
+      BuildContext context, MealPlan alternative, int number) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
@@ -212,9 +213,10 @@ class AlternativeMealPlansDialog extends StatelessWidget {
                     Expanded(
                       child: Text(
                         alternative.displayName,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),

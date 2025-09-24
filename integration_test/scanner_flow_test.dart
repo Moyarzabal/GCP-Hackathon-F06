@@ -8,7 +8,8 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Scanner Flow Integration Tests', () {
-    testWidgets('should access scanner screen and display camera interface', (tester) async {
+    testWidgets('should access scanner screen and display camera interface',
+        (tester) async {
       // Arrange: アプリを起動
       app.main();
       await tester.pumpAndSettle();
@@ -25,7 +26,7 @@ void main() {
       // Arrange: アプリを起動してスキャン画面に移動
       app.main();
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.text('スキャン'));
       await tester.pumpAndSettle();
 
@@ -40,18 +41,19 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('should simulate barcode scan and product recognition', (tester) async {
+    testWidgets('should simulate barcode scan and product recognition',
+        (tester) async {
       // Arrange: アプリを起動してスキャン画面に移動
       app.main();
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.text('スキャン'));
       await tester.pumpAndSettle();
 
       // Act: バーコードスキャンをシミュレート
       // 注意: 実際のカメラスキャンはテスト環境では動作しないため、
       // UIの存在確認とエラーハンドリングのテストを中心に行う
-      
+
       // スキャンボタンが存在することを確認
       final scanButton = find.byType(FloatingActionButton);
       expect(scanButton, findsWidgets);
@@ -60,7 +62,8 @@ void main() {
       expect(find.text('バーコードスキャン'), findsOneWidget);
     });
 
-    testWidgets('should handle scan results and navigate to product details', (tester) async {
+    testWidgets('should handle scan results and navigate to product details',
+        (tester) async {
       // Arrange: アプリを起動
       app.main();
       await tester.pumpAndSettle();
@@ -74,13 +77,13 @@ void main() {
       if (manualInputButton.evaluate().isNotEmpty) {
         await tester.tap(manualInputButton);
         await tester.pumpAndSettle();
-        
+
         // テスト用JANコードを入力
         final textField = find.byType(TextField);
         if (textField.evaluate().isNotEmpty) {
           await tester.enterText(textField, '4901777018888');
           await tester.pumpAndSettle();
-          
+
           // 送信ボタンをタップ
           final submitButton = find.text('スキャン');
           if (submitButton.evaluate().isNotEmpty) {
@@ -94,11 +97,12 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('should handle scan errors and show appropriate messages', (tester) async {
+    testWidgets('should handle scan errors and show appropriate messages',
+        (tester) async {
       // Arrange: アプリを起動してスキャン画面に移動
       app.main();
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.text('スキャン'));
       await tester.pumpAndSettle();
 

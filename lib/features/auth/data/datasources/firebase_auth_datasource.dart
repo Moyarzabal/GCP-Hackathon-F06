@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:barcode_scanner/features/auth/domain/entities/user.dart' as domain;
+import 'package:barcode_scanner/features/auth/domain/entities/user.dart'
+    as domain;
 
 /// Firebase認証のデータソース
 abstract class FirebaseAuthDatasource {
@@ -10,7 +11,8 @@ abstract class FirebaseAuthDatasource {
   Future<domain.User> signInWithGoogle();
 
   /// メールアドレスとパスワードでアカウント作成
-  Future<domain.User> createAccount(String email, String password, String displayName);
+  Future<domain.User> createAccount(
+      String email, String password, String displayName);
 
   /// サインアウト
   Future<void> signOut();
@@ -76,7 +78,8 @@ class FirebaseAuthDatasourceImpl implements FirebaseAuthDatasource {
   }
 
   @override
-  Future<domain.User> createAccount(String email, String password, String displayName) async {
+  Future<domain.User> createAccount(
+      String email, String password, String displayName) async {
     try {
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
@@ -182,12 +185,15 @@ class FirebaseAuthDatasourceImpl implements FirebaseAuthDatasource {
   @override
   Stream<domain.User?> watchAuthStateChanges() {
     return _firebaseAuth.authStateChanges().map((firebaseUser) {
-      return firebaseUser != null ? _mapFirebaseUserToDomain(firebaseUser) : null;
+      return firebaseUser != null
+          ? _mapFirebaseUserToDomain(firebaseUser)
+          : null;
     });
   }
 
   @override
-  Future<domain.User> updateProfile({String? displayName, String? photoUrl}) async {
+  Future<domain.User> updateProfile(
+      {String? displayName, String? photoUrl}) async {
     try {
       final user = _firebaseAuth.currentUser;
       if (user == null) {

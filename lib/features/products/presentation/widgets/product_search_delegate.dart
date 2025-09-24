@@ -62,12 +62,16 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primaryContainer
+                          .withOpacity(0.3),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: product.currentImageUrl != null && product.currentImageUrl!.isNotEmpty
+                      child: product.currentImageUrl != null &&
+                              product.currentImageUrl!.isNotEmpty
                           ? _buildImageWidget(product)
                           : Center(
                               child: Text(
@@ -116,9 +120,11 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
   @override
   Widget buildSuggestions(BuildContext context) {
     // 検索前は全商品を表示
-    final suggestions = query.isEmpty ? products : products
-        .where((p) => p.name.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+    final suggestions = query.isEmpty
+        ? products
+        : products
+            .where((p) => p.name.toLowerCase().contains(query.toLowerCase()))
+            .toList();
 
     if (query.isEmpty && suggestions.isEmpty) {
       return Center(
@@ -179,12 +185,16 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primaryContainer
+                          .withOpacity(0.3),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: product.currentImageUrl != null && product.currentImageUrl!.isNotEmpty
+                      child: product.currentImageUrl != null &&
+                              product.currentImageUrl!.isNotEmpty
                           ? _buildImageWidget(product)
                           : Center(
                               child: Text(

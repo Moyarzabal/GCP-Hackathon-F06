@@ -60,7 +60,8 @@ class ErrorHandler {
     await errorReporter.reportError(
       details.exception,
       stackTrace: details.stack,
-      context: 'Flutter Error${details.context != null ? ': ${details.context}' : ''}',
+      context:
+          'Flutter Error${details.context != null ? ': ${details.context}' : ''}',
       fatal: false,
     );
 
@@ -114,8 +115,10 @@ class ErrorHandler {
   /// エラーが重大かどうかを判定
   bool isCriticalError(Object error) {
     return error is DatabaseException ||
-           error is AuthException ||
-           (error is ApiException && error.statusCode != null && error.statusCode! >= 500);
+        error is AuthException ||
+        (error is ApiException &&
+            error.statusCode != null &&
+            error.statusCode! >= 500);
   }
 
   /// エラーの回復方法を提案
