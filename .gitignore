@@ -132,3 +132,7 @@ yarn-error.log*
 *.tar.gz
 *.rar
 firebase-service-account.json
+
+# Firebase platform-specific config files (contain sensitive data)
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
