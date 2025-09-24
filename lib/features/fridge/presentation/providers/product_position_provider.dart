@@ -86,13 +86,24 @@ class ProductPositionNotifier
     final size = _fridgeSize!;
     final Map<String, _SectionLayoutContext> sections = {};
 
-    for (final product in _products.where((p) => p.deletedAt == null)) {
-      final location = product.location ??
-          const ProductLocation(
-            compartment: FridgeCompartment.refrigerator,
-            level: 0,
-          );
+    // 冷蔵庫の商品を3段にバランス良く分散配置する
+    final fridgeProducts = _products
+        .where((p) => p.deletedAt == null)
+        .where((p) =>
+            p.location?.compartment == FridgeCompartment.refrigerator ||
+            p.location?.compartment == null)
+        .toList();
 
+    // 冷蔵庫商品を3段に分散
+    _distributeFridgeProducts(fridgeProducts, sections, size);
+
+    // 冷蔵庫以外の商品は従来通りの処理
+    for (final product in _products.where((p) =>
+        p.deletedAt == null &&
+        p.location?.compartment != FridgeCompartment.refrigerator &&
+        p.location?.compartment != null)) {
+
+      final location = product.location!;
       final key = _sectionKey(location.compartment, location.level);
       final context = sections.putIfAbsent(
         key,
@@ -156,6 +167,98 @@ class ProductPositionNotifier
 
   String _sectionKey(FridgeCompartment compartment, int level) =>
       '${compartment.name}::$level';
+
+  /// 冷蔵庫商品を3段にバランス良く分散配置する
+  void _distributeFridgeProducts(
+    List<Product> fridgeProducts,
+    Map<String, _SectionLayoutContext> sections,
+    Size size,
+  ) {
+    if (fridgeProducts.isEmpty) return;
+
+    // 商品を賞味期限順にソート（期限が近いものから上段に配置）
+    fridgeProducts.sort((a, b) {
+      final aExpiry = a.expiryDate ?? DateTime(9999, 1, 1);
+      final bExpiry = b.expiryDate ?? DateTime(9999, 1, 1);
+      return aExpiry.compareTo(bExpiry);
+    });
+
+    // 各段の最大容量を計算（1段あたり約3-4個を目安）
+    const maxItemsPerLevel = 4;
+    final totalLevels = 3; // 冷蔵庫は3段
+
+    // 商品を3段に分散配置
+    for (int i = 0; i < fridgeProducts.length; i++) {
+      final product = fridgeProducts[i];
+
+      // 賞味期限が近いものほど上段（level 0）に配置
+      // 商品数に応じてバランス良く分散
+      int targetLevel;
+      if (fridgeProducts.length <= maxItemsPerLevel) {
+        // 少数の場合は全て上段
+        targetLevel = 0;
+      } else {
+        // 商品を3段に均等分散（ただし賞味期限順を考慮）
+        final levelGroup = (i * totalLevels) ~/ fridgeProducts.length;
+        targetLevel = levelGroup.clamp(0, totalLevels - 1);
+      }
+
+      final key = _sectionKey(FridgeCompartment.refrigerator, targetLevel);
+      final context = sections.putIfAbsent(
+        key,
+        () {
+          final bounds = _boundsCalculator.getBounds(
+            compartment: FridgeCompartment.refrigerator,
+            level: targetLevel,
+            widgetSize: size,
+            perspective: _perspective,
+          );
+
+          return _SectionLayoutContext(
+            compartment: FridgeCompartment.refrigerator,
+            level: targetLevel,
+            bounds: bounds,
+            baseItemSize: _characterSizeForCompartment(FridgeCompartment.refrigerator),
+          );
+        },
+      );
+
+      // 段の容量制限チェック
+      if (context.products.length >= _sectionLimit) {
+        // この段が満杯の場合、次の段を試す
+        for (int nextLevel = 0; nextLevel < totalLevels; nextLevel++) {
+          if (nextLevel == targetLevel) continue;
+
+          final nextKey = _sectionKey(FridgeCompartment.refrigerator, nextLevel);
+          final nextContext = sections.putIfAbsent(
+            nextKey,
+            () {
+              final bounds = _boundsCalculator.getBounds(
+                compartment: FridgeCompartment.refrigerator,
+                level: nextLevel,
+                widgetSize: size,
+                perspective: _perspective,
+              );
+
+              return _SectionLayoutContext(
+                compartment: FridgeCompartment.refrigerator,
+                level: nextLevel,
+                bounds: bounds,
+                baseItemSize: _characterSizeForCompartment(FridgeCompartment.refrigerator),
+              );
+            },
+          );
+
+          if (nextContext.products.length < _sectionLimit) {
+            nextContext.products.add(product);
+            break;
+          }
+        }
+      } else {
+        context.products.add(product);
+      }
+    }
+  }
 }
 
 List<_PlannedPlacement> _layoutSection(_SectionLayoutContext context) {

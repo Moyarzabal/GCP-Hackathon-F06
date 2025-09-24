@@ -6,6 +6,7 @@ import '../../../../core/errors/result.dart';
 import '../../../../shared/models/product.dart';
 import '../../../../core/services/jan_code_service.dart';
 import '../../../../core/services/gemini_service.dart';
+import '../../../../shared/utils/category_location_mapper.dart';
 
 // 共通のカテゴリリスト
 const List<String> _defaultCategories = [
@@ -166,6 +167,9 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
       // 分析結果から賞味期限を取得
       final expiryDate = analysis.expiryDate;
 
+      // カテゴリに基づいて適切な配置場所を決定
+      final location = CategoryLocationMapper.getDefaultLocationForCategory(analysis.category);
+
       final product = Product(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         janCode: code,
@@ -176,6 +180,7 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
         expiryDate: expiryDate,
         manufacturer: productInfo['manufacturer'] as String?,
         imageUrl: productInfo['imageUrl'] as String?,
+        location: location,
       );
 
       print('🎉 商品処理完了: ${product.name}');
