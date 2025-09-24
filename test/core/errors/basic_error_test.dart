@@ -30,7 +30,8 @@ void main() {
       expect(errorHandler.isCriticalError(DatabaseException('error')), isTrue);
       expect(errorHandler.isCriticalError(AuthException('error')), isTrue);
       expect(errorHandler.isCriticalError(NetworkException('error')), isFalse);
-      expect(errorHandler.isCriticalError(ValidationException('error')), isFalse);
+      expect(
+          errorHandler.isCriticalError(ValidationException('error')), isFalse);
       expect(errorHandler.isCriticalError(Exception('generic')), isFalse);
     });
 
@@ -39,26 +40,25 @@ void main() {
       final authError = AuthException('Token expired');
       final validationError = ValidationException('Invalid input');
 
-      expect(errorHandler.getRecoverySuggestion(networkError), 
-             contains('ネットワーク'));
-      expect(errorHandler.getRecoverySuggestion(authError), 
-             contains('ログイン'));
-      expect(errorHandler.getRecoverySuggestion(validationError), 
-             contains('入力'));
+      expect(
+          errorHandler.getRecoverySuggestion(networkError), contains('ネットワーク'));
+      expect(errorHandler.getRecoverySuggestion(authError), contains('ログイン'));
+      expect(
+          errorHandler.getRecoverySuggestion(validationError), contains('入力'));
     });
 
     test('should provide user-friendly messages', () {
-      expect(errorHandler.getUserFriendlyMessage(NetworkException('error')), 
-             equals('ネットワークエラー'));
-      expect(errorHandler.getUserFriendlyMessage(AuthException('error')), 
-             equals('認証エラー'));
-      expect(errorHandler.getUserFriendlyMessage(ValidationException('error')), 
-             equals('入力エラー'));
+      expect(errorHandler.getUserFriendlyMessage(NetworkException('error')),
+          equals('ネットワークエラー'));
+      expect(errorHandler.getUserFriendlyMessage(AuthException('error')),
+          equals('認証エラー'));
+      expect(errorHandler.getUserFriendlyMessage(ValidationException('error')),
+          equals('入力エラー'));
     });
 
     test('should handle basic error reporting', () async {
       final exception = NetworkException('Connection failed');
-      
+
       // Should not throw
       await errorHandler.handleError(
         exception,
@@ -78,13 +78,13 @@ void main() {
 
     test('should classify error severity correctly', () {
       expect(errorReporter.getErrorSeverity(NetworkException('error')),
-             ErrorSeverity.warning);
+          ErrorSeverity.warning);
       expect(errorReporter.getErrorSeverity(AuthException('error')),
-             ErrorSeverity.error);
+          ErrorSeverity.error);
       expect(errorReporter.getErrorSeverity(DatabaseException('error')),
-             ErrorSeverity.critical);
+          ErrorSeverity.critical);
       expect(errorReporter.getErrorSeverity(ValidationException('error')),
-             ErrorSeverity.info);
+          ErrorSeverity.info);
     });
 
     test('should add and retrieve breadcrumbs', () {
@@ -134,7 +134,7 @@ void main() {
 
     test('should collect device info', () async {
       final deviceInfo = await errorReporter.collectDeviceInfo();
-      
+
       expect(deviceInfo, isNotNull);
       expect(deviceInfo['platform'], isNotNull);
     });
@@ -161,8 +161,8 @@ void main() {
 
     test('should provide proper string representation', () {
       final apiException = ApiException('Server error', statusCode: 500);
-      expect(apiException.toString(), 
-             contains('ApiException: Server error (Status: 500)'));
+      expect(apiException.toString(),
+          contains('ApiException: Server error (Status: 500)'));
     });
   });
 }

@@ -34,7 +34,8 @@ void main() {
       return ProviderScope(
         overrides: [
           // Firebaseの依存関係をモック
-          appStateProvider.overrideWith((ref) => AppStateNotifier()..state = AppState(products: [testProduct])),
+          appStateProvider.overrideWith((ref) =>
+              AppStateNotifier()..state = AppState(products: [testProduct])),
         ],
         child: MaterialApp(
           home: Scaffold(
@@ -44,7 +45,8 @@ void main() {
               isSelected: isSelected,
               onTap: onTap ?? (() => onTapCalled = true),
               onLongPress: onLongPress ?? (() => onLongPressCalled = true),
-              onSelectionToggle: onSelectionToggle ?? (() => onSelectionToggleCalled = true),
+              onSelectionToggle:
+                  onSelectionToggle ?? (() => onSelectionToggleCalled = true),
             ),
           ),
         ),
@@ -66,7 +68,8 @@ void main() {
         expect(onSelectionToggleCalled, false);
       });
 
-      testWidgets('should call onLongPress when long pressed', (WidgetTester tester) async {
+      testWidgets('should call onLongPress when long pressed',
+          (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(createProductCard());
 
@@ -91,7 +94,8 @@ void main() {
         expect(find.byType(Checkbox), findsNothing);
       });
 
-      testWidgets('should not show selection overlay', (WidgetTester tester) async {
+      testWidgets('should not show selection overlay',
+          (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(createProductCard());
 
@@ -104,7 +108,8 @@ void main() {
     });
 
     group('Selection Mode', () {
-      testWidgets('should call onSelectionToggle when tapped', (WidgetTester tester) async {
+      testWidgets('should call onSelectionToggle when tapped',
+          (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(createProductCard(isSelectionMode: true));
 
@@ -118,7 +123,8 @@ void main() {
         expect(onSelectionToggleCalled, true);
       });
 
-      testWidgets('should show checkbox when in selection mode', (WidgetTester tester) async {
+      testWidgets('should show checkbox when in selection mode',
+          (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(createProductCard(isSelectionMode: true));
 
@@ -129,7 +135,8 @@ void main() {
         expect(find.byType(Checkbox), findsOneWidget);
       });
 
-      testWidgets('should show selection overlay when in selection mode', (WidgetTester tester) async {
+      testWidgets('should show selection overlay when in selection mode',
+          (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(createProductCard(isSelectionMode: true));
 
@@ -140,7 +147,8 @@ void main() {
         expect(find.byType(Positioned), findsOneWidget);
       });
 
-      testWidgets('should show selected state when isSelected is true', (WidgetTester tester) async {
+      testWidgets('should show selected state when isSelected is true',
+          (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(createProductCard(
           isSelectionMode: true,
@@ -155,7 +163,8 @@ void main() {
         expect(checkbox.value, true);
       });
 
-      testWidgets('should show unselected state when isSelected is false', (WidgetTester tester) async {
+      testWidgets('should show unselected state when isSelected is false',
+          (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(createProductCard(
           isSelectionMode: true,
@@ -170,7 +179,8 @@ void main() {
         expect(checkbox.value, false);
       });
 
-      testWidgets('should show highlighted border when selected', (WidgetTester tester) async {
+      testWidgets('should show highlighted border when selected',
+          (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(createProductCard(
           isSelectionMode: true,
@@ -198,7 +208,8 @@ void main() {
         expect(find.text('Test Product'), findsOneWidget);
       });
 
-      testWidgets('should display product category', (WidgetTester tester) async {
+      testWidgets('should display product category',
+          (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(createProductCard());
 
@@ -209,7 +220,8 @@ void main() {
         expect(find.text('Food'), findsOneWidget);
       });
 
-      testWidgets('should display expiry information', (WidgetTester tester) async {
+      testWidgets('should display expiry information',
+          (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(createProductCard());
 

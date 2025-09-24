@@ -50,7 +50,8 @@ class FirestoreService {
 
   // 世帯情報を取得
   Future<Map<String, dynamic>?> getHousehold(String householdId) async {
-    final doc = await _firestore.collection('households').doc(householdId).get();
+    final doc =
+        await _firestore.collection('households').doc(householdId).get();
     if (!doc.exists) return null;
 
     return {

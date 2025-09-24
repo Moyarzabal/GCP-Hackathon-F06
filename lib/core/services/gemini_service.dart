@@ -35,7 +35,8 @@ class GeminiService {
     try {
       // APIキーが設定されていない場合はモックデータを返す
       try {
-        if (dotenv.env['GEMINI_API_KEY'] == null || dotenv.env['GEMINI_API_KEY']!.isEmpty) {
+        if (dotenv.env['GEMINI_API_KEY'] == null ||
+            dotenv.env['GEMINI_API_KEY']!.isEmpty) {
           return _getMockRecipes(ingredients);
         }
       } catch (e) {
@@ -81,8 +82,7 @@ JSON形式で回答してください。形式：
       if (jsonStr == null) return [];
 
       final List<dynamic> recipesJson = List<dynamic>.from(
-        (jsonStr is String) ? _parseJson(jsonStr) : jsonStr
-      );
+          (jsonStr is String) ? _parseJson(jsonStr) : jsonStr);
 
       return recipesJson.map((json) => Recipe.fromJson(json)).toList();
     } catch (e) {
@@ -105,22 +105,26 @@ JSON形式で回答してください。形式：
         name: '${ingredients.first}のサラダ',
         cookingTime: '10分',
         difficulty: '簡単',
-        ingredients: ingredients.take(2).map((ing) => '$ing: 適量').toList()..add('ドレッシング: 適量'),
+        ingredients: ingredients.take(2).map((ing) => '$ing: 適量').toList()
+          ..add('ドレッシング: 適量'),
         instructions: ['材料を切る', 'ボウルで混ぜる', 'ドレッシングをかける'],
         calories: '約150kcal',
       ),
     ];
   }
 
-  Future<String> getFoodWasteTip(String productName, int daysUntilExpiry) async {
+  Future<String> getFoodWasteTip(
+      String productName, int daysUntilExpiry) async {
     try {
       // APIキーが設定されていない場合はモックデータを返す
       try {
-        if (dotenv.env['GEMINI_API_KEY'] == null || dotenv.env['GEMINI_API_KEY']!.isEmpty) {
+        if (dotenv.env['GEMINI_API_KEY'] == null ||
+            dotenv.env['GEMINI_API_KEY']!.isEmpty) {
           return _getMockFoodWasteTip(productName, daysUntilExpiry);
         }
       } catch (e) {
-        print('Warning: Failed to access dotenv, using mock food waste tip: $e');
+        print(
+            'Warning: Failed to access dotenv, using mock food waste tip: $e');
         return _getMockFoodWasteTip(productName, daysUntilExpiry);
       }
 
@@ -154,11 +158,13 @@ JSON形式で回答してください。形式：
     try {
       // APIキーが設定されていない場合はモックデータを返す
       try {
-        if (dotenv.env['GEMINI_API_KEY'] == null || dotenv.env['GEMINI_API_KEY']!.isEmpty) {
+        if (dotenv.env['GEMINI_API_KEY'] == null ||
+            dotenv.env['GEMINI_API_KEY']!.isEmpty) {
           return _getMockNutritionAdvice(recentMeals);
         }
       } catch (e) {
-        print('Warning: Failed to access dotenv, using mock nutrition advice: $e');
+        print(
+            'Warning: Failed to access dotenv, using mock nutrition advice: $e');
         return _getMockNutritionAdvice(recentMeals);
       }
 
@@ -214,12 +220,16 @@ ${recentMeals.join(', ')}
     try {
       // APIキーが設定されていない場合はモックデータを返す
       try {
-        if (dotenv.env['GEMINI_API_KEY'] == null || dotenv.env['GEMINI_API_KEY']!.isEmpty) {
-          return _getMockProductAnalysis(productName, manufacturer, brandName, categoryOptions);
+        if (dotenv.env['GEMINI_API_KEY'] == null ||
+            dotenv.env['GEMINI_API_KEY']!.isEmpty) {
+          return _getMockProductAnalysis(
+              productName, manufacturer, brandName, categoryOptions);
         }
       } catch (e) {
-        print('Warning: Failed to access dotenv, using mock product analysis: $e');
-        return _getMockProductAnalysis(productName, manufacturer, brandName, categoryOptions);
+        print(
+            'Warning: Failed to access dotenv, using mock product analysis: $e');
+        return _getMockProductAnalysis(
+            productName, manufacturer, brandName, categoryOptions);
       }
 
       final prompt = '''
@@ -257,65 +267,96 @@ ${categoryOptions.map((cat) => '- $cat').join('\n')}
       final response = await _model.generateContent(content);
 
       if (response.text == null) {
-        return _getMockProductAnalysis(productName, manufacturer, brandName, categoryOptions);
+        return _getMockProductAnalysis(
+            productName, manufacturer, brandName, categoryOptions);
       }
 
       // JSONを抽出して解析
       final jsonStr = _extractJson(response.text!);
       if (jsonStr == null) {
-        return _getMockProductAnalysis(productName, manufacturer, brandName, categoryOptions);
+        return _getMockProductAnalysis(
+            productName, manufacturer, brandName, categoryOptions);
       }
 
       final json = _parseJson(jsonStr);
-      if (json is Map && json['category'] != null && json['expiryDays'] != null) {
+      if (json is Map &&
+          json['category'] != null &&
+          json['expiryDays'] != null) {
         return ProductAnalysis.fromJson(Map<String, dynamic>.from(json));
       }
 
-        return _getMockProductAnalysis(productName, manufacturer, brandName, categoryOptions);
+      return _getMockProductAnalysis(
+          productName, manufacturer, brandName, categoryOptions);
     } catch (e) {
       print('Error analyzing product: $e');
-        return _getMockProductAnalysis(productName, manufacturer, brandName, categoryOptions);
+      return _getMockProductAnalysis(
+          productName, manufacturer, brandName, categoryOptions);
     }
   }
 
-  ProductAnalysis _getMockProductAnalysis(String productName, String? manufacturer, String? brandName, List<String> categoryOptions) {
+  ProductAnalysis _getMockProductAnalysis(String productName,
+      String? manufacturer, String? brandName, List<String> categoryOptions) {
     // 商品名に基づく簡単なカテゴリ判定
     final name = productName.toLowerCase();
-    String category = categoryOptions.isNotEmpty ? categoryOptions.first : 'その他';
+    String category =
+        categoryOptions.isNotEmpty ? categoryOptions.first : 'その他';
     int expiryDays = 7;
     double confidence = 0.5;
 
     // 提供されたカテゴリリストから適切なカテゴリを選択
     if (name.contains('牛乳') || name.contains('ヨーグルト') || name.contains('チーズ')) {
-      category = categoryOptions.contains('乳製品') ? '乳製品' : categoryOptions.first;
+      category =
+          categoryOptions.contains('乳製品') ? '乳製品' : categoryOptions.first;
       expiryDays = 7;
       confidence = 0.8;
-    } else if (name.contains('肉') || name.contains('ハム') || name.contains('ソーセージ')) {
+    } else if (name.contains('肉') ||
+        name.contains('ハム') ||
+        name.contains('ソーセージ')) {
       category = categoryOptions.contains('肉類') ? '肉類' : categoryOptions.first;
       expiryDays = 3;
       confidence = 0.8;
-    } else if (name.contains('魚') || name.contains('刺身') || name.contains('寿司')) {
+    } else if (name.contains('魚') ||
+        name.contains('刺身') ||
+        name.contains('寿司')) {
       category = categoryOptions.contains('魚類') ? '魚類' : categoryOptions.first;
       expiryDays = 3;
       confidence = 0.8;
-    } else if (name.contains('野菜') || name.contains('トマト') || name.contains('レタス')) {
+    } else if (name.contains('野菜') ||
+        name.contains('トマト') ||
+        name.contains('きゅうり') ||
+        name.contains('にんじん') ||
+        name.contains('たまねぎ') ||
+        name.contains('キャベツ') ||
+        name.contains('レタス') ||
+        name.contains('ほうれん草') ||
+        name.contains('じゃがいも')) {
       category = categoryOptions.contains('野菜') ? '野菜' : categoryOptions.first;
-      expiryDays = 5;
-      confidence = 0.7;
-    } else if (name.contains('果物') || name.contains('りんご') || name.contains('バナナ')) {
+      expiryDays = 7;
+      confidence = 0.8;
+    } else if (name.contains('果物') ||
+        name.contains('りんご') ||
+        name.contains('バナナ')) {
       category = categoryOptions.contains('果物') ? '果物' : categoryOptions.first;
       expiryDays = 5;
       confidence = 0.7;
-    } else if (name.contains('ジュース') || name.contains('コーラ') || name.contains('お茶')) {
+    } else if (name.contains('ジュース') ||
+        name.contains('コーラ') ||
+        name.contains('お茶')) {
       category = categoryOptions.contains('飲料') ? '飲料' : categoryOptions.first;
       expiryDays = 30;
       confidence = 0.8;
-    } else if (name.contains('ラーメン') || name.contains('うどん') || name.contains('そば')) {
-      category = categoryOptions.contains('即席麺') ? '即席麺' : categoryOptions.first;
+    } else if (name.contains('ラーメン') ||
+        name.contains('うどん') ||
+        name.contains('そば')) {
+      category =
+          categoryOptions.contains('即席麺') ? '即席麺' : categoryOptions.first;
       expiryDays = 60;
       confidence = 0.9;
-    } else if (name.contains('缶詰') || name.contains('レトルト') || name.contains('冷凍')) {
-      category = categoryOptions.contains('加工食品') ? '加工食品' : categoryOptions.first;
+    } else if (name.contains('缶詰') ||
+        name.contains('レトルト') ||
+        name.contains('冷凍')) {
+      category =
+          categoryOptions.contains('加工食品') ? '加工食品' : categoryOptions.first;
       expiryDays = 30;
       confidence = 0.7;
     }
@@ -332,7 +373,8 @@ ${categoryOptions.map((cat) => '- $cat').join('\n')}
     try {
       // APIキーが設定されていない場合はモックデータを返す
       try {
-        if (dotenv.env['GEMINI_API_KEY'] == null || dotenv.env['GEMINI_API_KEY']!.isEmpty) {
+        if (dotenv.env['GEMINI_API_KEY'] == null ||
+            dotenv.env['GEMINI_API_KEY']!.isEmpty) {
           return _getMockResponse(prompt);
         }
       } catch (e) {

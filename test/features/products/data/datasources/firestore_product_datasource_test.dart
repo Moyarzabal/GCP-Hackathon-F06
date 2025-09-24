@@ -6,7 +6,7 @@ import 'package:barcode_scanner/shared/models/product.dart';
 void main() {
   late FakeFirebaseFirestore fakeFirestore;
   late FirestoreProductDataSource dataSource;
-  
+
   setUp(() {
     fakeFirestore = FakeFirebaseFirestore();
     dataSource = FirestoreProductDataSource(fakeFirestore);
@@ -31,12 +31,10 @@ void main() {
 
       // Assert
       expect(productId, isNotEmpty);
-      
-      final doc = await fakeFirestore
-          .collection('products')
-          .doc(productId)
-          .get();
-      
+
+      final doc =
+          await fakeFirestore.collection('products').doc(productId).get();
+
       expect(doc.exists, true);
       expect(doc.data()!['name'], testProduct.name);
       expect(doc.data()!['janCode'], testProduct.janCode);
@@ -45,9 +43,7 @@ void main() {
 
     test('should get all products from Firestore', () async {
       // Arrange
-      await fakeFirestore
-          .collection('products')
-          .add(testProduct.toFirestore());
+      await fakeFirestore.collection('products').add(testProduct.toFirestore());
 
       // Act
       final products = await dataSource.getAllProducts();
@@ -78,7 +74,7 @@ void main() {
       final docRef = await fakeFirestore
           .collection('products')
           .add(testProduct.toFirestore());
-      
+
       final updatedProduct = testProduct.copyWith(
         id: docRef.id,
         name: '更新された商品',
@@ -89,11 +85,9 @@ void main() {
       await dataSource.updateProduct(updatedProduct);
 
       // Assert
-      final doc = await fakeFirestore
-          .collection('products')
-          .doc(docRef.id)
-          .get();
-      
+      final doc =
+          await fakeFirestore.collection('products').doc(docRef.id).get();
+
       expect(doc.data()!['name'], '更新された商品');
       expect(doc.data()!['quantity'], 2);
     });
@@ -108,19 +102,15 @@ void main() {
       await dataSource.deleteProduct(docRef.id);
 
       // Assert
-      final doc = await fakeFirestore
-          .collection('products')
-          .doc(docRef.id)
-          .get();
-      
+      final doc =
+          await fakeFirestore.collection('products').doc(docRef.id).get();
+
       expect(doc.exists, false);
     });
 
     test('should watch products stream from Firestore', () async {
       // Arrange
-      await fakeFirestore
-          .collection('products')
-          .add(testProduct.toFirestore());
+      await fakeFirestore.collection('products').add(testProduct.toFirestore());
 
       // Act
       final stream = dataSource.watchProducts();
