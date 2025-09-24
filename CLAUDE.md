@@ -239,7 +239,7 @@ class FirebaseConfig {
     }
     throw UnsupportedError('Unsupported platform');
   }
-  
+
   static const FirebaseOptions iosOptions = FirebaseOptions(
     apiKey: 'ios-api-key',
     appId: 'ios-app-id',
@@ -248,7 +248,7 @@ class FirebaseConfig {
     storageBucket: 'gcp-f06-barcode.appspot.com',
     iosBundleId: 'com.f06team.fridgemanager',
   );
-  
+
   static const FirebaseOptions androidOptions = FirebaseOptions(
     apiKey: 'android-api-key',
     appId: 'android-app-id',
@@ -257,6 +257,32 @@ class FirebaseConfig {
     storageBucket: 'gcp-f06-barcode.appspot.com',
   );
 }
+```
+
+## Security & Credential Management
+
+### ⚠️ CRITICAL: Service Account Security
+- **NEVER** commit `firebase-service-account.json` to Git
+- Store service account files locally only
+- Use environment variables or secure storage for API keys
+- Rotate compromised keys immediately
+
+### Secure Credential Handling
+```yaml
+# .gitignore (already configured)
+firebase-service-account.json
+*-key.json
+service-account*.json
+*.env
+api_keys.dart
+secrets.dart
+```
+
+### Environment Variables Setup
+```bash
+# Create .env file (not tracked in Git)
+echo "FIREBASE_SERVICE_ACCOUNT_PATH=./firebase-service-account.json" > .env
+echo "GOOGLE_APPLICATION_CREDENTIALS=./firebase-service-account.json" >> .env
 ```
 
 ## Dependencies (Current Implementation)
