@@ -11,12 +11,14 @@ class DrawerCharactersLayer extends StatelessWidget {
     required this.vegetableDrawerOpen,
     required this.freezerDrawerOpen,
     required this.onTapProduct,
+    this.isTopView = false,
   });
 
   final Iterable<ProductCharacterPlacement> placements;
   final bool vegetableDrawerOpen;
   final bool freezerDrawerOpen;
   final ValueChanged<Product> onTapProduct;
+  final bool isTopView;
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +41,13 @@ class DrawerCharactersLayer extends StatelessWidget {
           placements: vegetableItems,
           isVisible: vegetableDrawerOpen,
           onTapProduct: onTapProduct,
+          isTopView: isTopView,
         ),
         _DrawerGroup(
           placements: freezerItems,
           isVisible: freezerDrawerOpen,
           onTapProduct: onTapProduct,
+          isTopView: isTopView,
         ),
       ],
     );
@@ -55,11 +59,13 @@ class _DrawerGroup extends StatefulWidget {
     required this.placements,
     required this.isVisible,
     required this.onTapProduct,
+    this.isTopView = false,
   });
 
   final List<ProductCharacterPlacement> placements;
   final bool isVisible;
   final ValueChanged<Product> onTapProduct;
+  final bool isTopView;
 
   @override
   State<_DrawerGroup> createState() => _DrawerGroupState();
@@ -69,21 +75,35 @@ class _DrawerGroupState extends State<_DrawerGroup> {
   bool _showCharacters = false;
 
   @override
+  void initState() {
+    super.initState();
+    // TopView で最初から isVisible=true の場合は即座に表示
+    if (widget.isTopView && widget.isVisible) {
+      _showCharacters = true;
+    }
+  }
+
+  @override
   void didUpdateWidget(_DrawerGroup oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     // 引き出しが開き始めたとき
     if (widget.isVisible && !oldWidget.isVisible) {
-      _showCharacters = false;
-      // 引き出しアニメーション完了後にキャラクターを表示
-      // DrawerStateProvider と同じ timing: 600ms + 80ms
-      Future.delayed(const Duration(milliseconds: 680), () {
-        if (mounted && widget.isVisible) {
-          setState(() {
-            _showCharacters = true;
-          });
-        }
-      });
+      if (widget.isTopView) {
+        // TopView では引き出しアニメーションは既に完了しているため即座に表示
+        _showCharacters = true;
+      } else {
+        // FrontView では引き出しアニメーション完了後にキャラクターを表示
+        _showCharacters = false;
+        // DrawerStateProvider と同じ timing: 600ms + 80ms
+        Future.delayed(const Duration(milliseconds: 680), () {
+          if (mounted && widget.isVisible) {
+            setState(() {
+              _showCharacters = true;
+            });
+          }
+        });
+      }
     }
     // 引き出しが閉じたとき
     else if (!widget.isVisible && oldWidget.isVisible) {
