@@ -50,7 +50,7 @@ class DrawerCharactersLayer extends StatelessWidget {
   }
 }
 
-class _DrawerGroup extends StatelessWidget {
+class _DrawerGroup extends StatefulWidget {
   const _DrawerGroup({
     required this.placements,
     required this.isVisible,
@@ -62,20 +62,50 @@ class _DrawerGroup extends StatelessWidget {
   final ValueChanged<Product> onTapProduct;
 
   @override
+  State<_DrawerGroup> createState() => _DrawerGroupState();
+}
+
+class _DrawerGroupState extends State<_DrawerGroup> {
+  bool _showCharacters = false;
+
+  @override
+  void didUpdateWidget(_DrawerGroup oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // 引き出しが開き始めたとき
+    if (widget.isVisible && !oldWidget.isVisible) {
+      _showCharacters = false;
+      // 引き出しアニメーション完了後にキャラクターを表示
+      // DrawerStateProvider と同じ timing: 600ms + 80ms
+      Future.delayed(const Duration(milliseconds: 680), () {
+        if (mounted && widget.isVisible) {
+          setState(() {
+            _showCharacters = true;
+          });
+        }
+      });
+    }
+    // 引き出しが閉じたとき
+    else if (!widget.isVisible && oldWidget.isVisible) {
+      _showCharacters = false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (placements.isEmpty) {
+    if (widget.placements.isEmpty) {
       return const SizedBox.shrink();
     }
 
     return IgnorePointer(
-      ignoring: !isVisible,
+      ignoring: !widget.isVisible,
       child: AnimatedOpacity(
-        opacity: isVisible ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 220),
+        opacity: _showCharacters ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 300),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            for (final placement in placements)
+            for (final placement in widget.placements)
               Positioned(
                 left: placement.position.dx,
                 top: placement.position.dy,
@@ -83,7 +113,7 @@ class _DrawerGroup extends StatelessWidget {
                 height: placement.size.height,
                 child: FoodCharacterWidget(
                   placement: placement,
-                  onTap: () => onTapProduct(placement.product),
+                  onTap: () => widget.onTapProduct(placement.product),
                 ),
               ),
           ],
