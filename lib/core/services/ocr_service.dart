@@ -7,13 +7,15 @@ class OCRService {
     try {
       // TODO: Re-enable when google_mlkit_text_recognition is available
       // final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
-      print('OCR service temporarily disabled - google_mlkit_text_recognition not available');
+      print(
+          'OCR service temporarily disabled - google_mlkit_text_recognition not available');
       return null;
 
       // List of possible date patterns to search for
       final datePatterns = [
         // Japanese date formats
-        RegExp(r'(\d{4})[年/](\d{1,2})[月/](\d{1,2})[日]?'), // 2024年12月31日 or 2024/12/31
+        RegExp(
+            r'(\d{4})[年/](\d{1,2})[月/](\d{1,2})[日]?'), // 2024年12月31日 or 2024/12/31
         RegExp(r'(\d{2})[年/](\d{1,2})[月/](\d{1,2})[日]?'), // 24年12月31日
         RegExp(r'令和(\d+)[年](\d{1,2})[月](\d{1,2})[日]?'), // 令和6年12月31日
         RegExp(r'R(\d+)[.](\d{1,2})[.](\d{1,2})'), // R6.12.31
@@ -150,7 +152,8 @@ class OCRService {
       // TODO: Re-enable when google_mlkit_text_recognition is available
       // final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
       // return recognizedText.text;
-      print('OCR text extraction temporarily disabled - google_mlkit_text_recognition not available');
+      print(
+          'OCR text extraction temporarily disabled - google_mlkit_text_recognition not available');
       return null;
     } catch (e) {
       print('Error during text extraction: $e');

@@ -6,7 +6,7 @@ void main() {
     // Initialize EnvConfig for tests
     await EnvConfig.initialize();
   });
-  
+
   group('EnvConfig', () {
     group('Environment Variables', () {
       test('should throw exception when required env var is missing', () {
@@ -25,7 +25,7 @@ void main() {
       test('should validate API key format', () {
         const validApiKey = 'AIzaSyD02Wpf0jMl6cjnsfbx2epdEkQEaBKH64A';
         const invalidApiKey = 'invalid_key';
-        
+
         expect(EnvConfig.isValidApiKey(validApiKey), isTrue);
         expect(EnvConfig.isValidApiKey(invalidApiKey), isFalse);
       });
@@ -33,7 +33,7 @@ void main() {
       test('should mask sensitive values in logs', () {
         const apiKey = 'AIzaSyD02Wpf0jMl6cjnsfbx2epdEkQEaBKH64A';
         final masked = EnvConfig.maskSensitiveValue(apiKey);
-        
+
         expect(masked, contains('AIza****'));
         expect(masked, isNot(contains(apiKey)));
       });

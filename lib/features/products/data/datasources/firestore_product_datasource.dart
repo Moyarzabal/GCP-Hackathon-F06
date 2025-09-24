@@ -47,13 +47,21 @@ class FirestoreProductDataSource implements ProductDataSource {
           .map((doc) => Product.fromFirestore(doc.id, doc.data()))
           .toList();
 
-      Logger.debug('Successfully fetched ${products.length} products (including deleted)');
+      Logger.debug(
+          'Successfully fetched ${products.length} products (including deleted)');
       return products;
     } on FirebaseException catch (e) {
-      Logger.error('Firebase error while fetching all products including deleted', e, e.stackTrace);
-      throw Exception('Failed to get all products including deleted: ${e.message}');
+      Logger.error(
+          'Firebase error while fetching all products including deleted',
+          e,
+          e.stackTrace);
+      throw Exception(
+          'Failed to get all products including deleted: ${e.message}');
     } catch (e, stackTrace) {
-      Logger.error('Unexpected error while fetching all products including deleted', e, stackTrace);
+      Logger.error(
+          'Unexpected error while fetching all products including deleted',
+          e,
+          stackTrace);
       throw Exception('Failed to get all products including deleted: $e');
     }
   }
@@ -73,10 +81,12 @@ class FirestoreProductDataSource implements ProductDataSource {
       Logger.debug('Successfully fetched product: ${product.name}');
       return product;
     } on FirebaseException catch (e) {
-      Logger.error('Firebase error while fetching product $id', e, e.stackTrace);
+      Logger.error(
+          'Firebase error while fetching product $id', e, e.stackTrace);
       throw Exception('Failed to get product: ${e.message}');
     } catch (e, stackTrace) {
-      Logger.error('Unexpected error while fetching product $id', e, stackTrace);
+      Logger.error(
+          'Unexpected error while fetching product $id', e, stackTrace);
       throw Exception('Failed to get product: $e');
     }
   }
@@ -114,10 +124,12 @@ class FirestoreProductDataSource implements ProductDataSource {
           .update(product.toFirestore());
       Logger.debug('Successfully updated product: ${product.id}');
     } on FirebaseException catch (e) {
-      Logger.error('Firebase error while updating product ${product.id}', e, e.stackTrace);
+      Logger.error('Firebase error while updating product ${product.id}', e,
+          e.stackTrace);
       throw Exception('Failed to update product: ${e.message}');
     } catch (e, stackTrace) {
-      Logger.error('Unexpected error while updating product ${product.id}', e, stackTrace);
+      Logger.error('Unexpected error while updating product ${product.id}', e,
+          stackTrace);
       throw Exception('Failed to update product: $e');
     }
   }
@@ -127,15 +139,18 @@ class FirestoreProductDataSource implements ProductDataSource {
     try {
       Logger.debug('Soft deleting product with id: $id');
       final now = DateTime.now();
-      await _firestore.collection(_collection).doc(id).update({
-        'deletedAt': now.millisecondsSinceEpoch
-      });
+      await _firestore
+          .collection(_collection)
+          .doc(id)
+          .update({'deletedAt': now.millisecondsSinceEpoch});
       Logger.debug('Successfully soft deleted product: $id');
     } on FirebaseException catch (e) {
-      Logger.error('Firebase error while soft deleting product $id', e, e.stackTrace);
+      Logger.error(
+          'Firebase error while soft deleting product $id', e, e.stackTrace);
       throw Exception('Failed to delete product: ${e.message}');
     } catch (e, stackTrace) {
-      Logger.error('Unexpected error while soft deleting product $id', e, stackTrace);
+      Logger.error(
+          'Unexpected error while soft deleting product $id', e, stackTrace);
       throw Exception('Failed to delete product: $e');
     }
   }
@@ -161,10 +176,8 @@ class FirestoreProductDataSource implements ProductDataSource {
       final now = DateTime.now();
       for (final id in productIds) {
         print('   商品ID $id にdeletedAt=${now.millisecondsSinceEpoch}を設定');
-        batch.update(
-          _firestore.collection(_collection).doc(id),
-          {'deletedAt': now.millisecondsSinceEpoch}
-        );
+        batch.update(_firestore.collection(_collection).doc(id),
+            {'deletedAt': now.millisecondsSinceEpoch});
       }
 
       print('🔄 Firestore batch操作をコミット');
@@ -172,10 +185,12 @@ class FirestoreProductDataSource implements ProductDataSource {
       print('✅ Firestore batch操作完了');
       Logger.debug('Successfully soft deleted ${productIds.length} products');
     } on FirebaseException catch (e) {
-      Logger.error('Firebase error while soft deleting products', e, e.stackTrace);
+      Logger.error(
+          'Firebase error while soft deleting products', e, e.stackTrace);
       throw Exception('Failed to delete products: ${e.message}');
     } catch (e, stackTrace) {
-      Logger.error('Unexpected error while soft deleting products', e, stackTrace);
+      Logger.error(
+          'Unexpected error while soft deleting products', e, stackTrace);
       throw Exception('Failed to delete products: $e');
     }
   }
@@ -190,12 +205,12 @@ class FirestoreProductDataSource implements ProductDataSource {
           .orderBy('addedDate', descending: true)
           .snapshots()
           .map((snapshot) {
-            final products = snapshot.docs
-                .map((doc) => Product.fromFirestore(doc.id, doc.data()))
-                .toList();
-            Logger.debug('Products stream updated: ${products.length} products');
-            return products;
-          });
+        final products = snapshot.docs
+            .map((doc) => Product.fromFirestore(doc.id, doc.data()))
+            .toList();
+        Logger.debug('Products stream updated: ${products.length} products');
+        return products;
+      });
     } catch (e, stackTrace) {
       Logger.error('Error while setting up products stream', e, stackTrace);
       throw Exception('Failed to watch products: $e');

@@ -26,7 +26,7 @@ void main() {
           Product(id: 'product2', name: 'Product 2', category: 'Food'),
           Product(id: 'product3', name: 'Product 3', category: 'Drink'),
         ];
-        
+
         // Mock the app state provider to return products
         container = ProviderContainer(
           overrides: [
@@ -34,10 +34,11 @@ void main() {
           ],
         );
         notifier = container.read(productProvider.notifier);
-        
+
         // Act
-        final result = await notifier.deleteSelectedProducts(['product1', 'product2']);
-        
+        final result =
+            await notifier.deleteSelectedProducts(['product1', 'product2']);
+
         // Assert
         expect(result.isSuccess, true);
       });
@@ -50,10 +51,10 @@ void main() {
           ],
         );
         notifier = container.read(productProvider.notifier);
-        
+
         // Act
         final result = await notifier.deleteSelectedProducts([]);
-        
+
         // Assert
         expect(result.isSuccess, true);
       });
@@ -63,19 +64,20 @@ void main() {
         final products = [
           Product(id: 'product1', name: 'Product 1', category: 'Food'),
         ];
-        
+
         container = ProviderContainer(
           overrides: [
             productsProvider.overrideWith((ref) => products),
           ],
         );
         notifier = container.read(productProvider.notifier);
-        
+
         // Act
         final result = await notifier.deleteSelectedProducts(['non-existent']);
-        
+
         // Assert
-        expect(result.isSuccess, true); // Should succeed even if product doesn't exist
+        expect(result.isSuccess,
+            true); // Should succeed even if product doesn't exist
       });
 
       test('should handle mixed existing and non-existing products', () async {
@@ -84,17 +86,18 @@ void main() {
           Product(id: 'product1', name: 'Product 1', category: 'Food'),
           Product(id: 'product2', name: 'Product 2', category: 'Food'),
         ];
-        
+
         container = ProviderContainer(
           overrides: [
             productsProvider.overrideWith((ref) => products),
           ],
         );
         notifier = container.read(productProvider.notifier);
-        
+
         // Act
-        final result = await notifier.deleteSelectedProducts(['product1', 'non-existent', 'product2']);
-        
+        final result = await notifier
+            .deleteSelectedProducts(['product1', 'non-existent', 'product2']);
+
         // Assert
         expect(result.isSuccess, true);
       });

@@ -50,7 +50,8 @@ void main() {
           ),
         ];
 
-        when(mockDataSource.getAllProducts()).thenAnswer((_) async => mockProducts);
+        when(mockDataSource.getAllProducts())
+            .thenAnswer((_) async => mockProducts);
 
         // Act
         final notifier = container.read(appStateProvider.notifier);
@@ -67,7 +68,8 @@ void main() {
 
       test('should handle Firebase error and set error state', () async {
         // Arrange
-        when(mockDataSource.getAllProducts()).thenThrow(Exception('Firebase connection failed'));
+        when(mockDataSource.getAllProducts())
+            .thenThrow(Exception('Firebase connection failed'));
 
         // Act
         final notifier = container.read(appStateProvider.notifier);
@@ -115,7 +117,8 @@ void main() {
           unit: 'piece',
         );
 
-        when(mockDataSource.addProduct(any)).thenAnswer((_) async => 'new-product-id');
+        when(mockDataSource.addProduct(any))
+            .thenAnswer((_) async => 'new-product-id');
 
         // Act
         final notifier = container.read(appStateProvider.notifier);
@@ -202,7 +205,8 @@ void main() {
         final notifier = container.read(appStateProvider.notifier);
         notifier.addProduct(product);
 
-        when(mockDataSource.updateProduct(any)).thenThrow(Exception('Update failed'));
+        when(mockDataSource.updateProduct(any))
+            .thenThrow(Exception('Update failed'));
 
         // Act
         await notifier.updateProductInFirebase(product);
@@ -256,14 +260,16 @@ void main() {
         final notifier = container.read(appStateProvider.notifier);
         notifier.addProduct(product);
 
-        when(mockDataSource.deleteProduct(any)).thenThrow(Exception('Delete failed'));
+        when(mockDataSource.deleteProduct(any))
+            .thenThrow(Exception('Delete failed'));
 
         // Act
         await notifier.deleteProductFromFirebase('1');
 
         // Assert
         final state = container.read(appStateProvider);
-        expect(state.products, hasLength(1)); // Product should still be in state
+        expect(
+            state.products, hasLength(1)); // Product should still be in state
         expect(state.error, isNotNull);
         expect(state.error, contains('Delete failed'));
       });
@@ -283,7 +289,8 @@ void main() {
           ),
         ];
 
-        when(mockDataSource.watchProducts()).thenAnswer((_) => Stream.value(mockProducts));
+        when(mockDataSource.watchProducts())
+            .thenAnswer((_) => Stream.value(mockProducts));
 
         // Act
         final notifier = container.read(appStateProvider.notifier);

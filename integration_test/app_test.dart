@@ -28,33 +28,35 @@ void main() {
       // Act: 各タブをタップ
       await tester.tap(find.text('スキャン'));
       await tester.pumpAndSettle();
-      
+
       // Assert: スキャン画面が表示される
       expect(find.text('バーコードスキャン'), findsOneWidget);
 
       // Act: 履歴タブをタップ
       await tester.tap(find.text('履歴'));
       await tester.pumpAndSettle();
-      
+
       // Assert: 履歴画面が表示される
       expect(find.text('スキャン履歴'), findsOneWidget);
 
       // Act: 設定タブをタップ
       await tester.tap(find.text('設定'));
       await tester.pumpAndSettle();
-      
+
       // Assert: 設定画面が表示される
       expect(find.text('設定'), findsOneWidget);
 
       // Act: ホームタブに戻る
       await tester.tap(find.text('ホーム'));
       await tester.pumpAndSettle();
-      
+
       // Assert: ホーム画面が表示される
       expect(find.text('冷蔵庫の中身'), findsOneWidget);
     });
 
-    testWidgets('should complete full app flow: scan -> add product -> view history', (tester) async {
+    testWidgets(
+        'should complete full app flow: scan -> add product -> view history',
+        (tester) async {
       // Arrange: アプリを起動
       app.main();
       await tester.pumpAndSettle();
@@ -93,7 +95,7 @@ void main() {
 
       // Assert: エラーハンドリングが正常に動作する
       expect(find.byType(MaterialApp), findsOneWidget);
-      
+
       // アプリがクラッシュしないことを確認
       expect(tester.takeException(), isNull);
     });

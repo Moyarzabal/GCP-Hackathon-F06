@@ -64,20 +64,20 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
   MealItem? _getCurrentMealItem(MealPlan mealPlan, String category) {
     switch (category) {
       case 'main':
-        return _showingAlternatives['main']! 
-            ? mealPlan.alternativeMainDish 
+        return _showingAlternatives['main']!
+            ? mealPlan.alternativeMainDish
             : mealPlan.mainDish;
       case 'side':
-        return _showingAlternatives['side']! 
-            ? mealPlan.alternativeSideDish 
+        return _showingAlternatives['side']!
+            ? mealPlan.alternativeSideDish
             : mealPlan.sideDish;
       case 'soup':
-        return _showingAlternatives['soup']! 
-            ? mealPlan.alternativeSoup 
+        return _showingAlternatives['soup']!
+            ? mealPlan.alternativeSoup
             : mealPlan.soup;
       case 'rice':
-        return _showingAlternatives['rice']! 
-            ? mealPlan.alternativeRice 
+        return _showingAlternatives['rice']!
+            ? mealPlan.alternativeRice
             : mealPlan.rice;
       default:
         return null;
@@ -98,18 +98,19 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
   Future<void> _addAdditionalDish(MealCategory category) async {
     try {
       print('🍽️ 追加一品生成開始: ${category.name}');
-      
+
       // 現在の献立を取得
       final mealPlan = ref.read(mealPlanProvider).value;
       if (mealPlan == null) return;
 
       // 追加一品を生成（簡単な実装）
       final additionalDish = _generateAdditionalDish(category, mealPlan);
-      
+
       // まず追加一品を画像なしで表示
       final updatedMealPlan = mealPlan.copyWith(additionalDish: additionalDish);
-      ref.read(mealPlanProvider.notifier).state = AsyncValue.data(updatedMealPlan);
-      
+      ref.read(mealPlanProvider.notifier).state =
+          AsyncValue.data(updatedMealPlan);
+
       // ローディング表示
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -117,10 +118,10 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
           duration: Duration(seconds: 2),
         ),
       );
-      
+
       // 画像生成サービスを取得
       final imageGenerationService = ImageGenerationService();
-      
+
       // 追加一品の画像を生成
       print('🖼️ 追加一品の画像生成開始: ${additionalDish.name}');
       final imageUrl = await imageGenerationService.generateDishImage(
@@ -129,13 +130,13 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
         style: 'photorealistic',
         maxRetries: 3,
       );
-      
+
       // 画像URLが生成された場合は、MealItemに画像URLを設定
       MealItem updatedAdditionalDish = additionalDish;
       if (imageUrl != null) {
         print('✅ 追加一品の画像生成成功: $imageUrl');
         updatedAdditionalDish = additionalDish.copyWith(imageUrl: imageUrl);
-        
+
         // 成功メッセージを表示
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -154,11 +155,13 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
           ),
         );
       }
-      
+
       // 最終的な献立を更新
-      final finalMealPlan = mealPlan.copyWith(additionalDish: updatedAdditionalDish);
-      ref.read(mealPlanProvider.notifier).state = AsyncValue.data(finalMealPlan);
-      
+      final finalMealPlan =
+          mealPlan.copyWith(additionalDish: updatedAdditionalDish);
+      ref.read(mealPlanProvider.notifier).state =
+          AsyncValue.data(finalMealPlan);
+
       print('✅ 追加一品生成完了: ${updatedAdditionalDish.name}');
     } catch (e) {
       print('❌ 追加一品生成エラー: $e');
@@ -175,7 +178,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
   MealItem _generateAdditionalDish(MealCategory category, MealPlan mealPlan) {
     final baseName = _getGenreBaseName(category);
     final dishName = _generateDishName(category, mealPlan);
-    
+
     return MealItem(
       name: dishName,
       category: category,
@@ -426,7 +429,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
   @override
   Widget build(BuildContext context) {
     final mealPlanAsync = ref.watch(mealPlanProvider);
-      // final appState = ref.watch(appStateProvider);
+    // final appState = ref.watch(appStateProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -451,15 +454,17 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
             ),
             onPressed: _showReSuggestConfirmation,
             tooltip: '献立を再提案',
-                  ),
-                ],
-              ),
+          ),
+        ],
+      ),
       body: mealPlanAsync.when(
-              data: (mealPlan) => mealPlan != null
-                  ? (_isInitialLoading ? _buildLoadingWithMealPlan(mealPlan) : _buildMealPlanContent(mealPlan))
-                  : _buildEmptyState(),
-              loading: () => _buildLoadingState(),
-              error: (error, stack) => _buildErrorState(error),
+        data: (mealPlan) => mealPlan != null
+            ? (_isInitialLoading
+                ? _buildLoadingWithMealPlan(mealPlan)
+                : _buildMealPlanContent(mealPlan))
+            : _buildEmptyState(),
+        loading: () => _buildLoadingState(),
+        error: (error, stack) => _buildErrorState(error),
       ),
     );
   }
@@ -473,14 +478,14 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
         children: [
           // 献立ヘッダー
           _buildMealPlanHeader(mealPlan),
-          
+
           const SizedBox(height: 24),
-          
+
           // 献立カード（アクションボタンも含む）
           _buildMealPlanCards(mealPlan),
-          
+
           const SizedBox(height: 24),
-          
+
           // 材料情報
           _buildIngredientsInfo(mealPlan),
 
@@ -498,7 +503,6 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
   }
 
   Widget _buildMealPlanHeader(MealPlan mealPlan) {
-    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -535,10 +539,9 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
           //     ),
           //   ],
           // ),
-          
+
           // const SizedBox(height: 16),
-          
-          
+
           Row(
             children: [
               _buildInfoChip(
@@ -563,9 +566,8 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
 
           const SizedBox(height: 12),
 
-          
           // const SizedBox(height: 12),
-          
+
           // 信頼度表示
           Row(
             children: [
@@ -578,8 +580,8 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
               Text(
                 '信頼度: ${(mealPlan.confidence * 100).toInt()}%',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: _accentColor.withOpacity(0.8),
-                ),
+                      color: _accentColor.withOpacity(0.8),
+                    ),
               ),
             ],
           ),
@@ -587,7 +589,6 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
       ),
     );
   }
-
 
   Widget _buildInfoChip({
     required IconData icon,
@@ -630,11 +631,12 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
               child: AspectRatio(
                 aspectRatio: 1.0,
                 child: MealPlanSquareCard(
-              mealItem: _getCurrentMealItem(mealPlan, 'main'),
-              title: '主菜',
-              imageUrl: _mealImages['mainDish'],
-              onTap: () => _showMealDetail(context, _getCurrentMealItem(mealPlan, 'main')!),
-            ),
+                  mealItem: _getCurrentMealItem(mealPlan, 'main'),
+                  title: '主菜',
+                  imageUrl: _mealImages['mainDish'],
+                  onTap: () => _showMealDetail(
+                      context, _getCurrentMealItem(mealPlan, 'main')!),
+                ),
               ),
             ),
             SizedBox(width: 12),
@@ -642,11 +644,12 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
               child: AspectRatio(
                 aspectRatio: 1.0,
                 child: MealPlanSquareCard(
-              mealItem: _getCurrentMealItem(mealPlan, 'side'),
-              title: '副菜',
-              imageUrl: _mealImages['sideDish'],
-              onTap: () => _showMealDetail(context, _getCurrentMealItem(mealPlan, 'side')!),
-            ),
+                  mealItem: _getCurrentMealItem(mealPlan, 'side'),
+                  title: '副菜',
+                  imageUrl: _mealImages['sideDish'],
+                  onTap: () => _showMealDetail(
+                      context, _getCurrentMealItem(mealPlan, 'side')!),
+                ),
               ),
             ),
           ],
@@ -658,11 +661,12 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
               child: AspectRatio(
                 aspectRatio: 1.0,
                 child: MealPlanSquareCard(
-              mealItem: _getCurrentMealItem(mealPlan, 'soup'),
-              title: '汁物',
-              imageUrl: _mealImages['soup'],
-              onTap: () => _showMealDetail(context, _getCurrentMealItem(mealPlan, 'soup')!),
-            ),
+                  mealItem: _getCurrentMealItem(mealPlan, 'soup'),
+                  title: '汁物',
+                  imageUrl: _mealImages['soup'],
+                  onTap: () => _showMealDetail(
+                      context, _getCurrentMealItem(mealPlan, 'soup')!),
+                ),
               ),
             ),
             SizedBox(width: 12),
@@ -672,43 +676,45 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
                 child: mealPlan.additionalDish != null
                     ? MealPlanSquareCard(
                         mealItem: mealPlan.additionalDish,
-                        title: _getGenreDisplayName(mealPlan.additionalDish!.category),
+                        title: _getGenreDisplayName(
+                            mealPlan.additionalDish!.category),
                         imageUrl: mealPlan.additionalDish!.imageUrl,
-                        onTap: () => _showMealDetail(context, mealPlan.additionalDish!),
+                        onTap: () =>
+                            _showMealDetail(context, mealPlan.additionalDish!),
                       )
                     : GestureDetector(
                         onTap: _showGenreSelectionDialog,
                         child: Container(
-      decoration: BoxDecoration(
+                          decoration: BoxDecoration(
                             color: _baseColor.withOpacity(0.3),
                             border: Border.all(
                               color: _primaryColor.withOpacity(0.4),
                               width: 2,
                               style: BorderStyle.solid,
                             ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-              Icon(
+                            children: [
+                              Icon(
                                 Icons.add,
                                 size: 32,
                                 color: _primaryColor,
                               ),
                               SizedBox(height: 8),
-          Text(
+                              Text(
                                 'もう一品',
                                 style: TextStyle(
                                   fontSize: 14,
-              fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.bold,
                                   color: _primaryColor,
-            ),
-          ),
+                                ),
+                              ),
                               SizedBox(height: 4),
-          Text(
+                              Text(
                                 'タップして追加',
-            style: TextStyle(
+                                style: TextStyle(
                                   fontSize: 10,
                                   color: _accentColor,
                                 ),
@@ -718,9 +724,9 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
                         ),
                       ),
               ),
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
 
         const SizedBox(height: 24),
 
@@ -754,7 +760,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: _accentColor,
-                      ),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       const Text('作成中...'),
@@ -813,14 +819,15 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
               Text(
                 '買い物リスト',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: _textColor,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: _textColor,
+                    ),
               ),
               const Spacer(),
               if (mealPlan.estimatedTotalCost > 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: _primaryColor.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(8),
@@ -841,7 +848,6 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
 
           // 買い物リストアイテム
           ...mealPlan.shoppingList!.map((item) => _buildShoppingListItem(item)),
-
         ],
       ),
     );
@@ -873,16 +879,16 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
                 Text(
                   item.name,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: _textColor,
-                  ),
+                        fontWeight: FontWeight.w500,
+                        color: _textColor,
+                      ),
                 ),
                 if (item.notes.isNotEmpty)
                   Text(
                     item.notes,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: _accentColor.withOpacity(0.8),
-                    ),
+                          color: _accentColor.withOpacity(0.8),
+                        ),
                   ),
               ],
             ),
@@ -917,11 +923,10 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
         Text(
           '材料情報',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 12),
-        
         if (expiringIngredients.isNotEmpty) ...[
           _buildIngredientSection(
             title: '賞味期限が近い食材',
@@ -931,7 +936,6 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
           ),
           const SizedBox(height: 12),
         ],
-        
         if (missingIngredients.isNotEmpty) ...[
           _buildIngredientSection(
             title: '買い物が必要な食材',
@@ -941,7 +945,6 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
           ),
           const SizedBox(height: 12),
         ],
-        
         _buildIngredientSection(
           title: '利用可能な食材',
           ingredients: mealPlan.mainDish.ingredients
@@ -1016,44 +1019,45 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.restaurant_menu,
-            size: 80,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '献立を提案します',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.restaurant_menu,
+              size: 80,
+              color: Colors.grey[400],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '冷蔵庫の食材を分析して\n最適な献立を提案します',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _suggestMealPlan,
-            icon: const Icon(Icons.auto_awesome),
-            label: const Text('献立を提案'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 16),
+            Text(
+              '献立を提案します',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              '冷蔵庫の食材を分析して\n最適な献立を提案します',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _suggestMealPlan,
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('献立を提案'),
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1063,23 +1067,23 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
             CircularProgressIndicator(
               color: _primaryColor,
               strokeWidth: 3,
             ),
             const SizedBox(height: 24),
-          Text(
+            Text(
               'AIが献立を作成中...',
-            style: TextStyle(
+              style: TextStyle(
                 fontSize: 18,
-              color: _textColor,
+                color: _textColor,
                 fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
@@ -1089,24 +1093,24 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
             CircularProgressIndicator(
               color: _primaryColor,
               strokeWidth: 3,
             ),
             const SizedBox(height: 24),
-                Text(
+            Text(
               'AIが献立画像を作成中...',
-                  style: TextStyle(
+              style: TextStyle(
                 fontSize: 18,
-                    color: _textColor,
+                color: _textColor,
                 fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+              ),
             ),
+          ],
+        ),
       ),
     );
   }
@@ -1115,44 +1119,45 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 80,
-            color: Colors.red[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'エラーが発生しました',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.red[600],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 80,
+              color: Colors.red[400],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error.toString(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _suggestMealPlan,
-            icon: const Icon(Icons.refresh),
-            label: const Text('再試行'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 16),
+            Text(
+              'エラーが発生しました',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.red[600],
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              error.toString(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _suggestMealPlan,
+              icon: const Icon(Icons.refresh),
+              label: const Text('再試行'),
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1163,18 +1168,20 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
     // TODO: 実際のhouseholdIdを取得
     const householdId = 'default_household';
     print('   世帯ID: $householdId');
-    
+
     setState(() {
       _isInitialLoading = true;
     });
 
     try {
-    // 献立を提案
-    await ref.read(mealPlanProvider.notifier).suggestMealPlan(householdId: householdId);
-    
-    // 献立が生成されたら画像を生成
-    final mealPlan = ref.read(mealPlanProvider).value;
-    if (mealPlan != null) {
+      // 献立を提案
+      await ref
+          .read(mealPlanProvider.notifier)
+          .suggestMealPlan(householdId: householdId);
+
+      // 献立が生成されたら画像を生成
+      final mealPlan = ref.read(mealPlanProvider).value;
+      if (mealPlan != null) {
         await _generateMealImages(mealPlan);
       }
     } finally {
@@ -1183,7 +1190,6 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
       });
     }
   }
-
 
   Future<void> _generateMealImages(MealPlan mealPlan) async {
     // 即座にプレースホルダー画像を設定（主食を除く3品）
@@ -1199,11 +1205,11 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
     try {
       // シンプルな画像生成APIを呼び出し
       final adkApiClient = ADKApiClient.forSimpleImageApi();
-      
+
       // 並列で画像生成を実行（主食を除く3品のみ）
       final futures = [
         _generateImageViaADKWithTimeout(
-          adkApiClient, 
+          adkApiClient,
           mealPlan.mainDish.name,
           mealPlan.mainDish.description,
           180, // 3分でタイムアウト
@@ -1221,10 +1227,10 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
           180,
         ),
       ];
-      
+
       // 並列実行で結果を待つ
       final results = await Future.wait(futures);
-      
+
       setState(() {
         _mealImages = {
           'mainDish': results[0],
@@ -1255,14 +1261,16 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
   ) async {
     try {
       print('🖼️ 画像生成開始（タイムアウト: ${timeoutSeconds}秒）: $dishName');
-      
+
       // タイムアウト付きで画像生成を実行
-      final response = await adkApiClient.generateImage(
-        prompt: '$dishName: $description',
-        style: 'photorealistic',
-        size: '1024x1024',
-      ).timeout(Duration(seconds: timeoutSeconds));
-      
+      final response = await adkApiClient
+          .generateImage(
+            prompt: '$dishName: $description',
+            style: 'photorealistic',
+            size: '1024x1024',
+          )
+          .timeout(Duration(seconds: timeoutSeconds));
+
       if (response != null && response['image_url'] != null) {
         final imageUrl = response['image_url'] as String;
         print('✅ 画像生成完了: $dishName');
@@ -1289,11 +1297,17 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
       return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=512&h=512&fit=crop';
     } else if (dishLower.contains('サラダ') || dishLower.contains('野菜')) {
       return 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=512&h=512&fit=crop';
-    } else if (dishLower.contains('汁物') || dishLower.contains('スープ') || dishLower.contains('味噌汁')) {
+    } else if (dishLower.contains('汁物') ||
+        dishLower.contains('スープ') ||
+        dishLower.contains('味噌汁')) {
       return 'https://images.unsplash.com/photo-1547592180-85f173990554?w=512&h=512&fit=crop';
-    } else if (dishLower.contains('肉') || dishLower.contains('豚') || dishLower.contains('鶏')) {
+    } else if (dishLower.contains('肉') ||
+        dishLower.contains('豚') ||
+        dishLower.contains('鶏')) {
       return 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=512&h=512&fit=crop';
-    } else if (dishLower.contains('魚') || dishLower.contains('鮭') || dishLower.contains('鯖')) {
+    } else if (dishLower.contains('魚') ||
+        dishLower.contains('鮭') ||
+        dishLower.contains('鯖')) {
       return 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=512&h=512&fit=crop';
     } else {
       // デフォルトの料理画像
@@ -1344,7 +1358,8 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
 
     // 食材リストを文字列として作成
     final ingredientsList = allIngredients
-        .map((ingredient) => '• ${ingredient.name} ${ingredient.quantity ?? '適量'}')
+        .map((ingredient) =>
+            '• ${ingredient.name} ${ingredient.quantity ?? '適量'}')
         .join('\n');
 
     showDialog(
@@ -1521,34 +1536,40 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
       // 冷蔵庫の商品から該当食材の数量を減らす
       for (final ingredient in allIngredients) {
         print('🔍 Processing ingredient: ${ingredient.name}');
-        final matchingProducts = appState.products.where(
-          (product) => product.name.contains(ingredient.name) ||
-                      ingredient.name.contains(product.name)
-        ).toList();
+        final matchingProducts = appState.products
+            .where((product) =>
+                product.name.contains(ingredient.name) ||
+                ingredient.name.contains(product.name))
+            .toList();
 
         print('   Found ${matchingProducts.length} matching products');
 
         for (final product in matchingProducts) {
           if (product.id != null && product.quantity > 0) {
-            print('   📦 Product: ${product.name}, Current quantity: ${product.quantity}');
+            print(
+                '   📦 Product: ${product.name}, Current quantity: ${product.quantity}');
 
             // 使用する量を計算（最小1、最大現在の数量）
             final usageAmount = _calculateUsageAmount(ingredient, product);
-            final newQuantity = (product.quantity - usageAmount).clamp(0, product.quantity);
+            final newQuantity =
+                (product.quantity - usageAmount).clamp(0, product.quantity);
 
-            print('   📉 Usage amount: $usageAmount, New quantity: $newQuantity');
+            print(
+                '   📉 Usage amount: $usageAmount, New quantity: $newQuantity');
 
             if (newQuantity == 0) {
               // 数量が0になる場合は削除
               print('   🗑️ Deleting product (quantity = 0)');
-              await ref.read(appStateProvider.notifier)
-                        .deleteProductFromFirebase(product.id!);
+              await ref
+                  .read(appStateProvider.notifier)
+                  .deleteProductFromFirebase(product.id!);
             } else {
               // 数量を減らす
               print('   📝 Updating product quantity');
               final updatedProduct = product.copyWith(quantity: newQuantity);
-              await ref.read(appStateProvider.notifier)
-                        .updateProductInFirebase(updatedProduct);
+              await ref
+                  .read(appStateProvider.notifier)
+                  .updateProductInFirebase(updatedProduct);
             }
             reducedCount++;
             break; // 同じ食材は1つだけ処理
@@ -1557,10 +1578,10 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
       }
 
       // 献立承認処理
-    if (mealPlan.id != null) {
-      await ref.read(mealPlanProvider.notifier).acceptMealPlan(mealPlan.id!);
+      if (mealPlan.id != null) {
+        await ref.read(mealPlanProvider.notifier).acceptMealPlan(mealPlan.id!);
       }
-      
+
       print('✅ Meal decision completed. Reduced count: $reducedCount');
 
       // 成功メッセージ表示
@@ -1641,7 +1662,9 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
     // レシピの分量から使用量を推定
     final quantity = ingredient.quantity?.toLowerCase() ?? '';
 
-    if (quantity.contains('個') || quantity.contains('本') || quantity.contains('枚')) {
+    if (quantity.contains('個') ||
+        quantity.contains('本') ||
+        quantity.contains('枚')) {
       // 個数単位の場合
       final match = RegExp(r'(\d+)').firstMatch(quantity);
       if (match != null) {
@@ -1694,15 +1717,12 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
     );
   }
 
-
-
   void _showMealDetail(BuildContext context, MealItem mealItem) {
     showDialog(
       context: context,
       builder: (context) => MealDetailDialog(mealItem: mealItem),
     );
   }
-
 
   void _generateShoppingList(MealPlan mealPlan) {
     // TODO: 買い物リスト生成機能を実装
@@ -1722,7 +1742,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
           borderRadius: BorderRadius.circular(16),
         ),
         title: Text(
-              'もう一品追加',
+          'もう一品追加',
           style: TextStyle(
             color: _textColor,
             fontWeight: FontWeight.bold,
@@ -1760,9 +1780,9 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
                 subtitle: '簡単な一品料理',
                 icon: Icons.local_bar,
                 onTap: () => _showGenreSelectionDialog(),
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -1822,18 +1842,16 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios,
-                 color: _accentColor, size: 16),
+            Icon(Icons.arrow_forward_ios, color: _accentColor, size: 16),
           ],
         ),
       ),
     );
   }
 
-
   void _scrollToShoppingList() {
-    final RenderBox? renderBox = _shoppingListKey.currentContext
-        ?.findRenderObject() as RenderBox?;
+    final RenderBox? renderBox =
+        _shoppingListKey.currentContext?.findRenderObject() as RenderBox?;
 
     if (renderBox != null) {
       final position = renderBox.localToGlobal(Offset.zero);
@@ -1846,5 +1864,4 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
       );
     }
   }
-
 }

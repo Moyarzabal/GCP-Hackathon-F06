@@ -12,6 +12,7 @@ const List<String> _defaultCategories = [
   '飲料',
   '食品',
   '調味料',
+  '野菜',
   '冷凍食品',
   'その他'
 ];
@@ -183,7 +184,8 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
         isScanning: false,
         isProcessingProduct: false,
       );
-      print('✅ 最終状態: isScanning=${state.isScanning}, isProcessingProduct=${state.isProcessingProduct}');
+      print(
+          '✅ 最終状態: isScanning=${state.isScanning}, isProcessingProduct=${state.isProcessingProduct}');
 
       return Result.success(product);
     } catch (e, stackTrace) {
@@ -206,7 +208,8 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
   }
 
   /// 賞味期限を予測する（統合版Gemini使用）
-  Future<DateTime?> _predictExpiryDate(String productName, String? category) async {
+  Future<DateTime?> _predictExpiryDate(
+      String productName, String? category) async {
     try {
       // 統合版Geminiで分析
       final analysis = await _geminiService.analyzeProduct(
@@ -319,7 +322,8 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
 }
 
 /// スキャナープロバイダー
-final scannerProvider = StateNotifierProvider<ScannerNotifier, ScannerState>((ref) {
+final scannerProvider =
+    StateNotifierProvider<ScannerNotifier, ScannerState>((ref) {
   try {
     return ScannerNotifier(ref);
   } catch (e) {

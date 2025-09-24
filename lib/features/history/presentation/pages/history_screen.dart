@@ -82,106 +82,116 @@ class HistoryScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(16),
                     itemCount: sortedProducts.length,
                     itemBuilder: (context, index) {
-                    final product = sortedProducts[index];
-                    final isDeleted = product.deletedAt != null;
+                      final product = sortedProducts[index];
+                      final isDeleted = product.deletedAt != null;
 
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      color: isDeleted ? Colors.grey[100] : null,
-                      child: InkWell(
-                        onTap: () {
-                          // 商品詳細画面に遷移
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductDetailScreen(product: product),
-                            ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              // 商品画像
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: SizedBox(
-                                  width: 48,
-                                  height: 48,
-                                  child: product.currentImageUrl != null
-                                      ? _buildImageWidget(product)
-                                      : Container(
-                                          color: Colors.grey[300],
-                                          child: Icon(
-                                            Icons.image,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                ),
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        color: isDeleted ? Colors.grey[100] : null,
+                        child: InkWell(
+                          onTap: () {
+                            // 商品詳細画面に遷移
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ProductDetailScreen(product: product),
                               ),
-                              const SizedBox(width: 12),
-                              // 商品情報
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      product.name,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDeleted ? Colors.grey[600] : null,
-                                        decoration: isDeleted ? TextDecoration.lineThrough : null,
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                // 商品画像
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: SizedBox(
+                                    width: 48,
+                                    height: 48,
+                                    child: product.currentImageUrl != null
+                                        ? _buildImageWidget(product)
+                                        : Container(
+                                            color: Colors.grey[300],
+                                            child: Icon(
+                                              Icons.image,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                // 商品情報
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product.name,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDeleted
+                                              ? Colors.grey[600]
+                                              : null,
+                                          decoration: isDeleted
+                                              ? TextDecoration.lineThrough
+                                              : null,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      product.scannedAt != null
-                                          ? '${product.scannedAt!.year}/${product.scannedAt!.month}/${product.scannedAt!.day} ${product.scannedAt!.hour}:${product.scannedAt!.minute.toString().padLeft(2, '0')}'
-                                          : '登録日不明',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    if (isDeleted) ...[
                                       const SizedBox(height: 4),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.red[100],
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Text(
-                                          '削除済み',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.red[700],
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                      Text(
+                                        product.scannedAt != null
+                                            ? '${product.scannedAt!.year}/${product.scannedAt!.month}/${product.scannedAt!.day} ${product.scannedAt!.hour}:${product.scannedAt!.minute.toString().padLeft(2, '0')}'
+                                            : '登録日不明',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
                                         ),
                                       ),
+                                      if (isDeleted) ...[
+                                        const SizedBox(height: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red[100],
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            '削除済み',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.red[700],
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ],
-                                  ],
+                                  ),
                                 ),
-                              ),
-                              // カテゴリチップ
-                              Chip(
-                                label: Text(
-                                  product.category,
-                                  style: const TextStyle(fontSize: 12),
+                                // カテゴリチップ
+                                Chip(
+                                  label: Text(
+                                    product.category,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  backgroundColor: Theme.of(context)
+                                      .colorScheme
+                                      .secondaryContainer,
                                 ),
-                                backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),

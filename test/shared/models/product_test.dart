@@ -24,9 +24,12 @@ void main() {
       expect(result['janCode'], testProduct.janCode);
       expect(result['name'], testProduct.name);
       expect(result['category'], testProduct.category);
-      expect(result['scannedAt'], testProduct.scannedAt!.millisecondsSinceEpoch);
-      expect(result['addedDate'], testProduct.addedDate!.millisecondsSinceEpoch);
-      expect(result['expiryDate'], testProduct.expiryDate!.millisecondsSinceEpoch);
+      expect(
+          result['scannedAt'], testProduct.scannedAt!.millisecondsSinceEpoch);
+      expect(
+          result['addedDate'], testProduct.addedDate!.millisecondsSinceEpoch);
+      expect(
+          result['expiryDate'], testProduct.expiryDate!.millisecondsSinceEpoch);
       expect(result['quantity'], testProduct.quantity);
       expect(result['unit'], testProduct.unit);
     });
@@ -111,10 +114,10 @@ void main() {
     test('should return correct emotion state based on expiry', () {
       final testCases = [
         (10, '😊'), // More than 7 days
-        (5, '😐'),  // 3-7 days
-        (2, '😟'),  // 1-3 days
-        (1, '😰'),  // Exactly 1 day
-        (0, '💀'),  // Expired (0 or negative days)
+        (5, '😐'), // 3-7 days
+        (2, '😟'), // 1-3 days
+        (1, '😰'), // Exactly 1 day
+        (0, '💀'), // Expired (0 or negative days)
       ];
 
       for (final (days, expectedEmoji) in testCases) {
@@ -123,8 +126,8 @@ void main() {
         final product = testProduct.copyWith(expiryDate: expiryDate);
 
         // Act & Assert
-        expect(product.emotionState, expectedEmoji, 
-               reason: 'Failed for $days days remaining');
+        expect(product.emotionState, expectedEmoji,
+            reason: 'Failed for $days days remaining');
       }
     });
 
